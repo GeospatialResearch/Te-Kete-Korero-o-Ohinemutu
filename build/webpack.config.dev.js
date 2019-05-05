@@ -1,0 +1,57 @@
+'use strict'
+
+const webpack = require('webpack')
+const merge = require('webpack-merge')
+const baseConfig = require('./webpack.config.base')
+
+const utils = require('./utils')
+
+const HOST = '0.0.0.0'
+const PORT = 8080
+
+module.exports = merge(baseConfig, {
+  mode: 'development',
+
+  devServer: {
+    public: '0.0.0.0:80',
+    clientLogLevel: 'warning',
+    hot: true,
+    contentBase: 'dist',
+    compress: true,
+    host: HOST,
+    port: PORT,
+    open: true,
+    overlay: { warnings: false, errors: true },
+    publicPath: '/',
+    quiet: true
+  },
+
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [
+          'vue-style-loader',
+          'css-loader'
+        ]
+      }, {
+        test: /\.styl(us)?$/,
+        use: [
+          'vue-style-loader',
+          'css-loader',
+          'stylus-loader'
+        ]
+      }
+    ]
+  },
+
+  plugins: [
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.DefinePlugin({
+      // 'process.env.DATA_HOST': JSON.stringify(config.parameters.DATA_HOST),
+      'process.env.API_HOST': JSON.stringify(utils.parameters.API_HOST),
+      'process.env.WEB_HOST': JSON.stringify(utils.parameters.WEB_HOST),
+      // 'process.env.MAPBOX_ACCESS_TOKEN': JSON.stringify(config.parameters.MAPBOX_ACCESS_TOKEN)
+    })
+  ]
+})

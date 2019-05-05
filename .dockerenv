@@ -1,0 +1,3 @@
+POSTGRES_HOSTNAME=db
+POSTGRES_USER=mapuser
+POSTGRES_PASSWORD=developmentpassword

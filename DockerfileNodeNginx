@@ -1,0 +1,46 @@
+FROM node:8.10.0 as builder
+
+EXPOSE 8080
+
+ENV APPDIR=/code
+WORKDIR $APPDIR
+
+# We need some build environment variables to switch settings with
+# ARG DATA_HOST
+# ARG API_HOST
+# ARG WEB_HOST
+# ARG AUTH_HOST
+# ARG AUTH_CLIENT_ID
+
+# RUN echo $API_HOST
+
+# Set up the files to build with
+ADD build $APPDIR/build
+ADD static $APPDIR/static
+ADD assets $APPDIR/assets
+ADD .eslintrc.js $APPDIR/
+
+# Add in the project files
+ADD src $APPDIR/src
+ADD index.html $APPDIR/
+
+# And npm bits
+ADD package.json $APPDIR/
+ADD yarn.lock $APPDIR/
+
+# Do the package install and build in one step to reduce size of Docker image
+RUN yarn install
+RUN yarn build
+
+# In the case of dev, we repopulate the $APPDIR directory and run
+# from there with live sources. Since this is a staged build, we only
+# build up to here too... the nginx bits below are for production.
+
+FROM nginx:1.13.9 as nginx
+
+# Set up Nginx
+ADD build/nginx-www.conf /etc/nginx/nginx.conf
+ADD build/nginx-www-default.conf /etc/nginx/conf.d/default.conf
+
+COPY --from=builder /code/dist /tmp/dist
+RUN rm -rf /usr/share/nginx/html && mv /tmp/dist /usr/share/nginx/html
