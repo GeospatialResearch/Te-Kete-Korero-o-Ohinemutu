@@ -1,11 +1,10 @@
 <template>
-  <div>
-    <div id="map" />
-  </div>
+  <div id="map" :class="{'col-md-8':isOpen, 'col-md-11':!isOpen}" class="map" />
 </template>
 
 <script>
-
+import { EventBus } from '../../store/event-bus.js'
+import { delay } from 'underscore'
 // Import everything from ol
 import Map from 'ol/Map'
 import View from 'ol/View'
@@ -18,12 +17,25 @@ export default {
   data() {
     return {}
   },
+  computed: {
+    isOpen () {
+      return this.$store.state.showLeftPanel
+    }
+  },
   mounted: function () {
-    this.initMap()
+    this.initMap(),
+
+    EventBus.$on('updatesize-map', timeout => {
+      if (timeout === undefined) {
+        this.updateSizeMap()
+      } else {
+        delay(this.updateSizeMap, timeout)
+      }
+    })
   },
   methods: {
-    initMap: function () {
-      var mymap = new Map({
+    initMap () {
+      var themap = new Map({
         target: 'map',
         layers: [
           new TileLayer({
@@ -38,14 +50,20 @@ export default {
         })
       })
 
-      mymap.on('singleclick', function (evt) {
+      // Update the store with the new map we made
+      this.$store.commit('SET_MAP', themap)
+
+      themap.on('singleclick', function (evt) {
         console.log(evt.coordinate)
-        console.log(mymap.getView().getZoom())
-        console.log(mymap.getView().getCenter())
+        console.log(themap.getView().getZoom())
+        console.log(themap.getView().getCenter())
 
         // convert coordinate to EPSG-4326
         console.log(proj.transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326'))
       })
+    },
+    updateSizeMap () {
+      this.$store.state.map.updateSize()
     }
   }
 }

@@ -36,22 +36,25 @@ node-cmd:
 django-cmd:
 	docker-compose $(DEV) exec api bash
 
-# # Manage the Django database
-# make-migrations:
-# 	docker-compose $(DEV) exec api python3 manage.py makemigrations
-#
-# show-migrations:
-# 	docker-compose $(DEV) exec api python3 manage.py showmigrations
-#
-# migrate:
-# 	docker-compose $(DEV) exec api python3 manage.py migrate
-#
-# get-db:
-# 	docker-compose $(DEV) exec api python3 manage.py dbshell
-#
+# Manage the Django database
+make-migrations:
+	docker-compose $(DEV) exec api python3 manage.py makemigrations
+
+show-migrations:
+	docker-compose $(DEV) exec api python3 manage.py showmigrations
+
+migrate:
+	docker-compose $(DEV) exec api python3 manage.py migrate
+
+get-db:
+	docker-compose $(DEV) exec api python3 manage.py dbshell
+
+create-superuser:
+	docker-compose $(DEV) exec api python3 manage.py createsuperuser
+
 # initialise-db: migrate load-test
 # 	docker-compose $(DEV) restart api
-#
+
 # load-test:
 # 	docker-compose $(DEV) exec api \
 # 		python3 manage.py load_test_data
