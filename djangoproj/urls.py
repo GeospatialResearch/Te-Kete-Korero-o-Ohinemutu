@@ -15,13 +15,23 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.conf.urls import include, url
+from rest_framework import routers
 
+from app import views
 
 # Construct v1 API routes (it needs rest_framework installed)
-# ...
+router = routers.DefaultRouter()
+
+v1 = router.urls + [
+    url(r'^upload_file/', views.UploadFile.as_view())
+]
 
 
 urlpatterns = [
     # Enable django-admin at admin
-    path('admin/', admin.site.urls)
+    path('admin/', admin.site.urls),
+
+    # Version namespaced API routes
+    url('^v1/', include(v1)),
 ]

@@ -3,10 +3,29 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { faCoffee } from '@fortawesome/free-solid-svg-icons/faCoffee'
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight'
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons/faChevronLeft'
+import { faTachometerAlt } from '@fortawesome/free-solid-svg-icons/faTachometerAlt'
+import { faCircle } from '@fortawesome/free-solid-svg-icons/faCircle'
+import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch'
+import { faMapPin } from '@fortawesome/free-solid-svg-icons/faMapPin'
+import { faCog } from '@fortawesome/free-solid-svg-icons/faCog'
+import { faPowerOff } from '@fortawesome/free-solid-svg-icons/faPowerOff'
+import { faEllipsisH } from '@fortawesome/free-solid-svg-icons/faEllipsisH'
+import { faGlobe } from '@fortawesome/free-solid-svg-icons/faGlobe'
+import { faBook } from '@fortawesome/free-solid-svg-icons/faBook'
+import { faEnvelope } from '@fortawesome/free-solid-svg-icons/faEnvelope'
+import { faExclamation } from '@fortawesome/free-solid-svg-icons/faExclamation'
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons/faExclamationTriangle'
+import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck'
+import { faBell } from '@fortawesome/free-solid-svg-icons/faBell'
+import { faLayerGroup } from '@fortawesome/free-solid-svg-icons/faLayerGroup'
+import { faBookOpen } from '@fortawesome/free-solid-svg-icons/faBookOpen'
+import { faFolderOpen } from '@fortawesome/free-solid-svg-icons/faFolderOpen'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 library.add(
-  faCoffee, faChevronRight, faChevronLeft
+  faCoffee, faChevronRight, faChevronLeft, faTachometerAlt, faCircle, faSearch, faMapPin, faCog,
+  faPowerOff, faEllipsisH, faGlobe, faBook, faEnvelope, faExclamation, faExclamationTriangle, faCheck,
+  faBell, faLayerGroup, faBookOpen, faFolderOpen
 )
 
 export {
