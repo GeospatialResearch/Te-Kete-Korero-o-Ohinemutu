@@ -1,5 +1,8 @@
 Django==2.1.7
 django-cors-headers==2.5.2
+djangorestframework==3.9.2
 pytz==2018.9
 psycopg2-binary==2.7.7
 gunicorn==19.9.0
+Fiona==1.8.6
+flake8==3.7.7

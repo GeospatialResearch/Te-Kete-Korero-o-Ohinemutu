@@ -1,0 +1,13 @@
+[flake8]
+ignore = E501,C901
+exclude =
+    .git,
+    __pycache__,
+    node_modules,
+    build,
+    build-api,
+    client,
+    hooks,
+    static,
+    test
+max-complexity = 10

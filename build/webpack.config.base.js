@@ -3,8 +3,12 @@ const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const { VueLoaderPlugin } = require('vue-loader')
-
+const path = require('path')
 const utils = require('./utils')
+
+var cwd = (file) => {
+  return path.join(process.cwd(), file || '')
+}
 
 module.exports = {
   resolve: {
@@ -14,9 +18,14 @@ module.exports = {
       'pages': utils.resolve('src/pages'),
       'static': utils.resolve('static'),
       'components': utils.resolve('src/components')
-    }
+    },
+    modules: [
+      cwd('node_modules'),
+      // this means you can get rid of dot hell
+      // for example import 'components/Foo' instead of import '../../components/Foo'
+      cwd('src')
+    ]
   },
-
   module: {
     rules: [
       {

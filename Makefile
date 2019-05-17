@@ -14,7 +14,7 @@ run-prod:
 
 # Building things
 build-dev:
-	docker-compose $(DEV) build www
+	docker-compose $(DEV) build api
 
 build-prod:
 	docker-compose $(PROD) build
@@ -78,9 +78,9 @@ create-superuser:
 # # Code checking
 # check: flake8 eslint
 #
-# flake8:
-# 	docker-compose $(DEV) exec api flake8 .
-#
+flake8:
+	docker-compose $(DEV) exec api flake8 .
+
 # eslint:
 # 	docker-compose $(DEV) exec www yarn run lint
 #
