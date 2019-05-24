@@ -23,6 +23,7 @@
     "@fortawesome/free-solid-svg-icons": "^5.8.1",
     "@fortawesome/vue-fontawesome": "^0.1.6",
     "bootstrap": "^4.3.1",
+    "geojson-vt": "^3.2.1",
     "jquery": "^3.3.1",
     "malihu-custom-scrollbar-plugin": "^3.1.5",
     "ol": "^5.3.1",

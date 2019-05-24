@@ -6,9 +6,8 @@
       <div class="container-fluid">
         <div id="navbar" class="row p-4 navBar">
           <div class="align-self-center">
-            <a id="toggle-sidebar" class="btn-sm btn-dark" href="#" title="Toggle sidebar">
-              <font-awesome-icon icon="chevron-left" />
-              <font-awesome-icon icon="chevron-right" />
+            <a id="toggle-sidebar" class="btn-sm btn-dark mr-2" href="#" title="Toggle sidebar">
+              <font-awesome-icon icon="bars" />
             </a>
             <a id="pin-sidebar" class="btn-sm btn-dark" href="#" title="Pin sidebar">
               <font-awesome-icon icon="map-pin" />
