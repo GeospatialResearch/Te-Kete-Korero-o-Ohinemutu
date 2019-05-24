@@ -1,4 +1,4 @@
-var EventBus = require('../store/event-bus.js').EventBus
+var EventBus = require('store/event-bus.js').EventBus
 var _ = require('underscore')
 
 $(function () {

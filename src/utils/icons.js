@@ -1,8 +1,7 @@
 // var _ = require('underscore')
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faCoffee } from '@fortawesome/free-solid-svg-icons/faCoffee'
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight'
-import { faChevronLeft } from '@fortawesome/free-solid-svg-icons/faChevronLeft'
+import { faBars } from '@fortawesome/free-solid-svg-icons/faBars'
 import { faTachometerAlt } from '@fortawesome/free-solid-svg-icons/faTachometerAlt'
 import { faCircle } from '@fortawesome/free-solid-svg-icons/faCircle'
 import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch'
@@ -23,7 +22,7 @@ import { faFolderOpen } from '@fortawesome/free-solid-svg-icons/faFolderOpen'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 library.add(
-  faCoffee, faChevronRight, faChevronLeft, faTachometerAlt, faCircle, faSearch, faMapPin, faCog,
+  faCoffee, faBars, faTachometerAlt, faCircle, faSearch, faMapPin, faCog,
   faPowerOff, faEllipsisH, faGlobe, faBook, faEnvelope, faExclamation, faExclamationTriangle, faCheck,
   faBell, faLayerGroup, faBookOpen, faFolderOpen
 )

@@ -21,8 +21,8 @@
 <script>
 
 import { EventBus } from 'store/event-bus'
-import { enableEventListeners, addSelectInteraction } from 'utils/mapUtils'
-// import { flyTo } from 'utils/olHelper'
+import { enableEventListeners, addSelectInteraction, createGeojsonLayer, createGeojsonVTlayer, addOverlayFeatureLayer } from 'utils/mapUtils'
+import { addPropertyTitlesWFS, addProtectedAreasWFS, addAerialImageryWMTS } from 'utils/externalMapServices' // addSeaDrainingCatchmentsWFS, addMBTileLayer
 import { delay } from 'underscore'
 // Import everything from ol
 import Map from 'ol/Map'
@@ -32,16 +32,15 @@ import XYZ from 'ol/source/XYZ'
 // import OSM from 'ol/source/OSM'
 // import TileJSON from 'ol/source/TileJSON'
 
-// import VectorTileSource from 'ol/source/VectorTile'
-// import VectorTileLayer from 'ol/layer/VectorTile'
-// import MVT from 'ol/format/MVT'
 import VectorSource from 'ol/source/Vector'
 import VectorLayer from 'ol/layer/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { getWidth } from 'ol/extent' // getCenter,
-import { get as getProjection, transform } from 'ol/proj'
-import { Fill, Stroke, Style } from 'ol/style' // Circle as CircleStyle
+import { get as getProjection } from 'ol/proj' // transform
+// import { Fill, Stroke, Style } from 'ol/style' // Circle as CircleStyle
 import { Zoom, Attribution, ScaleLine } from 'ol/control'
+// import { tile } from 'ol/loadingstrategy' // bbox as bboxStrategy,
+// import { createXYZ } from 'ol/tilegrid'
 
 export default {
   name: 'MapView',
@@ -53,8 +52,11 @@ export default {
   computed: {
     mapView () {
       var view = new View({
-        center: [19328172.72030281, -5320017.168648273],
-        zoom: 5
+        projection: 'EPSG:3857',
+        center: [19410113.214624517, -5044843.866821633],
+        // projection: 'EPSG:4326',
+        // center: [172.79296875, -41.868896484375],
+        zoom: 6
       })
       return view
     },
@@ -74,63 +76,42 @@ export default {
     })
 
     EventBus.$on('updateMapWidth', () => {
-      console.log("it's a test")
       this.fixContentWidth()
     })
 
     EventBus.$on('addLayer', (geojsonObj) => {
+      console.log(geojsonObj)
+      // conditional to the dataset size (number of features)
+      if (geojsonObj.features.length > 10000) {
+        // Vector tile layer using geojson-vt
+        createGeojsonVTlayer(geojsonObj)
+      } else {
+        // Vector layer from a geojson object
+        createGeojsonLayer(geojsonObj)
+      }
 
-      // Vector layer from a geojson object
-      var gjsonLayer = new VectorLayer({
-        source: new VectorSource({
-          features: (new GeoJSON()).readFeatures(geojsonObj)
-        }),
-        style: new Style({
-           fill: new Fill({
-                color: 'rgba(255,255,255,0.3)'
-           }),
-           stroke: new Stroke({
-                color: 'blue',
-                width: 1
-           })
-        })
-      })
-
-      this.$store.state.map.addLayer(gjsonLayer)
-
-      var vectorExtent = this.getCorrectExtent(geojsonObj)
-      console.log(transform([vectorExtent[0], vectorExtent[1]], 'EPSG:3857', 'EPSG:4326'))
-      console.log(transform([vectorExtent[2], vectorExtent[3]], 'EPSG:3857', 'EPSG:4326'))
-      this.$store.state.map.getView().fit(vectorExtent, { duration: 2000 })
+      console.log(this.$store.state.map.getLayers())
       this.$store.state.isUploadingData = false
+      var vectorExtent =  this.getCorrectExtent(geojsonObj)
+      this.$store.state.map.getView().fit(vectorExtent, { duration: 2000 })
 
     })
   },
   methods: {
     initMap () {
-      // strategy: ol.loadingstrategy.bbox
 
       var themap = new Map({
         target: 'map',
         layers: [
           // new TileLayer({
           //   source: new OSM()
-          // })
+          // }) OR
           new TileLayer({
             source: new XYZ({
               url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png'
             })
           })
-          // new VectorTileLayer({
-          //   source: new VectorTileSource({
-          //     format: new MVT(),
-          //     url: 'https://data.esp.gritool.com/christchurch/data/{z}/{x}/{y}.pbf',
-          //     maxZoom: 24,
-          //     type: 'base'
-          //   })
-          // })
         ],
-        projection: 'EPSG:3857',
         view: this.mapView,
         controls: [
           new Zoom(),
@@ -143,6 +124,22 @@ export default {
 
       // Update the store with the new map we made
       this.$store.commit('SET_MAP', themap)
+
+      // Add external map services to the map
+      // addSeaDrainingCatchmentsWFS()
+      addAerialImageryWMTS()
+      addPropertyTitlesWFS()
+      addProtectedAreasWFS()
+
+      // Add auxiliar layers
+      addOverlayFeatureLayer()
+
+      // Declaration of select interactions
+      addSelectInteraction()
+
+      // Declaration of map events
+      enableEventListeners()
+
       // Fix map height
       this.fixContentHeight()
       // Fix map width (only on Desktop since the sidebar is open on start)
@@ -152,13 +149,6 @@ export default {
 
       console.log(getProjection('EPSG:3857').getExtent())
       console.log(getProjection('EPSG:4326').getExtent())
-
-      // Declaration of select interactions
-      addSelectInteraction()
-
-      // Declaration of map events
-      enableEventListeners()
-
     },
     updateSizeMap () {
       this.$store.state.map.updateSize()
@@ -186,7 +176,9 @@ export default {
     getCorrectExtent (geojsonObj) {
       var tempLayer = new VectorLayer({
         source: new VectorSource({
-          features: (new GeoJSON()).readFeatures(geojsonObj)
+          features: (new GeoJSON()).readFeatures(geojsonObj, {
+            featureProjection: 'EPSG:3857'
+          })
         })
       })
       // run a transform on all the feature coordinates (to change the range to 0 to 360) in OpenLayers
@@ -209,13 +201,6 @@ export default {
       })
 
       return tempLayer.getSource().getExtent()
-    },
-    displayFeatureInfo (pixel) {
-      var features = []
-      this.$store.state.map.forEachFeatureAtPixel(pixel, function(feature) {
-       features.push(feature)
-      })
-      console.log(features)
     }
     // onChangeBasemap (e) {
     //   console.log(e.target.value)

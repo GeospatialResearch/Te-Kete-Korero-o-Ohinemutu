@@ -42,9 +42,10 @@ def get_layer_from_file(file_obj, directory):
         extent = shape.GetExtent()
         print (extent)
 
-        # Get transformation to Web Mercator
-        epsgCode = 3857
+        # Get transformation to WGS84
+        epsgCode = 4326
         sourceSR = shape.GetSpatialRef()
+        print(sourceSR)
         targetSR = osr.SpatialReference()
         targetSR.ImportFromEPSG(epsgCode)
         coordTrans = osr.CoordinateTransformation(sourceSR,targetSR)
@@ -56,6 +57,8 @@ def get_layer_from_file(file_obj, directory):
 
         print(shape.GetFeatureCount())
         for x in range(shape.GetFeatureCount()):
+            if x % 500 == 0:
+                print(x)
             feature = shape.GetFeature(x)
             geom = feature.GetGeometryRef()
             # Transform everything... just in case
