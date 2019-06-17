@@ -1,7 +1,14 @@
-from django.db import models
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 import uuid
+from model_utils import Choices
+
+GEOMTYPES = Choices(
+    ('POINT', '1'),
+    ('LINE', '2'),
+    ('POLYGON', '3')
+)
+
 
 # Create your models here.
 class Dataset(models.Model):
@@ -10,6 +17,10 @@ class Dataset(models.Model):
         unique=True, primary_key=True
     )
     name = models.CharField(max_length=200)
+    geomtype = models.CharField(max_length=10,
+                                null=False,
+                                default=GEOMTYPES.POINT,
+                                choices=GEOMTYPES)
 
 
 class PolygonEntity(models.Model):
@@ -19,4 +30,7 @@ class PolygonEntity(models.Model):
     )
     geom = models.MultiPolygonField()
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    properties = JSONField(default=None, blank=True, null=True)
+    attributes = JSONField(default=None, blank=True, null=True)
+
+    class Meta:
+        db_table = "app_polygon_entity"

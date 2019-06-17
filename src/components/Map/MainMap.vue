@@ -21,7 +21,7 @@
 <script>
 
 import { EventBus } from 'store/event-bus'
-import { enableEventListeners, addSelectInteraction, createGeojsonLayer, createGeojsonVTlayer, addOverlayFeatureLayer } from 'utils/mapUtils'
+import { enableEventListeners, addInteractions, createGeojsonLayer, createGeojsonVTlayer, addOverlayFeatureLayer } from 'utils/mapUtils'
 import { addPropertyTitlesWFS, addProtectedAreasWFS, addAerialImageryWMTS } from 'utils/externalMapServices' // addSeaDrainingCatchmentsWFS, addMBTileLayer
 import { delay } from 'underscore'
 // Import everything from ol
@@ -82,19 +82,22 @@ export default {
     EventBus.$on('addLayer', (geojsonObj) => {
       console.log(geojsonObj)
       // conditional to the dataset size (number of features)
-      if (geojsonObj.features.length > 10000) {
-        // Vector tile layer using geojson-vt
-        createGeojsonVTlayer(geojsonObj)
-      } else {
-        // Vector layer from a geojson object
-        createGeojsonLayer(geojsonObj)
+      var t = false
+      if (t) {
+        if (geojsonObj.features.length > 10000) {
+          // Vector tile layer using geojson-vt
+          createGeojsonVTlayer(geojsonObj)
+        } else {
+          // Vector layer from a geojson object
+          createGeojsonLayer(geojsonObj)
+        }
+
+        console.log(this.$store.state.map.getLayers())
+
+        var vectorExtent =  this.getCorrectExtent(geojsonObj)
+        this.$store.state.map.getView().fit(vectorExtent, { duration: 2000 })
       }
-
-      console.log(this.$store.state.map.getLayers())
       this.$store.state.isUploadingData = false
-      var vectorExtent =  this.getCorrectExtent(geojsonObj)
-      this.$store.state.map.getView().fit(vectorExtent, { duration: 2000 })
-
     })
   },
   methods: {
@@ -116,9 +119,7 @@ export default {
         controls: [
           new Zoom(),
           new ScaleLine(),
-          new Attribution({
-            collapsible: true
-          })
+          new Attribution()
         ]
       })
 
@@ -126,7 +127,6 @@ export default {
       this.$store.commit('SET_MAP', themap)
 
       // Add external map services to the map
-      // addSeaDrainingCatchmentsWFS()
       addAerialImageryWMTS()
       addPropertyTitlesWFS()
       addProtectedAreasWFS()
@@ -135,7 +135,7 @@ export default {
       addOverlayFeatureLayer()
 
       // Declaration of select interactions
-      addSelectInteraction()
+      addInteractions()
 
       // Declaration of map events
       enableEventListeners()
