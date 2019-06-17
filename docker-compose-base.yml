@@ -4,18 +4,13 @@ services:
     build:
       context: .
       dockerfile: ./DockerfileNodeNginx
-      # args:
-      #   ENVIRONMENT: ""
   api:
     build:
       context: .
       dockerfile: ./DockerfileDjango
     env_file: .dockerenv
-    # environment:
-      # POSTGRES_HOSTNAME: "db"
+    # args:
       # EMAIL_PASS: $EMAIL_PASSWORD
-      # HOST: 'http://api.vcap.me'
-      # PORT: '8000'
     ports:
       - '8000:8000'
     depends_on:
@@ -25,3 +20,31 @@ services:
     env_file: .dockerenv
     ports:
       - '5432:5432'
+
+  geoserver:
+    image: geospatialri/geoserver-postgis
+    env_file: .dockerenv
+    ports:
+      - '8080:8080'
+    depends_on:
+      - 'db'
+## Storing data on the host rather than the container (Docker volumes can be used to persist your data)
+#   geoserver:
+#     image: kartoza/geoserver
+#     ports:
+#       - "8080:8080"
+#     env_file:
+#       - docker-env/geoserver.env
+#     volumes:
+#       - geoserver-data:/opt/geoserver/data_dir
+#     depends_on:
+#       - 'db'
+#     healthcheck:
+#         test: curl --fail -s http://localhost:8080/ || exit 1
+#         interval: 1m30s
+#         timeout: 10s
+#         retries: 3
+#
+#
+# volumes:
+#    geoserver-data:

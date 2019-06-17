@@ -175,6 +175,8 @@ var addMBTileLayer = function () {
 module.exports = {addPropertyTitlesWFS, addProtectedAreasWFS, addSeaDrainingCatchmentsWFS, addAerialImageryWMTS, addMBTileLayer}
 
 // // Note: loading a WFS with the bboxStrategy it doesn't work so well as using the tile createXYZ strategy
+// // import { bbox as bboxStrategy } from 'ol/loadingstrategy' 
+
 // new VectorLayer({
 //   source: new VectorSource({
 //     format: new GeoJSON(),
