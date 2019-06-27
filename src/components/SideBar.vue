@@ -3,8 +3,8 @@
     <nav id="sidebar" class="sidebar-wrapper">
       <div class="sidebar-content">
         <!-- sidebar-brand  -->
-        <div class="sidebar-item sidebar-brand">
-          <a href="#">pro sidebar</a>
+        <div class="sidebar-item sidebar-brand text-center">
+          <a href="#">Cultural narratives</a>
         </div>
         <!-- sidebar-header  -->
         <div class="sidebar-item sidebar-header d-flex flex-nowrap">
@@ -12,7 +12,7 @@
             <img class="img-responsive img-rounded" src="static/img/user.jpg" alt="User picture">
           </div>
           <div class="user-info">
-            <span class="user-name">Jhon <strong>Smith</strong>
+            <span class="user-name">John <strong>Smith</strong>
             </span>
             <span class="user-role">Administrator</span>
             <span class="user-status">
@@ -78,79 +78,39 @@
                   </li>
                 </ul>
               </div>
-            </li>
-            <li class="sidebar-dropdown">
-              <a href="#">
-                <i class="far fa-gem" />
-                <span class="menu-text">Components</span>
-              </a>
-              <div class="sidebar-submenu">
-                <ul>
-                  <li>
-                    <a href="#">General</a>
-                  </li>
-                  <li>
-                    <a href="#">Panels</a>
-                  </li>
-                  <li>
-                    <a href="#">Tables</a>
-                  </li>
-                  <li>
-                    <a href="#">Icons</a>
-                  </li>
-                  <li>
-                    <a href="#">Forms</a>
-                  </li>
-                </ul>
-              </div>
-            </li>
-            <li class="sidebar-dropdown">
-              <a href="#">
-                <i class="fa fa-chart-line" />
-                <span class="menu-text">Charts</span>
-              </a>
-              <div class="sidebar-submenu">
-                <ul>
-                  <li>
-                    <a href="#">Pie chart</a>
-                  </li>
-                  <li>
-                    <a href="#">Line chart</a>
-                  </li>
-                  <li>
-                    <a href="#">Bar chart</a>
-                  </li>
-                  <li>
-                    <a href="#">Histogram</a>
-                  </li>
-                </ul>
-              </div>
             </li> -->
             <li @click="$store.commit('TOGGLE_CONTENT', 'map')">
               <a href="#">
-                <i><font-awesome-icon icon="globe" /></i>
+                <i class="fa fa-globe" />
+                <!-- <i><font-awesome-icon icon="globe" /></i> -->
                 <span class="menu-text">Map</span>
               </a>
             </li>
             <li class="sidebar-dropdown">
               <a href="#">
-                <i><font-awesome-icon icon="layer-group" /></i>
+                <i class="fa fa-layer-group" />
+                <!-- <i><font-awesome-icon icon="layer-group" /></i> -->
                 <span class="menu-text">Layers</span>
               </a>
               <div class="sidebar-submenu">
                 <ul>
-                  <li>
-                    <a href="#">Google maps</a>
-                  </li>
-                  <li>
-                    <a href="#">Open street map</a>
+                  <li v-for="(layer, layerkey) in externalLayers" :key="layerkey" @click="changeLayerVisibility(layer, layerkey)">
+                    <span :class="{'visible': layer.visible}">
+                      <a href="#" class="layer-line">
+                        {{ layer.layername }}
+                        <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="hover" title="Layer Information" :data-content="createPopoverInfo(layer)">
+                          <font-awesome-icon icon="info" size="xs" />
+                        </span>
+                      </a>
+                    </span>
                   </li>
                 </ul>
               </div>
             </li>
             <li class="sidebar-dropdown">
               <a href="#">
-                <i><font-awesome-icon icon="book-open" /></i>
+                <i class="fa fa-book-open" />
+                <!-- <i><font-awesome-icon icon="book-open" /></i> -->
                 <span class="menu-text">Stories</span>
                 <span class="badge badge-pill badge-warning">New</span>
               </a>
@@ -173,7 +133,8 @@
             </li>
             <li class="sidebar-dropdown">
               <a href="#">
-                <i><font-awesome-icon icon="tachometer-alt" /></i>
+                <i class="fa fa-tachometer-alt" />
+                <!-- <i><font-awesome-icon icon="tachometer-alt" /></i> -->
                 <span class="menu-text">Dashboard</span>
                 <span class="badge badge-pill badge-warning">New</span>
               </a>
@@ -199,7 +160,8 @@
             </li>
             <li>
               <a href="#">
-                <i><font-awesome-icon icon="book" /></i>
+                <i class="fa fa-book" />
+                <!-- <i><font-awesome-icon icon="book" /></i> -->
                 <span class="menu-text">Documentation</span>
                 <span class="badge badge-pill badge-primary">Beta</span>
               </a>
@@ -377,7 +339,9 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="reset()">Close</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="reset()">
+              Close
+            </button>
           </div>
         </div>
       </div>
@@ -391,6 +355,16 @@
   import { EventBus } from 'store/event-bus'
 
   export default {
+    data () {
+      return {
+        uploadFieldName: 'file'
+      }
+    },
+    computed: {
+      externalLayers () {
+        return this.$store.state.externalLayers
+      }
+    },
     methods: {
       uploadDatasetClicked () {
         $('#uploadDatasetModal').modal('show')
@@ -410,7 +384,10 @@
             formData.append('file', fileList[x], fileList[x].name)
           })
 
+        // close the modal
         $('#uploadDatasetModal').modal('hide')
+
+        // dispatch action to upload file
         this.$store.dispatch('uploadFile', formData)
         .then(response => {
           console.log(response)
@@ -432,6 +409,20 @@
           // this.currentStatus = STATUS_FAILED
           fileList = ''
         })
+      },
+      changeLayerVisibility (layer, layerkey) {
+        this.$store.state.externalLayers[layerkey].visible = !this.$store.state.externalLayers[layerkey].visible
+        if (this.$store.state.externalLayers[layerkey].visible) {
+          EventBus.$emit('createLayer', layerkey)
+        } else {
+          EventBus.$emit('removeLayer', layerkey)
+        }
+      },
+      createPopoverInfo (layer) {
+        var htmlInfo = layer.attribution
+        htmlInfo = htmlInfo + "<p>Due to the density of data in the layer, the layer is visible between the resolutions " +
+                            layer.minresolution + " and " + layer.maxresolution + "</p>"
+        return htmlInfo
       }
     }
   }

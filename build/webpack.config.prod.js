@@ -61,7 +61,8 @@ module.exports = merge(baseConfig, {
     // 'process.env.DATA_HOST': JSON.stringify(config.parameters.DATA_HOST),
     'process.env.API_HOST': JSON.stringify(utils.parameters.API_HOST),
     'process.env.WEB_HOST': JSON.stringify(utils.parameters.WEB_HOST),
-    // 'process.env.MAPBOX_ACCESS_TOKEN': JSON.stringify(config.parameters.MAPBOX_ACCESS_TOKEN)
+    'process.env.LINZ_ACCESS_KEY': JSON.stringify(utils.parameters.LINZ_ACCESS_KEY),
+    'process.env.MFE_ACCESS_KEY': JSON.stringify(utils.parameters.MFE_ACCESS_KEY)
   })
 ]
 })

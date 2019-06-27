@@ -14,7 +14,7 @@ run-prod:
 
 # Building things
 build-dev:
-	docker-compose $(DEV) build api
+	docker-compose $(DEV) build www
 
 build-prod:
 	docker-compose $(PROD) build

@@ -7,7 +7,8 @@ const parameters = {
   // DATA_HOST: "https://data.esp.gritool.com",
   API_HOST: "http://localhost:8000",
   WEB_HOST: "http://localhost",
-  // MAPBOX_ACCESS_TOKEN: "pk.eyJ1IjoiZmFsY29hIiwiYSI6ImNqZTk0YjRubjAyNjUyd3M1NHB3ZnFpNmwifQ.J1BcodUi_iSRyCu-DmPjcQ"
+  LINZ_ACCESS_KEY: "068f37bc27874c79aee57d4fb4d1455d",
+  MFE_ACCESS_KEY: "ddc45ce09b8243a9ac98f12b0b86b254"
 }
 // if (process.env.DATA_HOST) {
 //   parameters.DATA_HOST = process.env.DATA_HOST

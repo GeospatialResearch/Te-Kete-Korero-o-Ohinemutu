@@ -1,4 +1,3 @@
-const store = require('store').default
 const Style = require('ol/style/Style').default
 const Stroke = require('ol/style/Stroke').default
 const Fill = require('ol/style/Fill').default
@@ -14,6 +13,10 @@ var VectorTileLayer = require('ol/layer/VectorTile').default
 var MVT = require('ol/format/MVT').default
 var Feature = require('ol/Feature').default
 
+const store = require('store').default
+const linzKey = process.env.LINZ_ACCESS_KEY
+const mfeKey = process.env.MFE_ACCESS_KEY
+
 function makePattern() {
 	var cnv = document.createElement('canvas');
   var ctx = cnv.getContext('2d');
@@ -27,7 +30,7 @@ function makePattern() {
   return ctx.createPattern(cnv, 'repeat');
 }
 
-var addPropertyTitlesWFS = function () {
+var addPropertyTitlesWFS = function (layername, zindex, minresolution, maxresolution) {
   const map = store.state.map
 
   var vs = new VectorSource({
@@ -50,7 +53,7 @@ var addPropertyTitlesWFS = function () {
     // },
     format: new GeoJSON(),
     url: function(extent) {
-       return 'https://data.linz.govt.nz/services;key=068f37bc27874c79aee57d4fb4d1455d/wfs?service=WFS&' +
+       return 'https://data.linz.govt.nz/services;key=' + linzKey + '/wfs?service=WFS&' +
         'version=2.0.0&request=GetFeature&typename=layer-50804&' +
         'outputFormat=application/json&srsname=EPSG:3857&' +
         'bbox=' + extent.join(',') + ',EPSG:3857';
@@ -62,8 +65,10 @@ var addPropertyTitlesWFS = function () {
 
   var vl = new VectorLayer({
     source: vs,
-    minResolution: 0,
-    maxResolution: 5,
+		name: layername,
+		zIndex: zindex,
+    minResolution: minresolution,
+    maxResolution: maxresolution,
     style: new Style({
       fill: new Fill({
         color: 'rgba(255, 255, 255, 0)' // so it will be recognised on hover, otherwise only when hovering on the edges the feature would be identified
@@ -78,13 +83,13 @@ var addPropertyTitlesWFS = function () {
   map.addLayer(vl)
 }
 
-var addProtectedAreasWFS = function () {
+var addProtectedAreasWFS = function (layername, zindex, minresolution, maxresolution) {
   const map = store.state.map
 
   var vs = new VectorSource({
     format: new GeoJSON(),
     url: function(extent) {
-       return 'https://data.linz.govt.nz/services;key=068f37bc27874c79aee57d4fb4d1455d/wfs?service=WFS&' +
+       return 'https://data.linz.govt.nz/services;key=' + linzKey + '/wfs?service=WFS&' +
         'version=2.0.0&request=GetFeature&typename=layer-53564&' +
         'outputFormat=application/json&srsname=EPSG:3857&' +
         'bbox=' + extent.join(',') + ',EPSG:3857';
@@ -96,8 +101,10 @@ var addProtectedAreasWFS = function () {
 
   var vl = new VectorLayer({
     source: vs,
-    minResolution: 0,
-    maxResolution: 80,
+		name: layername,
+		zIndex: zindex,
+    minResolution: minresolution,
+    maxResolution: maxresolution,
     style: new Style({
       fill: new Fill({
         //color: 'rgba(255, 255, 255, 0.6)'
@@ -113,13 +120,13 @@ var addProtectedAreasWFS = function () {
   map.addLayer(vl)
 }
 
-var addSeaDrainingCatchmentsWFS = function () {
+var addSeaDrainingCatchmentsWFS = function (layername, zindex, minresolution, maxresolution) {
   const map = store.state.map
 
   var vs = new VectorSource({
     format: new GeoJSON(),
     url: function(extent) {
-       return 'https://data.mfe.govt.nz/services;key=ddc45ce09b8243a9ac98f12b0b86b254/wfs?service=WFS&' +
+       return 'https://data.mfe.govt.nz/services;key=' + mfeKey + '/wfs?service=WFS&' +
         'version=2.0.0&request=GetFeature&typename=layer-99776&' +
         'outputFormat=application/json&srsname=EPSG:3857&' +
         'bbox=' + extent.join(',') + ',EPSG:3857';
@@ -131,8 +138,10 @@ var addSeaDrainingCatchmentsWFS = function () {
 
   var vl = new VectorLayer({
     source: vs,
-    minResolution: 10,
-    maxResolution: 300,
+		name: layername,
+		zIndex: zindex,
+    minResolution: minresolution,
+    maxResolution: maxresolution,
     style: new Style({
       fill: new Fill({
         color: 'rgba(119, 215, 224, 0.6)'
@@ -147,14 +156,17 @@ var addSeaDrainingCatchmentsWFS = function () {
   map.addLayer(vl)
 }
 
-var addAerialImageryWMTS = function () {
-  const map = store.state.map
+var addAerialImageryWMTS = function (layername, zindex) {
+	const map = store.state.map
 
   var tl = new TileLayer({
     source: new XYZ({
-      url: 'http://tiles-a.data-cdn.linz.govt.nz/services;key=068f37bc27874c79aee57d4fb4d1455d/tiles/v4/set=4702/EPSG:3857/{z}/{x}/{y}.png'
-    })
+      url: 'http://tiles-a.data-cdn.linz.govt.nz/services;key=' + linzKey + '/tiles/v4/set=4702/EPSG:3857/{z}/{x}/{y}.png'
+    }),
+		name: layername,
+		zIndex: zindex
   })
+
   map.addLayer(tl)
 }
 
@@ -175,7 +187,7 @@ var addMBTileLayer = function () {
 module.exports = {addPropertyTitlesWFS, addProtectedAreasWFS, addSeaDrainingCatchmentsWFS, addAerialImageryWMTS, addMBTileLayer}
 
 // // Note: loading a WFS with the bboxStrategy it doesn't work so well as using the tile createXYZ strategy
-// // import { bbox as bboxStrategy } from 'ol/loadingstrategy' 
+// // import { bbox as bboxStrategy } from 'ol/loadingstrategy'
 
 // new VectorLayer({
 //   source: new VectorSource({

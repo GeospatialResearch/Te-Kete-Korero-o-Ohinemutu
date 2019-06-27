@@ -116,3 +116,24 @@ html, body {
   vertical-align: middle;
   padding: 50px 0;
 }
+
+.layer-line {
+  display: block !important;
+  padding-right: 20px !important;
+}
+
+.popover {
+  max-width: none !important;
+}
+
+.popover-header {
+  font-size: 0.9rem;
+}
+
+.popover-body {
+  font-size: 0.8rem;
+}
+
+.popover-body p {
+  margin-bottom: 0px;
+}

@@ -22,8 +22,8 @@
 
 import { EventBus } from 'store/event-bus'
 import { enableEventListeners, addInteractions, createGeojsonLayer, createGeojsonVTlayer, addOverlayFeatureLayer } from 'utils/mapUtils'
-import { addPropertyTitlesWFS, addProtectedAreasWFS, addAerialImageryWMTS } from 'utils/externalMapServices' // addSeaDrainingCatchmentsWFS, addMBTileLayer
-import { delay } from 'underscore'
+import { extLayersObj, extLayersCalls } from 'utils/objects'
+import { delay, each } from 'underscore'
 // Import everything from ol
 import Map from 'ol/Map'
 import View from 'ol/View'
@@ -54,7 +54,7 @@ export default {
       var view = new View({
         projection: 'EPSG:3857',
         center: [19410113.214624517, -5044843.866821633],
-        // projection: 'EPSG:4326',
+        // projection: 'EPSG:4326',  // this distorts the view
         // center: [172.79296875, -41.868896484375],
         zoom: 6
       })
@@ -62,11 +62,23 @@ export default {
     },
     isUploadingData () {
       return this.$store.state.isUploadingData
+    },
+    externalLayers () {
+      return this.$store.state.externalLayers
+    },
+    map () {
+      return this.$store.state.map
     }
+  },
+  created: function () {
+    this.$store.commit('SET_EXTERNAL_LAYERS', $.extend(true, {}, extLayersObj))
   },
   mounted: function () {
     this.initMap(),
 
+    // ------------------
+    // EventBus events
+    // ------------------
     EventBus.$on('updatesize-map', timeout => {
       if (timeout === undefined) {
         this.updateSizeMap()
@@ -79,11 +91,30 @@ export default {
       this.fixContentWidth()
     })
 
+    EventBus.$on('createLayer', (layername) => {
+      extLayersCalls[layername].functionToCall.call()
+    })
+
+    EventBus.$on('removeLayer', (layername) => {
+      var lyr_list = []
+      this.map.getLayers().forEach(function (layer) {
+        if (layer.get('name') === layername) {
+          lyr_list.push(layer)
+        }
+      })
+      each(lyr_list, (l) => {
+        this.map.removeLayer(l)
+      })
+    })
+
     EventBus.$on('addLayer', (geojsonObj) => {
       console.log(geojsonObj)
-      // conditional to the dataset size (number of features)
-      var t = false
-      if (t) {
+
+      var createdGeoserverLayer = true
+      if (createdGeoserverLayer) {
+        // call geoserver wms
+      } else {
+        // conditional to the dataset size (number of features)
         if (geojsonObj.features.length > 10000) {
           // Vector tile layer using geojson-vt
           createGeojsonVTlayer(geojsonObj)
@@ -94,6 +125,7 @@ export default {
 
         console.log(this.$store.state.map.getLayers())
 
+        // get extention to zoom to data
         var vectorExtent =  this.getCorrectExtent(geojsonObj)
         this.$store.state.map.getView().fit(vectorExtent, { duration: 2000 })
       }
@@ -127,9 +159,11 @@ export default {
       this.$store.commit('SET_MAP', themap)
 
       // Add external map services to the map
-      addAerialImageryWMTS()
-      addPropertyTitlesWFS()
-      addProtectedAreasWFS()
+      each(extLayersObj, (layer, layerkey) => {
+        if (layer.visible) {
+          return extLayersCalls[layerkey].functionToCall.call()
+        }
+      })
 
       // Add auxiliar layers
       addOverlayFeatureLayer()
@@ -181,7 +215,8 @@ export default {
           })
         })
       })
-      // run a transform on all the feature coordinates (to change the range to 0 to 360) in OpenLayers
+      // run a transform on all the feature coordinates (to change the range to 0 to 360)
+      // due to issue with dateline in OpenLayers
       var wrapWidth = getWidth(this.$store.state.map.getView().getProjection().getExtent());
       function wrapTransform(input, opt_output, opt_dimension) {
         var length = input.length;

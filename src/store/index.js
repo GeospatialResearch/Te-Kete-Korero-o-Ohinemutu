@@ -11,7 +11,8 @@ const store = new Vuex.Store({
     flavor: '',
     map: null,
     isUploadingData: false,
-    contentToShow: 'map'
+    contentToShow: 'map',
+    externalLayers: null
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -23,7 +24,10 @@ const store = new Vuex.Store({
     },
     TOGGLE_CONTENT (state, content) {
       state.contentToShow = content
-    }
+    },
+    SET_EXTERNAL_LAYERS (state, layersObj) {
+      state.externalLayers = layersObj
+    },
     // Generic fail handling
     // API_FAIL (state, error) {
     //   if (error.status === 401 || error.status === 403) {
@@ -53,13 +57,6 @@ const store = new Vuex.Store({
         })
         .catch((error) => store.commit('API_FAIL', error))
     }
-    // getLots (store, projectId) {
-    //   return api.get(apiRoot + '/lots/?project=' + projectId, { headers: auth.getAuthHeader() })
-    //     .then((response) => {
-    //       store.commit('GET_LOTS', response)
-    //     })
-    //     .catch((error) => store.commit('API_FAIL', error))
-    // }
   }
 })
 

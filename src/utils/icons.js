@@ -19,12 +19,14 @@ import { faBell } from '@fortawesome/free-solid-svg-icons/faBell'
 import { faLayerGroup } from '@fortawesome/free-solid-svg-icons/faLayerGroup'
 import { faBookOpen } from '@fortawesome/free-solid-svg-icons/faBookOpen'
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons/faFolderOpen'
+import { faInfo } from '@fortawesome/free-solid-svg-icons/faInfo'
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons/faInfoCircle'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 library.add(
   faCoffee, faBars, faTachometerAlt, faCircle, faSearch, faMapPin, faCog,
   faPowerOff, faEllipsisH, faGlobe, faBook, faEnvelope, faExclamation, faExclamationTriangle, faCheck,
-  faBell, faLayerGroup, faBookOpen, faFolderOpen
+  faBell, faLayerGroup, faBookOpen, faFolderOpen, faInfo, faInfoCircle
 )
 
 export {

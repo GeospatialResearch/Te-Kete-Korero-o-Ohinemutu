@@ -22,7 +22,7 @@ services:
       - '5432:5432'
 
   geoserver:
-    image: geospatialri/geoserver-postgis
+    image: geospatialri/geoserver-postgis:2.15.0
     env_file: .dockerenv
     ports:
       - '8080:8080'

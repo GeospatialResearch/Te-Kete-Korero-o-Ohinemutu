@@ -14,7 +14,6 @@ $(function () {
             $(this).next(".sidebar-submenu").slideDown(200);
             $(this).parent().addClass("active");
         }
-
     });
 
     //toggle sidebar

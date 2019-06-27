@@ -20,6 +20,14 @@ import './css/sidebar-themes.css'
 import 'ol/ol.css'
 import 'malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.css'
 
+// initialising all popovers
+$(function () {
+  $('[data-toggle="popover"]').popover({
+    boundary:'window',
+    html: true
+  })
+})
+
 /* eslint-disable-next-line no-new */
 new Vue({
   el: '#app',

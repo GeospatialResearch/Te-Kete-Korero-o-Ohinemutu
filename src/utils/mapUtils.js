@@ -82,18 +82,19 @@ var enableEventListeners = function () {
     console.log(map.getView().getZoom())
     console.log(map.getView().getResolution())
     // console.log(themap.getView().getCenter())
-    // convert coordinate to EPSG-4326
+    
+    // convert coordinate to EPSG:4326
     console.log(transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326'))
     displayFeatureInfo(evt.pixel)
   })
 
   map.on('pointermove', (evt) => {
-  if (evt.dragging) {
-    return
-  }
-  var pixel = map.getEventPixel(evt.originalEvent)
-  displayFeatureInfo(pixel)
-})
+    if (evt.dragging) {
+      return
+    }
+    var pixel = map.getEventPixel(evt.originalEvent)
+    displayFeatureInfo(pixel)
+  })
 }
 
 var addInteractions = function () {
@@ -154,6 +155,7 @@ var addOverlayFeatureLayer = function () {
 
   var overlayLayer = new VectorLayer({
     name: 'feature_overlay',
+    zIndex: 99,
     source: new VectorSource(),
     style: new Style({
       stroke: new Stroke({
