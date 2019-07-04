@@ -38,16 +38,6 @@
       </div>
     </div>
     <hr>
-    <div class="row p-4">
-      <div class="form-group col-md-12">
-        <a href="https://github.com/azouaoui-med/pro-sidebar-template" class="btn btn-dark" target="_blank">
-          <i class="fab fa-github" /> View source</a>
-        <a href="https://github.com/azouaoui-med/pro-sidebar-template/archive/gh-pages.zip" class="btn btn-outline-dark" target="_blank">
-          <i class="fa fa-download" /> Download
-        </a>
-      </div>
-    </div>
-    <hr>
   </div>
 </template>
 

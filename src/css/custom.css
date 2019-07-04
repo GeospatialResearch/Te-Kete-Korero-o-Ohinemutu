@@ -137,3 +137,20 @@ html, body {
 .popover-body p {
   margin-bottom: 0px;
 }
+
+.resolution-box {
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  padding:15px 15px;
+  margin: 0;
+  font-size: 15px;
+  border-radius: 3px;
+  z-index: 99;
+}
+
+.resolution-box p {
+  margin-bottom: 0px;
+}

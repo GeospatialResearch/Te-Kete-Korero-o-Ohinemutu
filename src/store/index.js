@@ -12,7 +12,9 @@ const store = new Vuex.Store({
     map: null,
     isUploadingData: false,
     contentToShow: 'map',
-    externalLayers: null
+    externalLayers: null,
+    map_resolution: 0,
+    map_zoom: 0
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -27,6 +29,12 @@ const store = new Vuex.Store({
     },
     SET_EXTERNAL_LAYERS (state, layersObj) {
       state.externalLayers = layersObj
+    },
+    SET_MAP_RESOLUTION (state, resolution) {
+      state.map_resolution = resolution
+    },
+    SET_MAP_ZOOM (state, zoom) {
+      state.map_zoom = zoom
     },
     // Generic fail handling
     // API_FAIL (state, error) {
