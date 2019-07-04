@@ -82,7 +82,7 @@ var enableEventListeners = function () {
     console.log(map.getView().getZoom())
     console.log(map.getView().getResolution())
     // console.log(themap.getView().getCenter())
-    
+
     // convert coordinate to EPSG:4326
     console.log(transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326'))
     displayFeatureInfo(evt.pixel)
@@ -94,6 +94,16 @@ var enableEventListeners = function () {
     }
     var pixel = map.getEventPixel(evt.originalEvent)
     displayFeatureInfo(pixel)
+  })
+
+  var currZoom = map.getView().getZoom()
+  map.on('moveend', () => {
+    var newZoom = map.getView().getZoom()
+    if (currZoom != newZoom) {
+      currZoom = newZoom
+      store.commit('SET_MAP_RESOLUTION', map.getView().getResolution())
+      store.commit('SET_MAP_ZOOM', map.getView().getZoom())
+    }
   })
 }
 

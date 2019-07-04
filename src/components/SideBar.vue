@@ -352,6 +352,7 @@
 
 <script>
   import 'utils/sidebar'
+  import notify from 'utils/notify'
   import { EventBus } from 'store/event-bus'
 
   export default {
@@ -363,6 +364,9 @@
     computed: {
       externalLayers () {
         return this.$store.state.externalLayers
+      },
+      map () {
+        return this.$store.state.map
       }
     },
     methods: {
@@ -414,14 +418,21 @@
         this.$store.state.externalLayers[layerkey].visible = !this.$store.state.externalLayers[layerkey].visible
         if (this.$store.state.externalLayers[layerkey].visible) {
           EventBus.$emit('createLayer', layerkey)
+          if (layer.hasOwnProperty('maxresolution')) {
+            if (this.map.getView().getResolution() > layer.maxresolution) {
+              notify.warning("The layer " + layer.layername + " was activated but to be visible on the map you must zoom in to the resolution " + layer.maxresolution + ".")
+            }
+          }
         } else {
           EventBus.$emit('removeLayer', layerkey)
         }
       },
       createPopoverInfo (layer) {
         var htmlInfo = layer.attribution
-        htmlInfo = htmlInfo + "<p>Due to the density of data in the layer, the layer is visible between the resolutions " +
-                            layer.minresolution + " and " + layer.maxresolution + "</p>"
+        if (layer.hasOwnProperty('maxresolution')) {
+          htmlInfo = htmlInfo + "<p>Due to the density of data in the layer, the layer is visible between the resolutions " +
+                              layer.minresolution + " and " + layer.maxresolution + "</p>"
+        }
         return htmlInfo
       }
     }

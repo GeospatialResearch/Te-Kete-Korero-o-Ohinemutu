@@ -12,6 +12,14 @@
         Uploading data
       </p>
     </div>
+    <div class="resolution-box text-center">
+      <p>
+        <small>Resolution: {{ mapresolution }}</small>
+      </p>
+      <p>
+        <small>Zoom: {{ mapzoom }}</small>
+      </p>
+    </div>
   </div>
   <!-- <select id="layer-select" @change="onChangeBasemap($event)">
    <option value="'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png'">openstreetmap</option>
@@ -68,6 +76,12 @@ export default {
     },
     map () {
       return this.$store.state.map
+    },
+    mapresolution () {
+      return this.$store.state.map_resolution.toFixed(1)
+    },
+    mapzoom () {
+      return this.$store.state.map_zoom.toFixed(1)
     }
   },
   created: function () {
@@ -157,6 +171,10 @@ export default {
 
       // Update the store with the new map we made
       this.$store.commit('SET_MAP', themap)
+
+      // Set map resolution and zoom
+      this.$store.commit('SET_MAP_RESOLUTION', themap.getView().getResolution())
+      this.$store.commit('SET_MAP_ZOOM', themap.getView().getZoom())
 
       // Add external map services to the map
       each(extLayersObj, (layer, layerkey) => {
