@@ -14,8 +14,11 @@
             </a>
           </div>
         </div>
-        <main-map v-show="contentToShow=='map'" />
-        <content-info v-show="contentToShow=='themes'" />
+        <div class="row">
+          <main-map v-show="contentToShow=='map'" />
+          <content-info v-show="contentToShow=='themes'" />
+          <side-panel v-show="contentToShow=='map'" />
+        </div>
       </div>
     </main>
     <!-- page-content" -->
@@ -26,11 +29,13 @@
   import 'utils/sidebar'
   import MainMap from 'components/Map/MainMap'
   import ContentInfo from 'components/ContentInfo'
+  import SidePanel from 'components/SidePanel'
 
   export default {
     components: {
       MainMap,
-      ContentInfo
+      ContentInfo,
+      SidePanel
     },
     computed: {
       contentToShow () {

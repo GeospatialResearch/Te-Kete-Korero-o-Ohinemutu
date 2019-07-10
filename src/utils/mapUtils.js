@@ -1,5 +1,5 @@
 const store = require('store').default
-var transform = require('ol/proj').transform
+// var transform = require('ol/proj').transform
 const Select = require('ol/interaction/Select').default
 const DragAndDrop = require('ol/interaction/DragAndDrop').default
 const condition = require('ol/events/condition')
@@ -31,25 +31,25 @@ var fill = new Fill({
         color: 'rgba(0,0,0,0.2)'
       });
 
-      var stroke = new Stroke({
-        color: 'rgba(0,0,0,0.4)'
-      });
+var stroke = new Stroke({
+  color: 'rgba(0,0,0,0.4)'
+});
 
-      var circle = new Circle({
-        radius: 6,
-        fill: fill,
-        stroke: stroke
-      });
+var circle = new Circle({
+  radius: 6,
+  fill: fill,
+  stroke: stroke
+});
 
-      var vectorStyle = new Style({
-        fill: fill,
-        stroke: stroke,
-        image: circle
-      });
+var vectorStyle = new Style({
+  fill: fill,
+  stroke: stroke,
+  image: circle
+});
 
 var highlight
 
-var displayFeatureInfo = function (pixel) {
+var highlightFeature = function (pixel) {
   const map = store.state.map
 
   var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
@@ -77,23 +77,18 @@ var displayFeatureInfo = function (pixel) {
 var enableEventListeners = function () {
   const map = store.state.map
 
-  map.on('singleclick', (evt) => {
-    console.log(evt.coordinate)
-    console.log(map.getView().getZoom())
-    console.log(map.getView().getResolution())
-    // console.log(themap.getView().getCenter())
-
-    // convert coordinate to EPSG:4326
-    console.log(transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326'))
-    displayFeatureInfo(evt.pixel)
-  })
+  // map.on('singleclick', (evt) => {
+  //   console.log(evt.coordinate)
+  //   // convert coordinate to EPSG:4326
+  //   console.log(transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326'))
+  // })
 
   map.on('pointermove', (evt) => {
     if (evt.dragging) {
       return
     }
     var pixel = map.getEventPixel(evt.originalEvent)
-    displayFeatureInfo(pixel)
+    highlightFeature(pixel)
   })
 
   var currZoom = map.getView().getZoom()
@@ -119,10 +114,11 @@ var addInteractions = function () {
     condition: condition.click,
     style: selectedPolyStyle
   })
-  map.addInteraction(selectOnClick)
-  selectOnClick.on('select', function (e) {
+  selectOnClick.on('select', (e) => {
     console.log(e.target.getFeatures().getArray())
+    console.log(e.coordinate)
   })
+  map.addInteraction(selectOnClick)
 
   // dragAndDrop interaction to load a dataset
   var dragAndDrop = new DragAndDrop({
@@ -276,4 +272,4 @@ var createGeojsonVTlayer = function (geojson) {
 }
 
 
-module.exports = {enableEventListeners, addInteractions, displayFeatureInfo, createGeojsonLayer, createGeojsonVTlayer, addOverlayFeatureLayer}
+module.exports = {enableEventListeners, addInteractions, createGeojsonLayer, createGeojsonVTlayer, addOverlayFeatureLayer}

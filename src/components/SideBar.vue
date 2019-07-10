@@ -39,7 +39,6 @@
         <div class="sidebar-item sidebar-search">
           <div>
             <div class="input-group">
-              <!-- <input class="form-control search-menu" @click="uploadDatasetClicked" placeholder="Upload dataset"> -->
               <div class="form-control search-menu text-center label-info" @click="uploadDatasetClicked">
                 Upload dataset
               </div>
@@ -47,6 +46,17 @@
                 <span class="input-group-text">
                   <i aria-hidden="true"><font-awesome-icon icon="folder-open" /></i>
                 </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- sidebar open panel  -->
+        <div class="sidebar-item sidebar-search">
+          <div>
+            <div class="input-group">
+              <!-- <input class="form-control search-menu" @click="uploadDatasetClicked" placeholder="Upload dataset"> -->
+              <div class="form-control search-menu text-center label-info" @click="openPanel">
+                Open panel
               </div>
             </div>
           </div>
@@ -368,8 +378,12 @@
       map () {
         return this.$store.state.map
       }
+
     },
     methods: {
+      openPanel(){
+        this.$store.commit('SET_PANEL_OPEN', !this.$store.state.isPanelOpen)
+      },
       uploadDatasetClicked () {
         $('#uploadDatasetModal').modal('show')
       },

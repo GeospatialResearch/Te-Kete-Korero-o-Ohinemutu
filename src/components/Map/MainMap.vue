@@ -1,5 +1,5 @@
 <template>
-  <div id="map" class="map">
+  <div id="map" :class="[togglePanel ? 'col-md-8': 'col-md-12', 'map']">
     <div class="ol-custom ol-control">
       <button class="ol-zoom-in" type="button" title="Show Me">
         O
@@ -54,7 +54,6 @@ export default {
   name: 'MapView',
   data() {
     return {
-
     }
   },
   computed: {
@@ -67,6 +66,9 @@ export default {
         zoom: 6
       })
       return view
+    },
+    togglePanel (){
+      return this.$store.state.isPanelOpen
     },
     isUploadingData () {
       return this.$store.state.isUploadingData
@@ -93,7 +95,7 @@ export default {
     // ------------------
     // EventBus events
     // ------------------
-    EventBus.$on('updatesize-map', timeout => {
+    EventBus.$on('adjust-map', (timeout) => {
       if (timeout === undefined) {
         this.updateSizeMap()
       } else {
@@ -145,6 +147,7 @@ export default {
       }
       this.$store.state.isUploadingData = false
     })
+
   },
   methods: {
     initMap () {

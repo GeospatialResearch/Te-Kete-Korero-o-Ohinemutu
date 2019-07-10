@@ -3,7 +3,7 @@ export const EventBus = new Vue()
 
 // This is how you use it:
 // Import: import { EventBus } from '../store/event-bus.js'
-// Send event: EventBus.$emit('refresh-map')
+// Send event: EventBus.$emit('refresh-map', variableValue)
 // OR
 // Subscribe: EventBus.$on('refresh-map', this.handleResize)
 

@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import api from './api.js'
+import { EventBus } from './event-bus'
 
 Vue.use(Vuex)
 
@@ -11,6 +12,7 @@ const store = new Vuex.Store({
     flavor: '',
     map: null,
     isUploadingData: false,
+    isPanelOpen: false,
     contentToShow: 'map',
     externalLayers: null,
     map_resolution: 0,
@@ -35,6 +37,10 @@ const store = new Vuex.Store({
     },
     SET_MAP_ZOOM (state, zoom) {
       state.map_zoom = zoom
+    },
+    SET_PANEL_OPEN (state, open) {
+      state.isPanelOpen = open
+      EventBus.$emit('adjust-map', 10)
     },
     // Generic fail handling
     // API_FAIL (state, error) {
