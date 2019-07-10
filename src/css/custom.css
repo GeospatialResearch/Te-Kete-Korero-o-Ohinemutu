@@ -22,7 +22,7 @@ html, body {
   width: 100vw;
   padding: 0 !important;
   margin: 0 !important;
-  border-left-width: 20px;
+  border-left-width: 10px;
   border-left-style: solid;
   border-right-width: 10px;
   border-right-style: solid;
@@ -48,7 +48,7 @@ html, body {
   right: .5em;
 }
 
-.loadingBackground {
+.loading-background {
   position: absolute;
   background: rgba(0,0,0,0.5);
   color: #fff;
@@ -59,7 +59,7 @@ html, body {
   z-index: 1000;
 }
 
-.loaderUpload {
+.loader-upload {
   position:fixed;
   top: 50%;
   left: 55%;
@@ -78,7 +78,7 @@ html, body {
     100% { transform: rotate(360deg); }
 }
 
-.loadingInfo {
+.loading-info {
   position: fixed;
   top: 58%;
   left: 54%;
@@ -86,7 +86,7 @@ html, body {
   color: white;
 }
 
-.navBar {
+.navbar {
   background-color: #303131;
 }
 
@@ -129,7 +129,9 @@ html, body {
 .popover {
   max-width: none !important;
 }
-
+.feature-popup {
+  max-width: 400px !important;
+}
 .popover-header {
   font-size: 0.9rem;
 }
@@ -140,6 +142,11 @@ html, body {
 
 .popover-body p {
   margin-bottom: 0px;
+}
+
+.close{
+  position: relative;
+  bottom: 3px;
 }
 
 .resolution-box {

@@ -1,10 +1,10 @@
 const store = require('store').default
-// var transform = require('ol/proj').transform
+var EventBus = require('store/event-bus.js').EventBus
 const Select = require('ol/interaction/Select').default
 const DragAndDrop = require('ol/interaction/DragAndDrop').default
 const condition = require('ol/events/condition')
-const Fill = require('ol/style/Fill').default
 const Style = require('ol/style/Style').default
+const Fill = require('ol/style/Fill').default
 const Stroke = require('ol/style/Stroke').default
 const Circle = require('ol/style/Circle').default
 const Projection = require('ol/proj/Projection').default
@@ -27,69 +27,39 @@ var selectedPolyStyle = new Style({
                     })
                   })
 
+var hoveredPolyStyle = new Style({
+                      fill: new Fill({
+                        color: 'rgba(255,0,0,0.2)'
+                      }),
+                      stroke: new Stroke({
+                        color: '#f00',
+                        width: 1
+                      })
+                    })
+
 var fill = new Fill({
         color: 'rgba(0,0,0,0.2)'
       });
 
 var stroke = new Stroke({
   color: 'rgba(0,0,0,0.4)'
-});
+})
 
 var circle = new Circle({
   radius: 6,
   fill: fill,
   stroke: stroke
-});
+})
 
 var vectorStyle = new Style({
   fill: fill,
   stroke: stroke,
   image: circle
-});
+})
 
-var highlight
-
-var highlightFeature = function (pixel) {
-  const map = store.state.map
-
-  var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
-    return feature;
-  })
-  if (feature !== highlight) {
-    if (highlight) {
-      map.getLayers().forEach(function(l) {
-        if (l.get('name') === 'feature_overlay') {
-          l.getSource().removeFeature(highlight)
-        }
-      })
-    }
-    if (feature) {
-      map.getLayers().forEach(function(l) {
-        if (l.get('name') === 'feature_overlay') {
-          l.getSource().addFeature(feature)
-        }
-      })
-    }
-    highlight = feature;
-  }
-}
 
 var enableEventListeners = function () {
   const map = store.state.map
-
-  // map.on('singleclick', (evt) => {
-  //   console.log(evt.coordinate)
-  //   // convert coordinate to EPSG:4326
-  //   console.log(transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326'))
-  // })
-
-  map.on('pointermove', (evt) => {
-    if (evt.dragging) {
-      return
-    }
-    var pixel = map.getEventPixel(evt.originalEvent)
-    highlightFeature(pixel)
-  })
 
   var currZoom = map.getView().getZoom()
   map.on('moveend', () => {
@@ -115,18 +85,20 @@ var addInteractions = function () {
     style: selectedPolyStyle
   })
   selectOnClick.on('select', (e) => {
-    console.log(e.target.getFeatures().getArray())
-    console.log(e.coordinate)
+    EventBus.$emit('showMapPopup', {
+      'features': e.target.getFeatures().getArray(), 
+      'coordinate': e.mapBrowserEvent.coordinate
+    })
   })
   map.addInteraction(selectOnClick)
 
   // dragAndDrop interaction to load a dataset
   var dragAndDrop = new DragAndDrop({
-        formatConstructors: [
-          GeoJSON,
-          KML
-        ]
-      })
+    formatConstructors: [
+      GeoJSON,
+      KML
+    ]
+  })
   dragAndDrop.on('addfeatures', function(event) {
     if (event.features.length < 10000) {
       var vectorSource = new VectorSource({
@@ -145,36 +117,15 @@ var addInteractions = function () {
   })
   map.addInteraction(dragAndDrop)
 
-  // // select interaction working on "pointermove"
-  // var selectOnHover = new Select({
-  //   condition: condition.pointerMove
-  // })
-  // map.addInteraction(selectOnHover)
-  // selectOnHover.on('select', function () {
-  //   // console.log(e.target.getFeatures().getArray())
-  // })
-}
-
-var addOverlayFeatureLayer = function () {
-  // an empty layer to be populated with the hover function
-  const map = store.state.map
-
-  var overlayLayer = new VectorLayer({
-    name: 'feature_overlay',
-    zIndex: 99,
-    source: new VectorSource(),
-    style: new Style({
-      stroke: new Stroke({
-        color: '#f00',
-        width: 1
-      }),
-      fill: new Fill({
-        color: 'rgba(255,0,0,0.2)'
-      })
-    })
+  // select interaction working on "pointermove"
+  var selectOnHover = new Select({
+    condition: condition.pointerMove,
+    style: hoveredPolyStyle
   })
-
-  map.addLayer(overlayLayer)
+  selectOnHover.on('select', function () {
+    // console.log(e.target.getFeatures().getArray())
+  })
+  map.addInteraction(selectOnHover)
 }
 
 var createGeojsonLayer = function (geojson) {
@@ -259,7 +210,6 @@ var createGeojsonVTlayer = function (geojson) {
           tile.setProjection(tilePixels)
         });
       }
-
     },
     tileUrlFunction: function(tileCoord) {
       return [tileCoord[0], tileCoord[1], -tileCoord[2] - 1]
@@ -272,4 +222,4 @@ var createGeojsonVTlayer = function (geojson) {
 }
 
 
-module.exports = {enableEventListeners, addInteractions, createGeojsonLayer, createGeojsonVTlayer, addOverlayFeatureLayer}
+module.exports = {enableEventListeners, addInteractions, createGeojsonLayer, createGeojsonVTlayer}

@@ -40,7 +40,7 @@ const store = new Vuex.Store({
     },
     SET_PANEL_OPEN (state, open) {
       state.isPanelOpen = open
-      EventBus.$emit('adjust-map', 10)
+      EventBus.$emit('adjustMap', 10)
     },
     // Generic fail handling
     // API_FAIL (state, error) {
