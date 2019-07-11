@@ -5,20 +5,23 @@
         O
       </button>
     </div>
-    <div v-if="isUploadingData" class="loadingBackground" />
-    <div v-if="isUploadingData" class="loaderUpload" />
+    <div v-if="isUploadingData" class="loading-background" />
+    <div v-if="isUploadingData" class="loader-upload" />
     <div v-if="isUploadingData">
-      <p class="loadingInfo">
+      <p class="loading-info">
         Uploading data
       </p>
     </div>
     <div class="resolution-box text-center">
       <p>
-        <small>Resolution: {{ mapresolution }}</small>
+        <small>Resolution: {{ mapResolution }}</small>
       </p>
       <p>
-        <small>Zoom: {{ mapzoom }}</small>
+        <small>Zoom: {{ mapZoom }}</small>
       </p>
+    </div>
+    <div style="display: none;">
+      <div id="feature_popup" />
     </div>
   </div>
   <!-- <select id="layer-select" @change="onChangeBasemap($event)">
@@ -29,7 +32,7 @@
 <script>
 
 import { EventBus } from 'store/event-bus'
-import { enableEventListeners, addInteractions, createGeojsonLayer, createGeojsonVTlayer, addOverlayFeatureLayer } from 'utils/mapUtils'
+import { enableEventListeners, addInteractions, createGeojsonLayer, createGeojsonVTlayer } from 'utils/mapUtils'
 import { extLayersObj, extLayersCalls } from 'utils/objects'
 import { delay, each } from 'underscore'
 // Import everything from ol
@@ -44,11 +47,16 @@ import VectorSource from 'ol/source/Vector'
 import VectorLayer from 'ol/layer/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import { getWidth } from 'ol/extent' // getCenter,
-import { get as getProjection } from 'ol/proj' // transform
+import Overlay from 'ol/Overlay'
 // import { Fill, Stroke, Style } from 'ol/style' // Circle as CircleStyle
 import { Zoom, Attribution, ScaleLine } from 'ol/control'
 // import { tile } from 'ol/loadingstrategy' // bbox as bboxStrategy,
 // import { createXYZ } from 'ol/tilegrid'
+
+
+$(document).on("click", ".popover .close" , function(){
+  $(this).parents(".popover").popover('hide');
+})
 
 export default {
   name: 'MapView',
@@ -67,6 +75,12 @@ export default {
       })
       return view
     },
+    mapPopup () {
+      var popup = new Overlay({
+        element: $("#feature_popup")[0] // the same as document.getElementById('feature_popup')
+      })
+      return popup
+    },
     togglePanel (){
       return this.$store.state.isPanelOpen
     },
@@ -79,10 +93,10 @@ export default {
     map () {
       return this.$store.state.map
     },
-    mapresolution () {
+    mapResolution () {
       return this.$store.state.map_resolution.toFixed(1)
     },
-    mapzoom () {
+    mapZoom () {
       return this.$store.state.map_zoom.toFixed(1)
     }
   },
@@ -90,12 +104,13 @@ export default {
     this.$store.commit('SET_EXTERNAL_LAYERS', $.extend(true, {}, extLayersObj))
   },
   mounted: function () {
+
     this.initMap(),
 
     // ------------------
     // EventBus events
     // ------------------
-    EventBus.$on('adjust-map', (timeout) => {
+    EventBus.$on('adjustMap', (timeout) => {
       if (timeout === undefined) {
         this.updateSizeMap()
       } else {
@@ -148,6 +163,38 @@ export default {
       this.$store.state.isUploadingData = false
     })
 
+    EventBus.$on('showMapPopup', (obj) => {
+      var element = this.mapPopup.getElement()
+      var coordinate = obj.coordinate
+      var features = obj.features
+
+      var features_info = ''
+
+      // TODO: show all features info, not only the one at the top
+      each(features, (f) => {
+        var feature_properties = f.getProperties()
+        each(feature_properties, (value, key) => {
+          if (key != "geometry" && value != null) {
+            features_info = features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> ' + value + '</p>'
+          }
+        })
+      })
+
+      $(element).popover('dispose')
+      if (features.length > 0) {
+        this.mapPopup.setPosition(coordinate)
+        $(element).popover({
+          placement: 'top',
+          animation: false,
+          html: true,
+          title: 'Feature Info <a href="#" class="close" data-dismiss="alert">&times;</a>',
+          template:	'<div class="popover feature-popup" role="tooltip"><div class="arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>',
+          content: features_info
+        })
+        $(element).popover('show')
+      }
+    })
+
   },
   methods: {
     initMap () {
@@ -186,14 +233,14 @@ export default {
         }
       })
 
-      // Add auxiliar layers
-      addOverlayFeatureLayer()
-
       // Declaration of select interactions
       addInteractions()
 
       // Declaration of map events
       enableEventListeners()
+
+      // Popup where the user clicked
+      themap.addOverlay(this.mapPopup)
 
       // Fix map height
       this.fixContentHeight()
@@ -202,8 +249,6 @@ export default {
         this.fixContentWidth()
       }
 
-      console.log(getProjection('EPSG:3857').getExtent())
-      console.log(getProjection('EPSG:4326').getExtent())
     },
     updateSizeMap () {
       this.$store.state.map.updateSize()
