@@ -3,6 +3,7 @@ var addPropertyTitlesWFS = require('utils/externalMapServices').addPropertyTitle
 var addProtectedAreasWFS = require('utils/externalMapServices').addProtectedAreasWFS
 var addSeaDrainingCatchmentsWFS = require('utils/externalMapServices').addSeaDrainingCatchmentsWFS
 // var addMBTileLayer = require('utils/externalMapServices').addMBTileLayer
+var _ = require('underscore')
 
 var extLayersObj = {
   linz_aerial_imagery_wmts: {
@@ -67,5 +68,12 @@ var extLayersCalls = {
     }
   }
 }
+
+// generate global variables to be used for the notifications about resolution
+_.each(extLayersObj, (l, key) => {
+  if (l.hasOwnProperty('maxresolution')) {
+    window['resolutionNotify_' + key]
+  }
+})
 
 module.exports = { extLayersObj, extLayersCalls }

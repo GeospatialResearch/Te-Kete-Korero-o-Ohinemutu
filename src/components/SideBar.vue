@@ -362,7 +362,6 @@
 
 <script>
   import 'utils/sidebar'
-  import notify from 'utils/notify'
   import { EventBus } from 'store/event-bus'
 
   export default {
@@ -432,14 +431,11 @@
         this.$store.state.externalLayers[layerkey].visible = !this.$store.state.externalLayers[layerkey].visible
         if (this.$store.state.externalLayers[layerkey].visible) {
           EventBus.$emit('createLayer', layerkey)
-          if (layer.hasOwnProperty('maxresolution')) {
-            if (this.map.getView().getResolution() > layer.maxresolution) {
-              notify.warning("The layer " + layer.layername + " was activated but to be visible on the map you must zoom in to the resolution " + layer.maxresolution + ".")
-            }
-          }
         } else {
           EventBus.$emit('removeLayer', layerkey)
         }
+        // check if there are active layers and show resolution notification if needed
+        EventBus.$emit('resolutionNotification')
       },
       createPopoverInfo (layer) {
         var htmlInfo = layer.attribution

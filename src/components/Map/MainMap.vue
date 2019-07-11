@@ -14,11 +14,14 @@
     </div>
     <div class="resolution-box text-center">
       <p>
-        <small>Resolution: {{ mapResolution }}</small>
+        <small>Resolution:</small>
       </p>
       <p>
-        <small>Zoom: {{ mapZoom }}</small>
+        <small>{{ mapResolution }}</small>
       </p>
+      <!-- <p>
+        <small>Zoom: {{ mapZoom }}</small>
+      </p> -->
     </div>
     <div style="display: none;">
       <div id="feature_popup" />
@@ -193,6 +196,39 @@ export default {
         })
         $(element).popover('show')
       }
+    })
+
+    EventBus.$on('resolutionNotification', () => {
+      var mapResolution = this.map.getView().getResolution()
+
+      each(this.externalLayers, (layer, key) => {
+
+        if (layer.hasOwnProperty('maxresolution')) {
+          if (layer.visible && mapResolution > layer.maxresolution) {
+            if (window['resolutionNotify_' + key] == null || window['resolutionNotify_' + key] == undefined) {
+              window['resolutionNotify_' + key] = $.notify({
+                                              message: "<strong>Resolution Info</strong><br />The layer <i>" + layer.layername + "</i> is active but to be visible on the map you must zoom in to the <strong>Resolution " + layer.maxresolution + "</strong>. <br />Please, zoom to the right resolution or deactivate the layer." ,
+                                              icon: 'fa fa-exclamation-circle'
+                                            }, {
+                                              type: 'warning',
+                                              z_index: 2000,
+                                              animate: {
+                                                enter: 'animated fadeInDown',
+                                                exit: 'animated fadeOutUp'
+                                              },
+                                              allow_dismiss: false,
+                                              delay: 0
+                                            })
+            }
+          } else {
+            if (window['resolutionNotify_' + key] != null && window['resolutionNotify_' + key] != undefined) {
+              window['resolutionNotify_' + key].close()
+              window['resolutionNotify_' + key] = null
+            }
+          }
+        }
+
+      })
     })
 
   },

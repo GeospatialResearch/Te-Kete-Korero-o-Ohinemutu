@@ -61,14 +61,13 @@ var vectorStyle = new Style({
 var enableEventListeners = function () {
   const map = store.state.map
 
-  var currZoom = map.getView().getZoom()
   map.on('moveend', () => {
-    var newZoom = map.getView().getZoom()
-    if (currZoom != newZoom) {
-      currZoom = newZoom
-      store.commit('SET_MAP_RESOLUTION', map.getView().getResolution())
-      store.commit('SET_MAP_ZOOM', map.getView().getZoom())
-    }
+    store.commit('SET_MAP_RESOLUTION', map.getView().getResolution())
+    store.commit('SET_MAP_ZOOM', map.getView().getZoom())
+
+    // check if there are active layers and show resolution notification if needed
+    EventBus.$emit('resolutionNotification')
+
   })
 }
 
@@ -86,7 +85,7 @@ var addInteractions = function () {
   })
   selectOnClick.on('select', (e) => {
     EventBus.$emit('showMapPopup', {
-      'features': e.target.getFeatures().getArray(), 
+      'features': e.target.getFeatures().getArray(),
       'coordinate': e.mapBrowserEvent.coordinate
     })
   })
