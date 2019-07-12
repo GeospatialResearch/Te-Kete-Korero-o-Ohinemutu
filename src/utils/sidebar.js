@@ -21,7 +21,7 @@ $(function () {
         $(".page-wrapper").toggleClass("toggled");
         _.delay(() => {
           EventBus.$emit("updateMapWidth")
-        }, 10)
+        }, 100)
 
     });
 

@@ -297,17 +297,8 @@ export default {
       this.$store.state.map.updateSize()
     },
     fixContentWidth () {
-      var viewWidth = $(window).width()
-      var sideBarWidth = $("#sidebar").width()
-      var contentWidth
-      if (parseInt($("#sidebar").css("left"), 10) < 0) {  // sidebar is closed (negative css left attribute)
-        contentWidth = viewWidth
-      } else { // sidebar is open (css left attribute is 0)
-        contentWidth = viewWidth - sideBarWidth
-      }
-
-      $("#map").width(contentWidth)
-      this.$store.state.map.updateSize()
+      $("#map").width(100)
+      delay(this.updateSizeMap, 50)
     },
     getCorrectExtent (geojsonObj) {
       var tempLayer = new VectorLayer({
