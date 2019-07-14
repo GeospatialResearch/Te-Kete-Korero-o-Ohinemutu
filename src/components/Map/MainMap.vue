@@ -74,7 +74,8 @@ export default {
         center: [19410113.214624517, -5044843.866821633],
         // projection: 'EPSG:4326',  // this distorts the view
         // center: [172.79296875, -41.868896484375],
-        zoom: 6
+        zoom: 6,
+        minZoom: 2
       })
       return view
     },

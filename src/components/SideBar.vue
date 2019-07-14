@@ -105,14 +105,14 @@
               <div class="sidebar-submenu">
                 <ul>
                   <li v-for="(layer, layerkey) in externalLayers" :key="layerkey" @click="changeLayerVisibility(layer, layerkey)">
-                    <span :class="{'visible': layer.visible}">
-                      <a href="#" class="layer-line">
-                        {{ layer.layername }}
-                        <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="hover" title="Layer Information" :data-content="createPopoverInfo(layer)">
-                          <font-awesome-icon icon="info" size="xs" />
-                        </span>
-                      </a>
-                    </span>
+                    <!-- <span :class="{'visible': layer.visible}"> -->
+                    <a href="#" class="layer-line">
+                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" /> &emsp;{{ layer.layername }}
+                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="hover" title="Layer Information" :data-content="createPopoverInfo(layer)">
+                        <font-awesome-icon icon="info" size="xs" />
+                      </span>
+                    </a>
+                    <!-- </span> -->
                   </li>
                 </ul>
               </div>

@@ -232,8 +232,8 @@
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis; }
-        .sidebar-wrapper .sidebar-menu .sidebar-dropdown .sidebar-submenu li a:before {
-          content: "\f111";
+         .sidebar-wrapper .sidebar-menu .sidebar-dropdown .sidebar-submenu li a:before {
+          /* content: "\f111"; */
           font-family: "Font Awesome 5 Free";
           font-weight: 400;
           font-style: normal;
@@ -245,7 +245,7 @@
           margin-right: 10px;
           font-size: 10px; }
         .sidebar-wrapper .sidebar-menu .sidebar-dropdown .sidebar-submenu li .visible a:before {
-          content: "\f192";
+          /* content: "\f192"; */
           font-family: "Font Awesome 5 Free";
           font-weight: 400;
           font-style: normal;

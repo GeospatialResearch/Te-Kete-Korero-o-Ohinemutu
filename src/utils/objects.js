@@ -20,7 +20,7 @@ var extLayersObj = {
     visible: false,
     zindex: 1,
     minresolution: 0,
-    maxresolution: 5
+    maxresolution: 4.5
   },
   linz_protected_areas_wfs: {
     layername: 'Protected Areas',
