@@ -7,7 +7,6 @@ services:
       - ./manage.py:/code/manage.py
       # - ./.flake8:/code/.flake8
     environment:
-      # - AUTH_SERVER=https://staging.accounts.crcsi.com.au/o/oauth2
       - PYTHONUNBUFFERED=0
       - ENVIRONMENT=DEVELOPMENT
     command: python3 manage.py runserver 0.0.0.0:8000

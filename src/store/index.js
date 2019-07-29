@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import api from './api.js'
 import { EventBus } from './event-bus'
+import { each } from 'underscore'
 
 Vue.use(Vuex)
 
@@ -15,6 +16,7 @@ const store = new Vuex.Store({
     isPanelOpen: false,
     contentToShow: 'map',
     externalLayers: null,
+    internalLayers: null,
     map_resolution: 0,
     map_zoom: 0
   },
@@ -32,6 +34,18 @@ const store = new Vuex.Store({
     SET_EXTERNAL_LAYERS (state, layersObj) {
       state.externalLayers = layersObj
     },
+    SET_INTERNAL_LAYERS (state, layersArray) {
+      var layersObj = {}
+      each(layersArray, (obj) => {
+        obj.visible = false
+        layersObj[obj.name] = obj
+      })
+      state.internalLayers = layersObj
+    },
+    ADD_INTERNAL_LAYER (state, layername) {
+      var obj = { name: layername, visible: true }
+      Vue.set(state.internalLayers, layername, obj) // so the new property is also reactive
+    },
     SET_MAP_RESOLUTION (state, resolution) {
       state.map_resolution = resolution
     },
@@ -43,20 +57,14 @@ const store = new Vuex.Store({
       EventBus.$emit('adjustMap', 10)
     },
     // Generic fail handling
-    // API_FAIL (state, error) {
-    //   if (error.status === 401 || error.status === 403) {
-    //     console.error("Authentication error found. Logging user out.")
-    //     store.commit("DEAUTHENTICATE")
-    //     if (router.currentRoute.path === '/projects') {
-    //       // Getting projects to refresh the list because we're looking at it.
-    //       store.dispatch('getProjectsSummary')
-    //     } else {
-    //       router.push('/')
-    //     }
-    //   } else {
-    //     console.error(error)
-    //   }
-    // }
+    API_FAIL (state, error) {
+      if (error.status === 401 || error.status === 403) {
+        console.error("Authentication error found. Logging user out.")
+        // store.commit("DEAUTHENTICATE")
+      } else {
+        console.error(error)
+      }
+    }
   },
   getters: {
     flavor: state => state.flavor
@@ -65,11 +73,18 @@ const store = new Vuex.Store({
     uploadFile (store, datafile) {
       return api.post(apiRoot + '/upload_file/', datafile)
         .then((response) => {
-          // store.commit('GET_LOTS', response)
-          console.log(response)
           return response
         })
-        .catch((error) => store.commit('API_FAIL', error))
+        .catch((error) => {
+          store.commit('API_FAIL', error)
+          return error
+        })
+    },
+    getDatasets (store) {
+      return api.get(apiRoot + '/datasets/')
+      .then((response) => {
+        store.commit('SET_INTERNAL_LAYERS', response.body)
+      })
     }
   }
 })

@@ -62,7 +62,7 @@ html, body {
 .loader-upload {
   position:fixed;
   top: 50%;
-  left: 55%;
+  left: 58%;
   z-index: 1001;
   border: 8px solid #878282; /* Light grey */
   border-top: 8px solid #ecf1f4; /* Blue */

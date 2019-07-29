@@ -17,6 +17,7 @@ const store = require('store').default
 const linzKey = process.env.LINZ_ACCESS_KEY
 const mfeKey = process.env.MFE_ACCESS_KEY
 
+
 function makePattern() {
 	var cnv = document.createElement('canvas');
   var ctx = cnv.getContext('2d');
@@ -30,7 +31,7 @@ function makePattern() {
   return ctx.createPattern(cnv, 'repeat');
 }
 
-var addPropertyTitlesWFS = function (layername, zindex, minresolution, maxresolution) {
+var addPropertyTitlesWFS = function (obj) {
   const map = store.state.map
 
   var vs = new VectorSource({
@@ -65,10 +66,10 @@ var addPropertyTitlesWFS = function (layername, zindex, minresolution, maxresolu
 
   var vl = new VectorLayer({
     source: vs,
-		name: layername,
-		zIndex: zindex,
-    minResolution: minresolution,
-    maxResolution: maxresolution,
+		name: obj.keyname,
+		zIndex: obj.zindex,
+    minResolution: obj.minresolution,
+    maxResolution: obj.maxresolution,
     style: new Style({
       fill: new Fill({
         color: 'rgba(255, 255, 255, 0)' // so it will be recognised on hover, otherwise only when hovering on the edges the feature would be identified
@@ -83,7 +84,7 @@ var addPropertyTitlesWFS = function (layername, zindex, minresolution, maxresolu
   map.addLayer(vl)
 }
 
-var addProtectedAreasWFS = function (layername, zindex, minresolution, maxresolution) {
+var addProtectedAreasWFS = function (obj) {
   const map = store.state.map
 
   var vs = new VectorSource({
@@ -101,10 +102,10 @@ var addProtectedAreasWFS = function (layername, zindex, minresolution, maxresolu
 
   var vl = new VectorLayer({
     source: vs,
-		name: layername,
-		zIndex: zindex,
-    minResolution: minresolution,
-    maxResolution: maxresolution,
+		name: obj.keyname,
+		zIndex: obj.zindex,
+    minResolution: obj.minresolution,
+    maxResolution: obj.maxresolution,
     style: new Style({
       fill: new Fill({
         //color: 'rgba(255, 255, 255, 0.6)'
@@ -120,7 +121,7 @@ var addProtectedAreasWFS = function (layername, zindex, minresolution, maxresolu
   map.addLayer(vl)
 }
 
-var addSeaDrainingCatchmentsWFS = function (layername, zindex, minresolution, maxresolution) {
+var addSeaDrainingCatchmentsWFS = function (obj) {
   const map = store.state.map
 
   var vs = new VectorSource({
@@ -138,10 +139,10 @@ var addSeaDrainingCatchmentsWFS = function (layername, zindex, minresolution, ma
 
   var vl = new VectorLayer({
     source: vs,
-		name: layername,
-		zIndex: zindex,
-    minResolution: minresolution,
-    maxResolution: maxresolution,
+		name: obj.keyname,
+		zIndex: obj.zindex,
+    minResolution: obj.minresolution,
+    maxResolution: obj.maxresolution,
     style: new Style({
       fill: new Fill({
         color: 'rgba(119, 215, 224, 0.6)'
@@ -156,15 +157,15 @@ var addSeaDrainingCatchmentsWFS = function (layername, zindex, minresolution, ma
   map.addLayer(vl)
 }
 
-var addAerialImageryWMTS = function (layername, zindex) {
+var addAerialImageryWMTS = function (obj) {
 	const map = store.state.map
 
   var tl = new TileLayer({
     source: new XYZ({
       url: 'http://tiles-a.data-cdn.linz.govt.nz/services;key=' + linzKey + '/tiles/v4/set=4702/EPSG:3857/{z}/{x}/{y}.png'
     }),
-		name: layername,
-		zIndex: zindex
+		name: obj.keyname,
+		zIndex: obj.zindex
   })
 
   map.addLayer(tl)

@@ -17,16 +17,16 @@ from django.contrib import admin
 from django.urls import path
 from django.conf.urls import include, url
 from rest_framework import routers
-
 from app import views
 
 # Construct v1 API routes (it needs rest_framework installed)
 router = routers.DefaultRouter()
+# router.register(r'datasets', views.DatasetViewSet)
 
 v1 = router.urls + [
-    url(r'^upload_file/', views.UploadFile.as_view())
+    url(r'^upload_file/', views.UploadFileView.as_view()),
+    url(r'^datasets', views.dataset_list)
 ]
-
 
 urlpatterns = [
     # Enable django-admin at admin

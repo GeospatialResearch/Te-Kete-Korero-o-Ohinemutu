@@ -16,6 +16,7 @@ const VectorTileSource = require('ol/source/VectorTile').default
 const VectorTileLayer = require('ol/layer/VectorTile').default
 const GeoJSON = require('ol/format/GeoJSON').default
 const KML = require('ol/format/KML').default
+var getWidth = require('ol/extent').getWidth
 
 var selectedPolyStyle = new Style({
                       fill: new Fill({
@@ -127,6 +128,39 @@ var addInteractions = function () {
   map.addInteraction(selectOnHover)
 }
 
+var getCorrectExtent = function (geojsonObj) {
+  var tempLayer = new VectorLayer({
+    source: new VectorSource({
+      features: (new GeoJSON()).readFeatures(geojsonObj, {
+        featureProjection: 'EPSG:3857'
+      })
+    })
+  })
+  // run a transform on all the feature coordinates (to change the range to 0 to 360)
+  // due to issue with dateline in OpenLayers
+  var wrapWidth = getWidth(store.state.map.getView().getProjection().getExtent());
+  function wrapTransform(input, opt_output, opt_dimension) {
+    var length = input.length;
+    var dimension = opt_dimension !== undefined ? opt_dimension : 2;
+    var output = opt_output !== undefined ? opt_output : new Array(length);
+    var i, j;
+    for (i = 0; i < length; i += dimension) {
+      output[i] = input[i] < 0 ? input[i] + wrapWidth : input[i];
+      for (j = dimension - 1; j >= 1; --j) {
+        output[i + j] = input[i + j];
+      }
+    }
+    return output;
+  }
+  tempLayer.getSource().forEachFeature(function(feature){
+    feature.getGeometry().applyTransform(wrapTransform);
+  })
+
+  return tempLayer.getSource().getExtent()
+}
+
+// Other testing types of OpenLayers layers
+
 var createGeojsonLayer = function (geojson) {
   const map = store.state.map
 
@@ -221,4 +255,4 @@ var createGeojsonVTlayer = function (geojson) {
 }
 
 
-module.exports = {enableEventListeners, addInteractions, createGeojsonLayer, createGeojsonVTlayer}
+module.exports = {enableEventListeners, addInteractions, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer}

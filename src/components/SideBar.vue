@@ -104,15 +104,20 @@
               </a>
               <div class="sidebar-submenu">
                 <ul>
-                  <li v-for="(layer, layerkey) in externalLayers" :key="layerkey" @click="changeLayerVisibility(layer, layerkey)">
+                  <li v-for="(layer, layerkey) in externalLayers" :key="layerkey">
                     <!-- <span :class="{'visible': layer.visible}"> -->
                     <a href="#" class="layer-line">
-                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" /> &emsp;{{ layer.layername }}
+                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_extServ(layer, layerkey)" /> &emsp;{{ layer.layername }}
                       <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="hover" title="Layer Information" :data-content="createPopoverInfo(layer)">
                         <font-awesome-icon icon="info" size="xs" />
                       </span>
                     </a>
                     <!-- </span> -->
+                  </li>
+                  <li v-for="(layer, layerkey) in internalLayers" :key="layerkey">
+                    <a href="#" class="layer-line">
+                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_intServ(layer, layerkey)" /> &emsp;{{ layer.name }}
+                    </a>
                   </li>
                 </ul>
               </div>
@@ -338,8 +343,10 @@
             </button>
           </div>
           <div class="modal-body">
-            <form enctype="multipart/form-data" novalidate>
-              <p>Upload a dataset (zipped shapefile or other spatial dataset format)</p>
+            <form v-if="!uploadError" enctype="multipart/form-data" novalidate>
+              <p class="text-center">
+                <strong>Upload a dataset (zipped shapefile or geojson file)</strong>
+              </p>
               <div class="dropbox">
                 <input type="file" :name="uploadFieldName" class="input-file" @change="fileChange($event.target.files)">
                 <p>
@@ -347,6 +354,12 @@
                 </p>
               </div>
             </form>
+            <div v-if="uploadError" class="alert alert-danger text-center">
+              <h5>Upload failed with error:</h5>
+              <code>{{ uploadError }}</code>
+              <hr>
+              <p>Please check that your data is valid and try again.</p>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="reset()">
@@ -367,17 +380,20 @@
   export default {
     data () {
       return {
-        uploadFieldName: 'file'
+        uploadFieldName: 'file',
+        uploadError: null
       }
     },
     computed: {
       externalLayers () {
         return this.$store.state.externalLayers
       },
+      internalLayers () {
+        return this.$store.state.internalLayers
+      },
       map () {
         return this.$store.state.map
       }
-
     },
     methods: {
       openPanel(){
@@ -385,6 +401,9 @@
       },
       uploadDatasetClicked () {
         $('#uploadDatasetModal').modal('show')
+      },
+      reset () {
+        this.uploadError = null
       },
       fileChange (fileList) {
         // handle file changes
@@ -407,16 +426,18 @@
         // dispatch action to upload file
         this.$store.dispatch('uploadFile', formData)
         .then(response => {
-          console.log(response)
           if (response.ok) {
-            EventBus.$emit('addLayer', response.body)
-            // this.currentStatus = STATUS_SUCCESS
-            // this.uploadSuccess = response.body
-            // delay(this.zoomExtents, 1000)
+            EventBus.$emit('addLayer', response.body)  // add argument false if you want to add geojson layer
+            this.$store.state.isUploadingData = false
+            this.reset()
           } else {
-            // this.currentStatus = STATUS_FAILED
-            console.error(response)
-            // this.uploadError = response.body.error
+            if (response.body.indexOf('Request') == -1) {
+              this.uploadError = response.body[0]
+            } else {
+              this.uploadError = response.body.split('Request')[0]
+            }
+            $('#uploadDatasetModal').modal('show')
+            this.$store.state.isUploadingData = false
           }
           fileList = ''
         })
@@ -427,15 +448,23 @@
           fileList = ''
         })
       },
-      changeLayerVisibility (layer, layerkey) {
+      changeLayerVisibility_extServ (layer, layerkey) {
         this.$store.state.externalLayers[layerkey].visible = !this.$store.state.externalLayers[layerkey].visible
         if (this.$store.state.externalLayers[layerkey].visible) {
-          EventBus.$emit('createLayer', layerkey)
+          EventBus.$emit('createLayer', layer, 'external') // we need to send the configurations of the layer
         } else {
           EventBus.$emit('removeLayer', layerkey)
         }
         // check if there are active layers and show resolution notification if needed
         EventBus.$emit('resolutionNotification')
+      },
+      changeLayerVisibility_intServ (layer, layerkey) {
+        this.$store.state.internalLayers[layerkey].visible = !this.$store.state.internalLayers[layerkey].visible
+        if (this.$store.state.internalLayers[layerkey].visible) {
+          EventBus.$emit('createLayer', layerkey, 'internal') // the layerkey is enough to request the geoserver layer
+        } else {
+          EventBus.$emit('removeLayer', layerkey)
+        }
       },
       createPopoverInfo (layer) {
         var htmlInfo = layer.attribution

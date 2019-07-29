@@ -8,8 +8,9 @@
     <div v-if="isUploadingData" class="loading-background" />
     <div v-if="isUploadingData" class="loader-upload" />
     <div v-if="isUploadingData">
-      <p class="loading-info">
-        Uploading data
+      <p class="loading-info text-center">
+        Uploading data... <br>
+        This may take several minutes
       </p>
     </div>
     <div class="resolution-box text-center">
@@ -35,21 +36,21 @@
 <script>
 
 import { EventBus } from 'store/event-bus'
-import { enableEventListeners, addInteractions, createGeojsonLayer, createGeojsonVTlayer } from 'utils/mapUtils'
-import { extLayersObj, extLayersCalls } from 'utils/objects'
+import { addGeoserverWMS, zoomToGeoserverLayer } from 'utils/internalMapServices'
+import { enableEventListeners, addInteractions, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer } from 'utils/mapUtils'
+import { extLayersObj } from 'utils/objects'
 import { delay, each } from 'underscore'
 // Import everything from ol
 import Map from 'ol/Map'
 import View from 'ol/View'
-import TileLayer from 'ol/layer/Tile'
+import {Tile as TileLayer} from 'ol/layer'
 import XYZ from 'ol/source/XYZ'
 // import OSM from 'ol/source/OSM'
 // import TileJSON from 'ol/source/TileJSON'
-
-import VectorSource from 'ol/source/Vector'
-import VectorLayer from 'ol/layer/Vector'
-import GeoJSON from 'ol/format/GeoJSON'
-import { getWidth } from 'ol/extent' // getCenter,
+// import VectorSource from 'ol/source/Vector'
+// import VectorLayer from 'ol/layer/Vector'
+// import GeoJSON from 'ol/format/GeoJSON'
+// import { getWidth } from 'ol/extent' // getCenter,
 import Overlay from 'ol/Overlay'
 // import { Fill, Stroke, Style } from 'ol/style' // Circle as CircleStyle
 import { Zoom, Attribution, ScaleLine } from 'ol/control'
@@ -94,6 +95,9 @@ export default {
     externalLayers () {
       return this.$store.state.externalLayers
     },
+    internalLayers () {
+      return this.$store.state.internalLayers
+    },
     map () {
       return this.$store.state.map
     },
@@ -105,11 +109,20 @@ export default {
     }
   },
   created: function () {
+    // Set external layers
     this.$store.commit('SET_EXTERNAL_LAYERS', $.extend(true, {}, extLayersObj))
+
+    // Set internal layers and other stuff before creating the map
+    Promise.all([
+      this.$store.dispatch('getDatasets')
+    ]).then(() => {
+      // Create the map
+      this.initMap()
+    }).catch((e) => {
+      console.error("Map loading failed with error: ", e)
+    })
   },
   mounted: function () {
-
-    this.initMap(),
 
     // ------------------
     // EventBus events
@@ -126,8 +139,12 @@ export default {
       this.fixContentWidth()
     })
 
-    EventBus.$on('createLayer', (layername) => {
-      extLayersCalls[layername].functionToCall.call()
+    EventBus.$on('createLayer', (layer, servType) => {
+      if (servType === 'external') {
+        extLayersObj[layer.keyname].functionToCall.call(null, layer)
+      } else if (servType === 'internal') {
+        addGeoserverWMS(layer)
+      }
     })
 
     EventBus.$on('removeLayer', (layername) => {
@@ -142,12 +159,15 @@ export default {
       })
     })
 
-    EventBus.$on('addLayer', (geojsonObj) => {
-      console.log(geojsonObj)
+    EventBus.$on('addLayer', (payload, geoserverLayer=true) => {
 
-      var createdGeoserverLayer = true
-      if (createdGeoserverLayer) {
-        // call geoserver wms
+      var geojsonObj = payload.jsonlayer
+      var layername = payload.filename
+
+      if (geoserverLayer) {
+        EventBus.$emit('createLayer', layername, 'internal')
+        this.$store.commit('ADD_INTERNAL_LAYER', layername)
+        zoomToGeoserverLayer(layername)
       } else {
         // conditional to the dataset size (number of features)
         if (geojsonObj.features.length > 10000) {
@@ -158,13 +178,10 @@ export default {
           createGeojsonLayer(geojsonObj)
         }
 
-        console.log(this.$store.state.map.getLayers())
-
         // get extention to zoom to data
-        var vectorExtent =  this.getCorrectExtent(geojsonObj)
+        var vectorExtent =  getCorrectExtent(geojsonObj)
         this.$store.state.map.getView().fit(vectorExtent, { duration: 2000 })
       }
-      this.$store.state.isUploadingData = false
     })
 
     EventBus.$on('showMapPopup', (obj) => {
@@ -218,7 +235,11 @@ export default {
                                                 exit: 'animated fadeOutUp'
                                               },
                                               allow_dismiss: false,
-                                              delay: 0
+                                              delay: 0,
+                                              placement: {
+                                                from: "top",
+                                                align: "center"
+                                              },
                                             })
             }
           } else {
@@ -263,10 +284,17 @@ export default {
       this.$store.commit('SET_MAP_RESOLUTION', themap.getView().getResolution())
       this.$store.commit('SET_MAP_ZOOM', themap.getView().getZoom())
 
-      // Add external map services to the map
-      each(extLayersObj, (layer, layerkey) => {
+      // Add external map services to the map if visible
+      each(this.externalLayers, (layer) => {
         if (layer.visible) {
-          return extLayersCalls[layerkey].functionToCall.call()
+          EventBus.$emit('createLayer', layer, 'external') // we need to send the configurations of the layer
+        }
+      })
+
+      // Add internal map services to the map (geoserver) if visible
+      each(this.internalLayers, (layer, layerkey) => {
+        if (layer.visible) {
+          EventBus.$emit('createLayer', layerkey, 'internal') // the layerkey is enough to request the geoserver layer
         }
       })
 
@@ -300,40 +328,7 @@ export default {
     fixContentWidth () {
       $("#map").width(100)
       delay(this.updateSizeMap, 50)
-    },
-    getCorrectExtent (geojsonObj) {
-      var tempLayer = new VectorLayer({
-        source: new VectorSource({
-          features: (new GeoJSON()).readFeatures(geojsonObj, {
-            featureProjection: 'EPSG:3857'
-          })
-        })
-      })
-      // run a transform on all the feature coordinates (to change the range to 0 to 360)
-      // due to issue with dateline in OpenLayers
-      var wrapWidth = getWidth(this.$store.state.map.getView().getProjection().getExtent());
-      function wrapTransform(input, opt_output, opt_dimension) {
-        var length = input.length;
-        var dimension = opt_dimension !== undefined ? opt_dimension : 2;
-        var output = opt_output !== undefined ? opt_output : new Array(length);
-        var i, j;
-        for (i = 0; i < length; i += dimension) {
-          output[i] = input[i] < 0 ? input[i] + wrapWidth : input[i];
-          for (j = dimension - 1; j >= 1; --j) {
-            output[i + j] = input[i + j];
-          }
-        }
-        return output;
-      }
-      tempLayer.getSource().forEachFeature(function(feature){
-        feature.getGeometry().applyTransform(wrapTransform);
-      })
-
-      return tempLayer.getSource().getExtent()
     }
-    // onChangeBasemap (e) {
-    //   console.log(e.target.value)
-    // }
   }
 }
 </script>
