@@ -155,22 +155,25 @@ def insertDB(layer):
         geom = GEOSGeometry(str(feature['geometry']))
 
         # Change the geometry to be a multi
-        if geom.geom_type == 'Polygon':
-            geom = MultiPolygon([geom])
+        if geom.geom_type == 'Polygon' or geom.geom_type == 'MultiPolygon':
+            if geom.geom_type == 'Polygon':
+                geom = MultiPolygon([geom])
             PolygonEntity.objects.create(
                 dataset=dataset,
                 geom=geom,
                 attributes=feature['properties']
             )
-        if geom.geom_type == 'LineString':
-            geom = MultiLineString([geom])
+        elif geom.geom_type == 'LineString' or geom.geom_type == 'MultiLineString':
+            if geom.geom_type == 'LineString':
+                geom = MultiLineString([geom])
             LineEntity.objects.create(
                 dataset=dataset,
                 geom=geom,
                 attributes=feature['properties']
             )
-        if geom.geom_type == 'Point':
-            geom = MultiPoint([geom])
+        elif geom.geom_type == 'Point' or geom.geom_type == 'MultiPoint':
+            if geom.geom_type == 'Point':
+                geom = MultiPoint([geom])
             PointEntity.objects.create(
                 dataset=dataset,
                 geom=geom,
