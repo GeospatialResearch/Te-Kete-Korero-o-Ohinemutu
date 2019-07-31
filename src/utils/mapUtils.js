@@ -17,6 +17,7 @@ const VectorTileLayer = require('ol/layer/VectorTile').default
 const GeoJSON = require('ol/format/GeoJSON').default
 const KML = require('ol/format/KML').default
 var getWidth = require('ol/extent').getWidth
+// var findByName = require('utils/olHelper').findByName
 
 var selectedPolyStyle = new Style({
                       fill: new Fill({
@@ -68,6 +69,43 @@ var enableEventListeners = function () {
 
     // check if there are active layers and show resolution notification if needed
     EventBus.$emit('resolutionNotification')
+  })
+
+  map.on('singleclick', (evt) => {
+    // Attempt to find a marker from the map layers
+    var layers = map.getLayers()
+    var viewResolution = map.getView().getResolution()
+    var projection = map.getView().getProjection()
+    var ql = []
+    var url
+    console.log(layers)
+    layers.forEach( function (layer) {
+      console.log(layer.get('name'))
+      if (layer.getVisible() && layer.get('name')!='Basemap') {
+        ql.push(layer.get('name'))
+        url = layer.getSource().getGetFeatureInfoUrl(
+          evt.coordinate,
+          viewResolution,
+          projection,
+          { 'INFO_FORMAT': 'text/javascript',
+            'format_options': 'callback:getJson',
+            'QUERYLAYERS': ql.join(',')
+          }
+        )
+      }
+    })
+    console.log(ql)
+    console.log(url)
+    if (url) {
+      $.ajax({
+        jsonp: false,
+        url: url,
+        dataType: 'jsonp',
+        jsonpCallback: 'getJson'
+      }).done(function (response) {
+          console.log(response)
+      })
+    }
 
   })
 }
@@ -84,10 +122,10 @@ var addInteractions = function () {
     condition: condition.click,
     style: selectedPolyStyle
   })
-  selectOnClick.on('select', (e) => {
+  selectOnClick.on('select', (evt) => {
     EventBus.$emit('showMapPopup', {
-      'features': e.target.getFeatures().getArray(),
-      'coordinate': e.mapBrowserEvent.coordinate
+      'features': evt.target.getFeatures().getArray(),
+      'coordinate': evt.mapBrowserEvent.coordinate
     })
   })
   map.addInteraction(selectOnClick)

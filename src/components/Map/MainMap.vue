@@ -44,6 +44,7 @@ import { delay, each } from 'underscore'
 import Map from 'ol/Map'
 import View from 'ol/View'
 import {Tile as TileLayer} from 'ol/layer'
+// import Stamen from 'ol/source/Stamen'
 import XYZ from 'ol/source/XYZ'
 // import OSM from 'ol/source/OSM'
 // import TileJSON from 'ol/source/TileJSON'
@@ -264,10 +265,21 @@ export default {
           //   source: new OSM()
           // }) OR
           new TileLayer({
+            name: 'Basemap',
             source: new XYZ({
               url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png'
             })
-          })
+          }),
+          // new TileLayer({
+          //   source: new Stamen({
+          //     layer: 'terrain'
+          //   })
+          // }),
+          // new TileLayer({
+          //   source: new Stamen({
+          //     layer: 'terrain-labels'
+          //   })
+          // })
         ],
         view: this.mapView,
         controls: [

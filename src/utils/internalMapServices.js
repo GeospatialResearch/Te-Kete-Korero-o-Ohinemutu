@@ -15,7 +15,7 @@ var addGeoserverWMS = function (layername) {
       url: 'http://localhost:8080/geoserver/storyapp/wms',
       params: {'LAYERS': 'storyapp:' + layername },
       ratio: 1,
-      serverType: 'geoserver',
+      serverType: 'geoserver'
     })
   })
   map.addLayer(layerWMS)
