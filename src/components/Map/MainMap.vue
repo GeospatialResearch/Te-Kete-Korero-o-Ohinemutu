@@ -1,9 +1,20 @@
 <template>
   <div id="map" :class="[togglePanel ? 'col-md-8': 'col-md-12', 'map']">
-    <div class="ol-custom ol-control">
-      <button class="ol-zoom-in" type="button" title="Show Me">
-        O
-      </button>
+    <div class="card ol-control ol-custom col-xs-3 col-sm-3 ">
+      <h5 class="card-header">
+        <a id="heading-example" data-toggle="collapse" href="#collapse-example" aria-expanded="true" aria-controls="collapse-example" class="d-block">
+          Legend
+          <i class="fa fa-chevron-down pull-right" />
+        </a>
+      </h5>
+      <div id="collapse-example" class="col-xs-4  collapse" aria-labelledby="heading-example">
+        <div class="card-body">
+          <small v-for="(layer, layerkey) in externalLayers" :key="layerkey">
+            <div v-if=" layer.legend "> <span v-html=" layer.legend " /> {{ layer.layername }}
+            </div>
+          </small>
+        </div>
+      </div>
     </div>
     <div v-if="isUploadingData" class="loading-background" />
     <div v-if="isUploadingData" class="loader-upload" />
