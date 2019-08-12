@@ -18,18 +18,18 @@ const linzKey = process.env.LINZ_ACCESS_KEY
 const mfeKey = process.env.MFE_ACCESS_KEY
 
 
-function makePattern() {
-	var cnv = document.createElement('canvas');
-  var ctx = cnv.getContext('2d');
-  cnv.width = 6;
-  cnv.height = 6;
-  ctx.fillStyle = 'rgb(255, 0, 0)';
-
-  for(var i = 0; i < 6; ++i) {
-    ctx.fillRect(i, i, 1, 1);
-  }
-  return ctx.createPattern(cnv, 'repeat');
-}
+// function makePattern() {
+// 	var cnv = document.createElement('canvas');
+//   var ctx = cnv.getContext('2d');
+//   cnv.width = 6;
+//   cnv.height = 6;
+//   ctx.fillStyle = 'rgb(255, 0, 0)';
+//
+//   for(var i = 0; i < 6; ++i) {
+//     ctx.fillRect(i, i, 1, 1);
+//   }
+//   return ctx.createPattern(cnv, 'repeat');
+// }
 
 var addPropertyTitlesWFS = function (obj) {
   const map = store.state.map
@@ -70,15 +70,7 @@ var addPropertyTitlesWFS = function (obj) {
 		zIndex: obj.zindex,
     minResolution: obj.minresolution,
     maxResolution: obj.maxresolution,
-    style: new Style({
-      fill: new Fill({
-        color: 'rgba(255, 255, 255, 0)' // so it will be recognised on hover, otherwise only when hovering on the edges the feature would be identified
-      }),
-      stroke: new Stroke({
-        color: 'rgba(0, 0, 255, 1.0)',
-        width: 1
-      })
-    })
+    style: obj.property_layer_style
   })
 
   map.addLayer(vl)
@@ -106,16 +98,7 @@ var addProtectedAreasWFS = function (obj) {
 		zIndex: obj.zindex,
     minResolution: obj.minresolution,
     maxResolution: obj.maxresolution,
-    style: new Style({
-      fill: new Fill({
-        //color: 'rgba(255, 255, 255, 0.6)'
-        color: makePattern()
-      }),
-      stroke: new Stroke({
-        color: '#319FD3',
-        width: 1
-      })
-    })
+    style: obj.protected_layer_style
   })
 
   map.addLayer(vl)
