@@ -87,7 +87,11 @@ $(function () {
         $(".sidebar-content").mCustomScrollbar({
             axis: "y",
             autoHideScrollbar: true,
-            scrollInertia: 300
+            scrollInertia: 300,
+            mouseWheel:{
+            enable:true,
+            scrollAmount:5
+            }
         });
         $(".sidebar-content").addClass("desktop");
     }
