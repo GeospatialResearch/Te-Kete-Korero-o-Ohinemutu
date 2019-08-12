@@ -6,6 +6,7 @@ import store from './store'
 // import 'assets/css/app.styl'
 
 // import javascript
+import 'malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js'
 import 'malihu-custom-scrollbar-plugin'
 import 'bootstrap'
 // import fontawesome icons
