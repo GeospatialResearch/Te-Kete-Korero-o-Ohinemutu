@@ -131,6 +131,7 @@ html, body {
 }
 .feature-popup {
   max-width: 400px !important;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
 }
 .popover-header {
   font-size: 0.9rem;
@@ -138,6 +139,8 @@ html, body {
 
 .popover-body {
   font-size: 0.8rem;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .popover-body p {
