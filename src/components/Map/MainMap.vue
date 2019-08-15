@@ -72,7 +72,7 @@ import { Zoom, Attribution, ScaleLine } from 'ol/control'
 
 $(document).on("click", ".popover .close" , function(){
   $(this).parents(".popover").popover('hide');
-})
+});
 
 export default {
   name: 'MapView',
@@ -81,6 +81,7 @@ export default {
     }
   },
   computed: {
+
     mapView () {
       var view = new View({
         projection: 'EPSG:3857',
@@ -267,6 +268,7 @@ export default {
 
   },
   methods: {
+
     initMap () {
 
       var themap = new Map({
