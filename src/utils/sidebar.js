@@ -90,7 +90,7 @@ $(function () {
             scrollInertia: 300,
             mouseWheel:{
             enable:true,
-            scrollAmount:5
+            scrollAmount:50
             }
         });
         $(".sidebar-content").addClass("desktop");

@@ -25,7 +25,8 @@ router = routers.DefaultRouter()
 
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),
-    url(r'^datasets', views.dataset_list)
+    url(r'^datasets', views.dataset_list),
+    url(r'^features', views.spatial_features)
 ]
 
 urlpatterns = [
