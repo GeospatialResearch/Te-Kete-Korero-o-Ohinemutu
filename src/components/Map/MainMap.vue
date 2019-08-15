@@ -48,9 +48,9 @@
 
 import { EventBus } from 'store/event-bus'
 import { addGeoserverWMS, zoomToGeoserverLayer } from 'utils/internalMapServices'
-import { enableEventListeners, addInteractions, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer } from 'utils/mapUtils'
+import { enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer } from 'utils/mapUtils'
 import { extLayersObj } from 'utils/objects'
-import { delay, each } from 'underscore'
+import { delay, each, isString } from 'underscore'
 // Import everything from ol
 import Map from 'ol/Map'
 import View from 'ol/View'
@@ -70,6 +70,7 @@ import { Zoom, Attribution, ScaleLine } from 'ol/control'
 // import { createXYZ } from 'ol/tilegrid'
 
 
+// closes the map popup when clicking the cross button
 $(document).on("click", ".popover .close" , function(){
   $(this).parents(".popover").popover('hide');
 })
@@ -78,6 +79,7 @@ export default {
   name: 'MapView',
   data() {
     return {
+      features_info: ''
     }
   },
   computed: {
@@ -200,32 +202,61 @@ export default {
       var element = this.mapPopup.getElement()
       var coordinate = obj.coordinate
       var features = obj.features
+      var layername = obj.layername
 
-      var features_info = ''
+      if (this.mapPopup.getPosition() != obj.coordinate) {
+        this.features_info = ''
+      } else {
+        this.features_info = this.features_info + '<hr />'
+      }
 
-      // TODO: show all features info, not only the one at the top
+      var feature_properties
       each(features, (f) => {
-        var feature_properties = f.getProperties()
+        try {
+          feature_properties = f.getProperties()
+        } catch (e) {
+          if (f.hasOwnProperty('properties')) {
+            feature_properties = f.properties
+          } else {
+            feature_properties = f
+          }
+        }
+        this.features_info = this.features_info + '<p class="text-center mb-2">Layer: ' + layername + '</p>'
         each(feature_properties, (value, key) => {
           if (key != "geometry" && value != null) {
-            features_info = features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> ' + value + '</p>'
+            if (isString(value) && value.includes('http')) {
+              this.features_info = this.features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> <a href="' + value + '" target="_blank">' + value + '</a></p>'
+            } else {
+              this.features_info = this.features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> ' + value + '</p>'
+            }
           }
         })
       })
 
-      $(element).popover('dispose')
-      if (features.length > 0) {
-        this.mapPopup.setPosition(coordinate)
-        $(element).popover({
-          placement: 'top',
-          animation: false,
-          html: true,
-          title: 'Feature Info <a href="#" class="close" data-dismiss="alert">&times;</a>',
-          template:	'<div class="popover feature-popup" role="tooltip"><div class="arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>',
-          content: features_info
-        })
-        $(element).popover('show')
+      if (this.mapPopup.getPosition() != obj.coordinate) {
+        $(element).popover('dispose')
+        if (features.length > 0) {
+          this.mapPopup.setPosition(coordinate)
+          $(element).popover({
+            placement: 'top',
+            animation: false,
+            html: true,
+            title: 'Feature Info <a href="#" class="close" data-dismiss="alert">&times;</a>',
+            template:	'<div class="popover feature-popup" role="tooltip"><div class="arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>',
+            content: this.features_info
+          })
+          $(element).popover('show')
+        }
+      } else {
+        $('.popover-body').html(this.features_info)
       }
+
+
+    })
+
+    EventBus.$on('closeMapPopup', () => {
+      var element = this.mapPopup.getElement()
+      $(element).popover('dispose')
     })
 
     EventBus.$on('resolutionNotification', () => {
@@ -320,9 +351,6 @@ export default {
           EventBus.$emit('createLayer', layerkey, 'internal') // the layerkey is enough to request the geoserver layer
         }
       })
-
-      // Declaration of select interactions
-      addInteractions()
 
       // Declaration of map events
       enableEventListeners()

@@ -252,3 +252,18 @@ def dataset_list(request):
         datasets = Dataset.objects.all().values('name')
         datasets_list = list(datasets)
         return JsonResponse(datasets_list, safe=False)
+
+
+def spatial_features(request):
+    id = request.GET.get('id', None)
+    geomtype = request.GET.get('geomtype', None)
+
+    if id is not None:
+        if geomtype == 'Polygon' or geomtype == 'MultiPolygon':
+            feature = PolygonEntity.objects.get(id=id)
+        if geomtype == 'LineString' or geomtype == 'MultiLineString':
+            feature = LineEntity.objects.get(id=id)
+        if geomtype == 'Point' or geomtype == 'MultiPoint':
+            feature = PointEntity.objects.get(id=id)
+
+    return JsonResponse(feature.attributes)
