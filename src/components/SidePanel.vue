@@ -8,15 +8,27 @@
     </p>
 
     <h2>Drag and Drop</h2>
-    <div class="droptarget" v-on:drop="drop" v-on:dragover="allowDrop">
+    <div class="droptarget " v-on:drop="drop" v-on:dragover="allowDrop">
       <!-- html elements should have ids for the elements to be dropable -->
-      <img src="static/img/test_img.gif" id="dragtarget1"  v-on:dragstart="dragStart" v-on:drag="dragging" draggable="true" width="88" height="31">
-      <p  id="dragtarget2"  v-on:dragstart="dragStart" v-on:drag="dragging" draggable="true">Drag me!</p>
-      <img src="static/img/favicon.png" id="dragtarget3"  v-on:dragstart="dragStart" v-on:drag="dragging" draggable="true" width="88" height="31">
-      <div  id="dragtarget4"  v-on:dragstart="dragStart" v-on:drag="dragging" draggable="true">
-
-        <iframe id="frame" width="120" height="100" src="https://www.youtube.com/embed/tgbNymZ7vqY"></iframe>
-
+      <div  id="dragtarget1"  class="dragdiv nodrop" v-on:dragstart="dragStart"  dropable="false" v-on:drag="dragging" draggable="true">
+        <img id="id1" src="static/img/test_img.gif" dropable="false" draggable="false" width="88" height="31">
+      </div>
+      <div  id="dragtarget2"  class="dragdiv nodrop" v-on:dragstart="dragStart"  dropable="false" v-on:drag="dragging" draggable="true">
+        Drag me!
+      </div>
+      <div  id="dragtarget3"  class="dragdiv nodrop" v-on:dragstart="dragStart"  dropable="false" v-on:drag="dragging" draggable="true">
+        <img  id="id3" src="static/img/favicon.png" dropable="false" draggable="false" width="88" height="31">
+      </div>
+      <div  id="dragtarget4"  class="dragdiv nodrop" v-on:dragstart="dragStart"  dropable="false" v-on:drag="dragging" draggable="true">
+        <iframe id="id4" dropable="false" width="88" height="100" src="https://www.youtube.com/embed/tgbNymZ7vqY"></iframe>
+      </div>
+      <div  id="dragtarget5" class="dragdiv nodrop" v-on:dragstart="dragStart"  dropable="false" v-on:drag="dragging" draggable="true">
+        <input  id="id5" type="text" name="name" placeholder="Name" dropable="false" width="30" height="31">
+      </div>
+      <div  id="dragtarget6" class="dragdiv nodrop" v-on:dragstart="dragStart"  dropable="false" v-on:drag="dragging" draggable="true">
+        <textarea id="id6" dropable="false" rows="4" cols="10">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+        </textarea>
       </div>
     </div>
     <p style="clear:both;">
@@ -35,7 +47,7 @@ export default {
       },
       dragging:function(event) {
         console.log(event)
-        document.getElementById("demo").innerHTML =
+        document.getElementById("demo").innerHTML
           "The element is being dragged";
       },
       allowDrop:function(event) {
@@ -43,10 +55,16 @@ export default {
       },
       drop:function(event) {
         event.preventDefault();
-        var data = event.dataTransfer.getData("Text");
-        event.target.appendChild(document.getElementById(data));
-        document.getElementById("demo").innerHTML =
-          "The element was dropped";
+        if (event.target.classList.contains('nodrop')) {
+          alert("You can't drop inside another element")
+        }
+        else {
+          var data = event.dataTransfer.getData("Text");
+          event.target.appendChild(document.getElementById(data));
+          document.getElementById("demo").innerHTML =
+            "The element was dropped";
+        }
+
       }
     }
 }
