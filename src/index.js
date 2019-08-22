@@ -12,7 +12,8 @@ import 'bootstrap'
 // import fontawesome icons
 import { FontAwesomeIcon } from './utils/icons.js'
 Vue.component('font-awesome-icon', FontAwesomeIcon)
-
+import vuedraggable from 'vuedraggable'
+Vue.use(vuedraggable)
 // import css
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './css/custom.css'
