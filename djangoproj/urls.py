@@ -25,6 +25,8 @@ router = routers.DefaultRouter()
 
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),
+    url(r'^set_layer_style/', views.SetGeoServerDefaultStyle.as_view()),
+    url(r'^get_layer_style/', views.GetGeoServerDefaultStyle.as_view()),
     url(r'^datasets', views.dataset_list),
     url(r'^features', views.spatial_features)
 ]

@@ -173,3 +173,64 @@ html, body {
 .resolution-box p {
   margin-bottom: 0px;
 }
+
+.layer-options a {
+  padding-left: 10px;
+  padding-bottom: 0;
+}
+
+.layer-info {
+  color: rgb(26, 27, 26);
+}
+
+#legend {
+  background-color: rgba(0,60,136,0.5);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1.14em;
+}
+
+#collapse-legend .card-body {
+  background-color: #ffffff;
+}
+
+.slider {
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  width: 100%; /* Full-width */
+  height: 20px; /* Specified height */
+  background: #d3d3d3; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.8; /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 1; /* Fully shown on mouse-over */
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 10px; /* Set a specific slider handle width */
+  height: 25px; /* Slider handle height */
+  background: rgba(0,60,136,0.8);
+  cursor: pointer; /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+  width: 25px; /* Set a specific slider handle width */
+  height: 25px; /* Slider handle height */
+  background: rgba(0,60,136,0.8);
+  cursor: pointer; /* Cursor on hover */
+}
+
+.svg {
+  width: 15px;
+  height: 15px;
+  vertical-align: middle;
+  margin: 3px;
+}

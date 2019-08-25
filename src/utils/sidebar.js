@@ -35,15 +35,12 @@ $(function () {
             $(".page-wrapper").addClass("pinned");
             $("#sidebar").hover(
                 function () {
-                    console.log("mouseenter");
                     $(".page-wrapper").addClass("sidebar-hovered");
                 },
                 function () {
-                    console.log("mouseout");
                     $(".page-wrapper").removeClass("sidebar-hovered");
                 }
             )
-
         }
     });
 
@@ -95,4 +92,24 @@ $(function () {
         });
         $(".sidebar-content").addClass("desktop");
     }
+
+    // hide any open sidebar layer popover when the anywhere else in the body is clicked
+    $('body').on('click', function (e) {
+      $('[data-toggle=popover]').each(function () {
+        if (!$(this).is(e.target) && $(this).has(e.target).length === 0 ) {
+          $(this).popover('hide')
+        }
+        // && $('.popover').has(e.target).length === 0 // avoids to hide the popover if we click on it
+      })
+    })
+
+    // send EventBus on internal layer click option
+    $(document.body).on('click', "[id*='_zoomto']" ,function(){
+      var layername = $(this).attr('id').replace("_zoomto", "")
+      EventBus.$emit('zoomToLayer', {layerName:layername, layerType:'internal'})
+    })
+    $(document.body).on('click', "[id*='_restyle']" ,function(){
+      var layername = $(this).attr('id').replace("_restyle", "")
+      EventBus.$emit('restyleLayer', {layerName:layername, layerType:'internal'})
+    })
 });

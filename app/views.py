@@ -201,12 +201,16 @@ def createGeoserverLayer(layer, dataset_id=None):
     geomtype = layer['geomtype']
     print(geomtype)
     table = None
+    stylename = None
     if geomtype == 'POLYGON' or geomtype == 'MULTIPOLYGON':
         table = 'public.app_polygon_entity'
+        stylename = 'polygon'
     elif geomtype == 'LINESTRING' or geomtype == 'MULTILINESTRING':
         table = 'public.app_line_entity'
+        stylename = 'line'
     if geomtype == 'POINT' or geomtype == 'MULTIPOINT':
         table = 'public.app_point_entity'
+        stylename = 'point'
 
     ft_name = layer['filename']
     epsg_code = 'EPSG:4326'
@@ -220,9 +224,45 @@ def createGeoserverLayer(layer, dataset_id=None):
         ft = cat.publish_featuretype(ft_name, store, epsg_code, jdbc_virtual_table=jdbc_vt)
         print("######### Published Geoserver layer #########")
         cat.save(ft)
+
+        layer = cat.get_layer(ft_name)
+        layer.default_style = stylename
+        cat.save(layer)
+
     except Exception as e:
         print(e)
         raise ValidationError(e)
+
+
+class GetGeoServerDefaultStyle(APIView):
+    def get(self, request):
+        layername = request.GET.get('layername', None)
+        gs_user = os.environ.get('GEOSERVER_USERNAME', 'admin')
+        gs_pass = os.environ.get('GEOSERVER_PASSWORD', 'password')
+
+        cat = Catalog("http://geoserver:8080/geoserver/rest/", gs_user, gs_pass)
+
+        layer = cat.get_layer(layername)
+        sld = layer.default_style.sld_body
+
+        return Response( { 'sld': sld, 'stylename': layer.default_style.name })
+
+
+class SetGeoServerDefaultStyle(APIView):
+    def post(self, request):
+        layername = request.data['layername']
+        sld = request.data['sld']
+        gs_user = os.environ.get('GEOSERVER_USERNAME', 'admin')
+        gs_pass = os.environ.get('GEOSERVER_PASSWORD', 'password')
+
+        cat = Catalog("http://geoserver:8080/geoserver/rest/", gs_user, gs_pass)
+
+        layer = cat.get_layer(layername)
+        newstyle = cat.create_style('style_' + layername, sld, overwrite=True)
+        layer.default_style = 'style_' + layername
+        cat.save(layer)
+
+        return Response({'result': None})
 
 
 # Create your views here.
@@ -249,7 +289,7 @@ class DatasetViewSet(viewsets.ReadOnlyModelViewSet):
 
 def dataset_list(request):
     if request.method == 'GET':
-        datasets = Dataset.objects.all().values('name')
+        datasets = Dataset.objects.all().values('name', 'geomtype')
         datasets_list = list(datasets)
         return JsonResponse(datasets_list, safe=False)
 

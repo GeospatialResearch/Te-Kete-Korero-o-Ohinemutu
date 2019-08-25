@@ -54,7 +54,6 @@
         <div class="sidebar-item sidebar-search">
           <div>
             <div class="input-group">
-              <!-- <input class="form-control search-menu" @click="uploadDatasetClicked" placeholder="Upload dataset"> -->
               <div class="form-control search-menu text-center label-info" @click="openPanel">
                 Open panel
               </div>
@@ -105,18 +104,24 @@
               <div class="sidebar-submenu">
                 <ul>
                   <li v-for="(layer, layerkey) in externalLayers" :key="layerkey">
-                    <!-- <span :class="{'visible': layer.visible}"> -->
                     <a href="#" class="layer-line">
-                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_extServ(layer, layerkey)" /> &emsp;{{ layer.layername }}
+                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_extServ(layer, layerkey)" />
+                      &emsp;{{ layer.layername }}
                       <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="hover" title="Layer Information" :data-content="createPopoverInfo(layer)">
-                        <font-awesome-icon icon="info" size="xs" />
+                        <font-awesome-icon icon="info" class="layer-info" />
                       </span>
                     </a>
-                    <!-- </span> -->
                   </li>
                   <li v-for="(layer, layerkey) in internalLayers" :key="layerkey">
                     <a href="#" class="layer-line">
-                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_intServ(layer, layerkey)" /> &emsp;{{ layer.name }}
+                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_intServ(layer, layerkey)" />
+                      <span>
+                        &emsp;{{ layer.name }}
+                      </span>
+                      <!-- <span>&emsp;{{ layer.name }}</span> -->
+                      <span class="float-right ml-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(layer, 'internal')">
+                        <font-awesome-icon icon="ellipsis-v" />
+                      </span>
                     </a>
                   </li>
                 </ul>
@@ -389,6 +394,13 @@
         return this.$store.state.externalLayers
       },
       internalLayers () {
+        // the popover needs to be re-initialized when reloading the divs
+        $(function () {
+          $('[data-toggle="popover"]').popover({
+            boundary:'window',
+            html: true
+          })
+        })
         return this.$store.state.internalLayers
       },
       map () {
@@ -473,6 +485,19 @@
                               layer.minresolution + " and " + layer.maxresolution + "</p>"
         }
         return htmlInfo
+      },
+      createPopoverLayerOptions (layer) {
+        var disabled = layer.visible ? ' ' : ' disabled'
+
+        var layerOptions = `<div class="layer-options">
+                              <a class="dropdown-item` + disabled +`" id="` + layer.name + `_zoomto" href="#">Zoom to layer</a>
+                              <a class="dropdown-item` + disabled +`" id="` + layer.name + `_rename" href="#">Rename layer</a>
+                              <a class="dropdown-item` + disabled +`" id="` + layer.name + `_restyle" href="#">Edit style</a>
+                              <div class="dropdown-divider"></div>
+                              <a class="dropdown-item` + disabled +`" id="` + layer.name + `_delete" href="#">Delete layer</a>
+                            </div>`
+
+        return layerOptions
       }
     }
   }
