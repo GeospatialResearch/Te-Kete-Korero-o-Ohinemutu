@@ -51,6 +51,9 @@ const store = new Vuex.Store({
       }
       Vue.set(state.internalLayers, payload.filename, obj) // so the new property is also reactive
     },
+    DELETE_INTERNAL_LAYER (state, layername) {
+      Vue.delete(state.internalLayers, layername)
+    },
     SET_MAP_RESOLUTION (state, resolution) {
       state.map_resolution = resolution
     },
@@ -107,6 +110,12 @@ const store = new Vuex.Store({
       return api.post(apiRoot + '/set_layer_style/', payload)
       .then((response) => {
         return response
+      })
+    },
+    deleteLayer (store, layername) {
+      return api.post(apiRoot + '/delete_layer/', {'layername': layername})
+      .then(() => {
+        store.commit('DELETE_INTERNAL_LAYER', layername)
       })
     }
   }

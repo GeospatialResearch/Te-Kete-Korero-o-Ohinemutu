@@ -412,6 +412,7 @@
         this.$store.commit('SET_PANEL_OPEN', !this.$store.state.isPanelOpen)
       },
       uploadDatasetClicked () {
+        this.reset()
         $('#uploadDatasetModal').modal('show')
       },
       reset () {

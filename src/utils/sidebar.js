@@ -1,5 +1,6 @@
 var EventBus = require('store/event-bus.js').EventBus
 var _ = require('underscore')
+const store = require('store').default
 
 $(function () {
 
@@ -111,5 +112,12 @@ $(function () {
     $(document.body).on('click', "[id*='_restyle']" ,function(){
       var layername = $(this).attr('id').replace("_restyle", "")
       EventBus.$emit('restyleLayer', {layerName:layername, layerType:'internal'})
+    })
+    $(document.body).on('click', "[id*='_delete']" ,function(){
+      var layername = $(this).attr('id').replace("_delete", "")
+      store.dispatch('deleteLayer', layername)
+      .then(() => {
+        EventBus.$emit('removeLayer', layername)
+      })
     })
 });
