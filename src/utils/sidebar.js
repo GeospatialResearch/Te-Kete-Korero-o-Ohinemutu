@@ -94,7 +94,7 @@ $(function () {
         $(".sidebar-content").addClass("desktop");
     }
 
-    // hide any open sidebar layer popover when the anywhere else in the body is clicked
+    // Hide any open sidebar layer popover when the anywhere else in the body is clicked
     $('body').on('click', function (e) {
       $('[data-toggle=popover]').each(function () {
         if (!$(this).is(e.target) && $(this).has(e.target).length === 0 ) {
@@ -119,5 +119,9 @@ $(function () {
       .then(() => {
         EventBus.$emit('removeLayer', layername)
       })
+    })
+    $(document.body).on('click', "[id*='_rename']" ,function(){
+      var layername = $(this).attr('id').replace("_rename", "")
+      EventBus.$emit('assignLayerNameModalOpen', layername)
     })
 });

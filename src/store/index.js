@@ -54,6 +54,9 @@ const store = new Vuex.Store({
     DELETE_INTERNAL_LAYER (state, layername) {
       Vue.delete(state.internalLayers, layername)
     },
+    RENAME_INTERNAL_LAYER (state, payload) {
+      state.internalLayers[payload.layername].assigned_name = payload.assignedName
+    },
     SET_MAP_RESOLUTION (state, resolution) {
       state.map_resolution = resolution
     },
@@ -116,6 +119,12 @@ const store = new Vuex.Store({
       return api.post(apiRoot + '/delete_layer/', {'layername': layername})
       .then(() => {
         store.commit('DELETE_INTERNAL_LAYER', layername)
+      })
+    },
+    renameLayer (store, payload) {
+      return api.post(apiRoot + '/rename_layer/', payload)
+      .then(() => {
+        store.commit('RENAME_INTERNAL_LAYER', payload)
       })
     }
   }

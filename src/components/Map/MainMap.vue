@@ -38,7 +38,9 @@
           </small>
           <small v-for="(layer, layerkey) in internalLayers" :key="layerkey">
             <p v-if="layer.visible" class="mb-1">
-              <img :src="layer.legendURL"> {{ layerkey }}
+              <img :src="layer.legendURL">
+              <span v-if="layer.assigned_name">{{ layer.assigned_name }}</span>
+              <span v-else>{{ layerkey }}</span>
             </p>
           </small>
         </div>
@@ -189,11 +191,6 @@ import { Zoom, Attribution, ScaleLine } from 'ol/control'
 // import { tile } from 'ol/loadingstrategy' // bbox as bboxStrategy,
 // import { createXYZ } from 'ol/tilegrid'
 
-
-// closes the map popup when clicking the cross button
-$(document).on("click", ".popover .close" , function(){
-  $(this).parents(".popover").popover('hide');
-});
 
 export default {
   name: 'MapView',
@@ -347,6 +344,7 @@ export default {
       var coordinate = obj.coordinate
       var features = obj.features
       var layername = obj.layername
+      var assignedname = this.$store.state.internalLayers[layername] ? this.$store.state.internalLayers[layername].assigned_name : ''
 
       if (this.mapPopup.getPosition() != obj.coordinate) {
         this.features_info = ''
@@ -365,7 +363,9 @@ export default {
             feature_properties = f
           }
         }
-        this.features_info = this.features_info + '<p class="text-center mb-2">Layer: ' + layername + '</p>'
+        var layertitle = assignedname ? assignedname : layername
+        this.features_info = this.features_info + '<p class="text-center mb-2">Layer: ' + layertitle + '</p>'
+
         each(feature_properties, (value, key) => {
           if (key != "geometry" && value != null) {
             if (isString(value) && value.includes('http')) {

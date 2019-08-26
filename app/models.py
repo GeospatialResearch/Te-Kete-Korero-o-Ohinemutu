@@ -14,7 +14,7 @@ class Dataset(models.Model):
         (LINE, 'LINE'),
         (POLYGON, 'POLYGON')
     )
-    
+
     id = models.UUIDField(
         default=uuid.uuid4, editable=False,
         unique=True, primary_key=True
@@ -23,6 +23,7 @@ class Dataset(models.Model):
     geomtype = models.IntegerField(null=False,
                                 default=POINT,
                                 choices=GEOMTYPES)
+    assigned_name = models.CharField(max_length=200, default=None, blank=True, null=True)
 
 
 class PolygonEntity(models.Model):

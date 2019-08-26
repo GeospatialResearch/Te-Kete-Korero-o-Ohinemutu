@@ -308,7 +308,7 @@ class DatasetViewSet(viewsets.ReadOnlyModelViewSet):
 
 def dataset_list(request):
     if request.method == 'GET':
-        datasets = Dataset.objects.all().values('name', 'geomtype')
+        datasets = Dataset.objects.all().values('name', 'geomtype', 'assigned_name')
         datasets_list = list(datasets)
         return JsonResponse(datasets_list, safe=False)
 
@@ -334,5 +334,18 @@ class DeleteLayer(APIView):
 
         if layername is not None:
             delete_layer(layername)
+
+        return Response({'result': None})
+
+
+class RenameLayer(APIView):
+    def post(self, request):
+        layername = request.data['layername']
+        assignedname = request.data['assignedName']
+
+        if layername is not None and assignedname is not None:
+            dataset = Dataset.objects.get(name=layername)
+            dataset.assigned_name = assignedname
+            dataset.save()
 
         return Response({'result': None})
