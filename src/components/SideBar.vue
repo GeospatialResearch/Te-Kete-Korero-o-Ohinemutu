@@ -404,6 +404,26 @@
         </div>
       </div>
     </div>
+    <div id="deleteLayerModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Delete Layer</h5>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete this layer?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Cancel
+            </button>
+            <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="deleteLayer()">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <!-- page-wrapper -->
 </template>
@@ -418,7 +438,8 @@
         uploadFieldName: 'file',
         uploadError: null,
         layerAssignedName: null,
-        layerName: null
+        layerName: null,
+        layerToDelete: null
       }
     },
     computed: {
@@ -444,6 +465,11 @@
         this.layerName = layername
         this.layerAssignedName = this.$store.state.internalLayers[layername].assigned_name
         $('#renameLayerModal').modal('show')
+      })
+
+      EventBus.$on('deleteLayerModalOpen', (layername) => {
+        this.layerToDelete = layername
+        $('#deleteLayerModal').modal('show')
       })
     },
     methods: {
@@ -540,9 +566,12 @@
         return layerOptions
       },
       assignNewName () {
-        this.$store.dispatch('renameLayer', { layername: this.layerName, assignedName: this.layerAssignedName } )
+        this.$store.dispatch('renameLayer', { layername: this.layerName, assignedName: this.layerAssignedName })
+      },
+      deleteLayer () {
+        this.$store.dispatch('deleteLayer', this.layerToDelete)
         .then(() => {
-
+          EventBus.$emit('removeLayer', this.layerToDelete)
         })
       }
     }
