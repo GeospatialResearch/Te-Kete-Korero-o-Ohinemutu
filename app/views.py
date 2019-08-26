@@ -234,6 +234,26 @@ def createGeoserverLayer(layer, dataset_id=None):
         raise ValidationError(e)
 
 
+@transaction.atomic
+def delete_layer(layername):
+    # Remove from database
+    Dataset.objects.get(name=layername).delete()
+
+    # Remove from GeoServer
+    gs_user = os.environ.get('GEOSERVER_USERNAME', 'admin')
+    gs_pass = os.environ.get('GEOSERVER_PASSWORD', 'password')
+    cat = Catalog("http://geoserver:8080/geoserver/rest/", gs_user, gs_pass)
+
+    layer = cat.get_layer(layername)
+    cat.delete(layer)
+
+    style = cat.get_style("style_" + layername)
+    if style is not None:
+        cat.delete(style)
+
+    cat.reload()
+
+
 class GetGeoServerDefaultStyle(APIView):
     def get(self, request):
         layername = request.GET.get('layername', None)
@@ -265,7 +285,6 @@ class SetGeoServerDefaultStyle(APIView):
         return Response({'result': None})
 
 
-# Create your views here.
 class UploadFileView(APIView):
     def post(self, request):
 
@@ -289,7 +308,7 @@ class DatasetViewSet(viewsets.ReadOnlyModelViewSet):
 
 def dataset_list(request):
     if request.method == 'GET':
-        datasets = Dataset.objects.all().values('name', 'geomtype')
+        datasets = Dataset.objects.all().values('name', 'geomtype', 'assigned_name')
         datasets_list = list(datasets)
         return JsonResponse(datasets_list, safe=False)
 
@@ -307,3 +326,26 @@ def spatial_features(request):
             feature = PointEntity.objects.get(id=id)
 
     return JsonResponse(feature.attributes)
+
+
+class DeleteLayer(APIView):
+    def post(self, request):
+        layername = request.data['layername']
+
+        if layername is not None:
+            delete_layer(layername)
+
+        return Response({'result': None})
+
+
+class RenameLayer(APIView):
+    def post(self, request):
+        layername = request.data['layername']
+        assignedname = request.data['assignedName']
+
+        if layername is not None and assignedname is not None:
+            dataset = Dataset.objects.get(name=layername)
+            dataset.assigned_name = assignedname
+            dataset.save()
+
+        return Response({'result': None})

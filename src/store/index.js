@@ -47,9 +47,16 @@ const store = new Vuex.Store({
         name: payload.filename,
         visible: true,
         legendURL: process.env.WEB_HOST + ":8080/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + payload.filename + "&myData:" + Math.random(),
-        geomtype: ['POINT', 'MULTIPOINT'].includes(payload.geomtype) ? 0 : ['LINESTRING', 'MULTILINESTRING'].includes(payload.geomtype) ? 1 : 2
+        geomtype: ['POINT', 'MULTIPOINT'].includes(payload.geomtype) ? 0 : ['LINESTRING', 'MULTILINESTRING'].includes(payload.geomtype) ? 1 : 2,
+        assigned_name: null
       }
       Vue.set(state.internalLayers, payload.filename, obj) // so the new property is also reactive
+    },
+    DELETE_INTERNAL_LAYER (state, layername) {
+      Vue.delete(state.internalLayers, layername)
+    },
+    RENAME_INTERNAL_LAYER (state, payload) {
+      state.internalLayers[payload.layername].assigned_name = payload.assignedName
     },
     SET_MAP_RESOLUTION (state, resolution) {
       state.map_resolution = resolution
@@ -107,6 +114,18 @@ const store = new Vuex.Store({
       return api.post(apiRoot + '/set_layer_style/', payload)
       .then((response) => {
         return response
+      })
+    },
+    deleteLayer (store, layername) {
+      return api.post(apiRoot + '/delete_layer/', {'layername': layername})
+      .then(() => {
+        store.commit('DELETE_INTERNAL_LAYER', layername)
+      })
+    },
+    renameLayer (store, payload) {
+      return api.post(apiRoot + '/rename_layer/', payload)
+      .then(() => {
+        store.commit('RENAME_INTERNAL_LAYER', payload)
       })
     }
   }

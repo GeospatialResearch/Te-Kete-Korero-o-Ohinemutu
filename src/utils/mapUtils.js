@@ -215,4 +215,18 @@ var createGeojsonVTlayer = function (geojson) {
 }
 
 
+// Closes the map popup when clicking the cross button
+$(document).on("click", ".popover .close" , function(){
+  $(this).parents(".popover").popover('hide')
+})
+// Hide the map popup when the anywhere else in the body is clicked
+$('body').on('click', function (e) {
+  $('.feature-popup').each(function () {
+    if (!$(this).is(e.target) && $(this).has(e.target).length === 0 ) {
+      $(this).popover('hide')
+    }
+  })
+})
+
+
 module.exports = {enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer}

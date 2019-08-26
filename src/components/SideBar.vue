@@ -115,11 +115,13 @@
                   <li v-for="(layer, layerkey) in internalLayers" :key="layerkey">
                     <a href="#" class="layer-line">
                       <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_intServ(layer, layerkey)" />
-                      <span>
+                      <span v-if="layer.assigned_name">
+                        &emsp;{{ layer.assigned_name }}
+                      </span>
+                      <span v-else>
                         &emsp;{{ layer.name }}
                       </span>
-                      <!-- <span>&emsp;{{ layer.name }}</span> -->
-                      <span class="float-right ml-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(layer, 'internal')">
+                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(layer, 'internal')">
                         <font-awesome-icon icon="ellipsis-v" />
                       </span>
                     </a>
@@ -374,6 +376,54 @@
         </div>
       </div>
     </div>
+    <div id="renameLayerModal" class="modal fade">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Rename layer</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div>
+              <label>New name for layer</label>
+              <input v-model="layerAssignedName" required type="text" class="form-control form-control-sm" title="New name">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <div class="btn-group pull-right">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                Cancel
+              </button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" @click="assignNewName()">
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="deleteLayerModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Delete Layer</h5>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete this layer?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Cancel
+            </button>
+            <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="deleteLayer()">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <!-- page-wrapper -->
 </template>
@@ -386,7 +436,10 @@
     data () {
       return {
         uploadFieldName: 'file',
-        uploadError: null
+        uploadError: null,
+        layerAssignedName: null,
+        layerName: null,
+        layerToDelete: null
       }
     },
     computed: {
@@ -407,11 +460,24 @@
         return this.$store.state.map
       }
     },
+    mounted: function () {
+      EventBus.$on('assignLayerNameModalOpen', (layername) => {
+        this.layerName = layername
+        this.layerAssignedName = this.$store.state.internalLayers[layername].assigned_name
+        $('#renameLayerModal').modal('show')
+      })
+
+      EventBus.$on('deleteLayerModalOpen', (layername) => {
+        this.layerToDelete = layername
+        $('#deleteLayerModal').modal('show')
+      })
+    },
     methods: {
       openPanel(){
         this.$store.commit('SET_PANEL_OPEN', !this.$store.state.isPanelOpen)
       },
       uploadDatasetClicked () {
+        this.reset()
         $('#uploadDatasetModal').modal('show')
       },
       reset () {
@@ -498,6 +564,15 @@
                             </div>`
 
         return layerOptions
+      },
+      assignNewName () {
+        this.$store.dispatch('renameLayer', { layername: this.layerName, assignedName: this.layerAssignedName })
+      },
+      deleteLayer () {
+        this.$store.dispatch('deleteLayer', this.layerToDelete)
+        .then(() => {
+          EventBus.$emit('removeLayer', this.layerToDelete)
+        })
       }
     }
   }
