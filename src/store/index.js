@@ -47,7 +47,7 @@ const store = new Vuex.Store({
         name: payload.filename,
         visible: true,
         legendURL: process.env.WEB_HOST + ":8080/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + payload.filename + "&myData:" + Math.random(),
-        geomtype: ['POINT', 'MULTIPOINT'].includes(payload.geomtype) ? 0 : ['LINESTRING', 'MULTILINESTRING'].includes(payload.geomtype) ? 1 : 2,
+        geomtype: ['POINT', 'MULTIPOINT'].includes(payload.geomtype) ? 0 : ['LINESTRING', 'MULTILINESTRING'].includes(payload.geomtype) ? 1 : ['POLYGON', 'MULTIPOLYGON'].includes(payload.geomtype) ? 2 : 3,
         assigned_name: null
       }
       Vue.set(state.internalLayers, payload.filename, obj) // so the new property is also reactive
@@ -126,6 +126,12 @@ const store = new Vuex.Store({
       return api.post(apiRoot + '/rename_layer/', payload)
       .then(() => {
         store.commit('RENAME_INTERNAL_LAYER', payload)
+      })
+    },
+    getInternalRasterLayerBbox (store, layername) {
+      return api.get(apiRoot + '/get_layer_bbox/?layername=' + layername)
+      .then((response) => {
+        return response
       })
     }
   }

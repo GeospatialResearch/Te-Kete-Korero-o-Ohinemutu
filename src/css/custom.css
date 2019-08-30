@@ -157,13 +157,18 @@ html, body {
   bottom: 3px;
 }
 
+.ol-attribution {
+  margin-right: 10px;
+}
+
 .resolution-box {
-  background: rgba(0,0,0,0.5);
+  background-color: rgba(0,60,136,0.5);
+  /* background: rgba(0,0,0,0.5); */
   color: #fff;
   position: absolute;
-  bottom: 10px;
+  bottom: 20px;
   right: 10px;
-  padding:15px 15px;
+  padding:10px 10px;
   margin: 0;
   font-size: 15px;
   border-radius: 3px;

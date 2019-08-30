@@ -14,6 +14,7 @@ const GeoJSON = require('ol/format/GeoJSON').default
 var getWidth = require('ol/extent').getWidth
 // var findByName = require('utils/olHelper').findByName
 const extLayersObj = require('utils/objects').extLayersObj
+var _ = require('underscore')
 
 
 var enableEventListeners = function () {
@@ -40,9 +41,21 @@ var enableEventListeners = function () {
     var viewResolution = map.getView().getResolution()
     var projection = map.getView().getProjection()
 
+    // Define nExpectedCount
+    var nExpectedCount = 0
+    _.each(store.state.internalLayers, (layer) => {
+      if (layer.visible) {
+        nExpectedCount++
+      }
+    })
+    map.forEachFeatureAtPixel(evt.pixel, () => {
+      nExpectedCount++
+    })
+    EventBus.$emit('defineExpectedCount', nExpectedCount)
+
     // external vector layers
     map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
-      EventBus.$emit('showMapPopup', {
+      EventBus.$emit('showLayersFeaturesPopup', {
         'features': [feature],
         'coordinate': evt.coordinate,
         'layername': extLayersObj[layer.get('name')].layername
@@ -53,9 +66,8 @@ var enableEventListeners = function () {
     layers.forEach( (layer) => {
       var layername = layer.get('name')
       if (layer.getVisible() && layername!='Basemap' && !Object.keys(store.state.externalLayers).includes(layername)) {
-
         $.ajax({
-          url: layer.getSource().getGetFeatureInfoUrl(evt.coordinate, viewResolution, projection,
+          url: layer.getSource().getGetFeatureInfoUrl(evt.coordinate, viewResolution, projection,  // creates the WMS getFeatureInfo request for us
             { 'INFO_FORMAT': 'text/javascript',
               'format_options': 'callback:' + layername,
             }
@@ -63,19 +75,31 @@ var enableEventListeners = function () {
           dataType: 'jsonp',
           jsonpCallback: layername // instead of a static name like 'getJson' to avoid the classic race issue
         }).done(function (response) {
-            if (response.features.length > 0) {
+          if (response.features.length > 0) {
+            if (store.state.internalLayers[layername].geomtype != 3) {
               // Get properties info from database
               response.features.forEach( (f) => {
                 store.dispatch('getFeatures', {'id': f.properties.id, 'geomtype': f.geometry.type})
                 .then(response => {
-                  EventBus.$emit('showMapPopup', {
+                  EventBus.$emit('showLayersFeaturesPopup', {
                     'features': [response.body],
                     'coordinate': evt.coordinate,
                     'layername': layername
                   })
                 })
               })
+            } else { // Raster
+              EventBus.$emit('showLayersFeaturesPopup', {
+                'features': response.features,
+                'coordinate': evt.coordinate,
+                'layername': layername
+              })
             }
+          } else {
+            EventBus.$emit('showLayersFeaturesPopup', {
+              'coordinate': evt.coordinate,
+            })
+          }
         })
       }
     })
@@ -214,6 +238,16 @@ var createGeojsonVTlayer = function (geojson) {
   map.addLayer(vectorLayer)
 }
 
+var isLayerDisplayed = function (layer) {
+  const map = store.state.map
+  var viewResolution = map.getView().getResolution()
+  if ( isFinite(layer.get('maxResolution')) ) {
+    return (viewResolution < layer.get('maxResolution') && viewResolution > layer.get('minResolution'))
+  } else {
+    return true
+  }
+}
+
 
 // Closes the map popup when clicking the cross button
 $(document).on("click", ".popover .close" , function(){
@@ -229,4 +263,4 @@ $('body').on('click', function (e) {
 })
 
 
-module.exports = {enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer}
+module.exports = {enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer, isLayerDisplayed}

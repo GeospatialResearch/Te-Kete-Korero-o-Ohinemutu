@@ -9,10 +9,12 @@ class Dataset(models.Model):
     POINT = 0
     LINE = 1
     POLYGON = 2
+    RASTER = 3
     GEOMTYPES = Choices(
         (POINT, 'POINT'),
         (LINE, 'LINE'),
-        (POLYGON, 'POLYGON')
+        (POLYGON, 'POLYGON'),
+        (RASTER, 'RASTER')
     )
 
     id = models.UUIDField(

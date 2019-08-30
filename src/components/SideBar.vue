@@ -352,7 +352,7 @@
           <div class="modal-body">
             <form v-if="!uploadError" enctype="multipart/form-data" novalidate>
               <p class="text-center">
-                <strong>Upload a dataset (zipped shapefile or geojson file)</strong>
+                <strong>Upload a vector dataset (zipped shapefile or geojson file) or a raster file</strong>
               </p>
               <div class="dropbox">
                 <input type="file" :name="uploadFieldName" class="input-file" @change="fileChange($event.target.files)">
@@ -505,7 +505,9 @@
         this.$store.dispatch('uploadFile', formData)
         .then(response => {
           if (response.ok) {
-            EventBus.$emit('addLayer', response.body)  // add argument false if you want to add geojson layer
+            if (response.body) {
+              EventBus.$emit('addLayer', response.body)  // add argument false if you want to add geojson layer
+            }
             this.$store.state.isUploadingData = false
             this.reset()
           } else {
@@ -514,6 +516,7 @@
             } else {
               this.uploadError = response.body.split('Request')[0]
             }
+
             $('#uploadDatasetModal').modal('show')
             this.$store.state.isUploadingData = false
           }
@@ -554,7 +557,6 @@
       },
       createPopoverLayerOptions (layer) {
         var disabled = layer.visible ? ' ' : ' disabled'
-
         var layerOptions = `<div class="layer-options">
                               <a class="dropdown-item` + disabled +`" id="` + layer.name + `_zoomto" href="#">Zoom to layer</a>
                               <a class="dropdown-item` + disabled +`" id="` + layer.name + `_rename" href="#">Rename layer</a>

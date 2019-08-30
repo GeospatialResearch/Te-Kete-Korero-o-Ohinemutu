@@ -8,41 +8,67 @@
       </h6>
       <div id="collapse-legend" class="collapse" aria-labelledby="legend">
         <div class="card-body">
-          <small v-for="(layer, layerkey) in externalLayers" :key="layerkey">
-            <div v-if="layer.visible">
-              <div v-if="layer.geomtype == 0">
-                <p class="mb-1">
-                  <svg class="svg">
-                    <circle cx="7" cy="7" r="4" :fill="layer.style.getImage().getFill().getColor()" :stroke="layer.style.getImage().getStroke().getColor()" :stroke-width="layer.style.getImage().getStroke().getWidth()" />
-                  </svg>
-                  {{ layer.layername }}
-                </p>
-              </div>
-              <div v-if="layer.geomtype == 1">
-                <p class="mb-1">
-                  <svg class="svg">
-                    <line x1="14" y1="1" x2="1" y2="14" :stroke="layer.style.getStroke().getColor()" :stroke-width="layer.style.getStroke().getWidth()" />
-                  </svg>
-                  {{ layer.layername }}
-                </p>
-              </div>
-              <div v-if="layer.geomtype == 2">
-                <p class="mb-1">
-                  <svg class="svg">
-                    <rect x="1" y="1" width="12" height="12" rx="1" :fill="layer.style.getFill().getColor()" :stroke="layer.style.getStroke().getColor()" :stroke-width="layer.style.getStroke().getWidth()" />
-                  </svg>
-                  {{ layer.layername }}
-                </p>
-              </div>
+          <div>
+            <small><strong>Basemaps</strong></small>
+            <div class="form-check">
+              <label class="form-check-label">
+                <input type="radio" class="form-check-input" name="optradio" checked @click="changeBasemap('osm')"><small>OpenStreetMap</small>
+              </label>
             </div>
-          </small>
-          <small v-for="(layer, layerkey) in internalLayers" :key="layerkey">
-            <p v-if="layer.visible" class="mb-1">
-              <img :src="layer.legendURL">
-              <span v-if="layer.assigned_name">{{ layer.assigned_name }}</span>
-              <span v-else>{{ layerkey }}</span>
-            </p>
-          </small>
+            <div class="form-check">
+              <label class="form-check-label">
+                <input type="radio" class="form-check-input" name="optradio" @click="changeBasemap('terrain')"><small>Stamen Terrain</small>
+              </label>
+            </div>
+            <div class="form-check">
+              <label class="form-check-label">
+                <input type="radio" class="form-check-input" name="optradio" @click="changeBasemap('watercolor')"><small>Stamen Watercolor</small>
+              </label>
+            </div>
+            <div class="form-check">
+              <label class="form-check-label">
+                <input type="radio" class="form-check-input" name="optradio" @click="changeBasemap('toner')"><small>Stamen Toner</small>
+              </label>
+            </div>
+          </div>
+          <div class="mt-2">
+            <small><strong>Layers</strong></small>
+            <small v-for="(layer, layerkey) in externalLayers" :key="layerkey">
+              <div v-if="layer.visible">
+                <div v-if="layer.geomtype == 0">
+                  <p class="mb-1">
+                    <svg class="svg">
+                      <circle cx="7" cy="7" r="4" :fill="layer.style.getImage().getFill().getColor()" :stroke="layer.style.getImage().getStroke().getColor()" :stroke-width="layer.style.getImage().getStroke().getWidth()" />
+                    </svg>
+                    {{ layer.layername }}
+                  </p>
+                </div>
+                <div v-if="layer.geomtype == 1">
+                  <p class="mb-1">
+                    <svg class="svg">
+                      <line x1="14" y1="1" x2="1" y2="14" :stroke="layer.style.getStroke().getColor()" :stroke-width="layer.style.getStroke().getWidth()" />
+                    </svg>
+                    {{ layer.layername }}
+                  </p>
+                </div>
+                <div v-if="layer.geomtype == 2">
+                  <p class="mb-1">
+                    <svg class="svg">
+                      <rect x="1" y="1" width="12" height="12" rx="1" :fill="layer.style.getFill().getColor()" :stroke="layer.style.getStroke().getColor()" :stroke-width="layer.style.getStroke().getWidth()" />
+                    </svg>
+                    {{ layer.layername }}
+                  </p>
+                </div>
+              </div>
+            </small>
+            <small v-for="(layer, layerkey) in internalLayers" :key="layerkey">
+              <p v-if="layer.visible" class="mb-1">
+                <img :src="layer.legendURL">
+                <span v-if="layer.assigned_name">{{ layer.assigned_name }}</span>
+                <span v-else>{{ layerkey }}</span>
+              </p>
+            </small>
+          </div>
         </div>
       </div>
     </div>
@@ -54,6 +80,7 @@
         This may take several minutes
       </p>
     </div>
+
     <div class="resolution-box text-center">
       <p>
         <small>Resolution:</small>
@@ -81,7 +108,7 @@
               <form>
                 <div class="form-group">
                   <div class="mt-2">
-                    <div>
+                    <div v-if="isStyleInputVisible([0, 1, 2])">
                       <p class="mb-0">
                         <strong>Color</strong>
                       </p>
@@ -117,7 +144,7 @@
                       </div>
                     </div>
                   </div>
-                  <div v-if="isStyleInputVisible([0,2])" class="mt-4">
+                  <div v-if="isStyleInputVisible([0, 2])" class="mt-4">
                     <p class="mb-0">
                       <strong>Border color</strong>
                     </p>
@@ -130,7 +157,7 @@
                       <label class="col-sm-2 col-form-label col-form-label-sm">px</label>
                     </div>
                   </div>
-                  <div v-if="isStyleInputVisible([1,2])">
+                  <div v-if="isStyleInputVisible([1, 2])">
                     <div class="form-check">
                       <input id="dashedLine" v-model="layerStyle.dashedline" type="checkbox" class="form-check-input">
                       <label class="form-check-label" for="dashedLine">Dashed line</label>
@@ -168,7 +195,7 @@
 <script>
 
 import { EventBus } from 'store/event-bus'
-import { addGeoserverWMS, zoomToGeoserverLayer, setSLDstyle } from 'utils/internalMapServices'
+import { addGeoserverWMS, zoomToGeoserverVectorLayer, zoomToGeoserverRasterLayer, setSLDstyle } from 'utils/internalMapServices'
 import { enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer } from 'utils/mapUtils'
 import { extLayersObj } from 'utils/objects'
 import { delay, each, isString } from 'underscore'
@@ -176,9 +203,9 @@ import { delay, each, isString } from 'underscore'
 import Map from 'ol/Map'
 import View from 'ol/View'
 import {Tile as TileLayer} from 'ol/layer'
-// import Stamen from 'ol/source/Stamen'
-import XYZ from 'ol/source/XYZ'
-// import OSM from 'ol/source/OSM'
+import Stamen from 'ol/source/Stamen'
+// import XYZ from 'ol/source/XYZ'
+import OSM from 'ol/source/OSM'
 // import TileJSON from 'ol/source/TileJSON'
 // import VectorSource from 'ol/source/Vector'
 // import VectorLayer from 'ol/layer/Vector'
@@ -197,12 +224,14 @@ export default {
   data() {
     return {
       features_info: '',
+      layersFeaturesPopupCount: 0,
+      nExpectedCount: null,
       layerStyle: {
          color: '#ffffff',
          opacity: 1,
          linewidth: 1,
          pointsize: 6,
-         bordercolor: '#ffffff',
+         bordercolor: '#000000',
          borderwidth: 1,
          dashedline: false,
          drawnline: 5,
@@ -322,7 +351,11 @@ export default {
       if (geoserverLayer) {
         EventBus.$emit('createLayer', layername, 'internal')
         this.$store.commit('ADD_INTERNAL_LAYER', payload)
-        zoomToGeoserverLayer(layername)
+        if (payload.geomtype != 'raster') {
+          zoomToGeoserverVectorLayer(layername)
+        } else {
+          zoomToGeoserverRasterLayer(layername)
+        }
       } else {
         // conditional to the dataset size (number of features)
         if (geojsonObj.features.length > 10000) {
@@ -339,47 +372,54 @@ export default {
       }
     })
 
-    EventBus.$on('showMapPopup', (obj) => {
+    EventBus.$on('defineExpectedCount', (count) => {
+      this.nExpectedCount = count
+    })
+
+    EventBus.$on('showLayersFeaturesPopup', (obj) => {
       var element = this.mapPopup.getElement()
       var coordinate = obj.coordinate
-      var features = obj.features
-      var layername = obj.layername
-      var assignedname = this.$store.state.internalLayers[layername] ? this.$store.state.internalLayers[layername].assigned_name : ''
 
-      if (this.mapPopup.getPosition() != obj.coordinate) {
-        this.features_info = ''
-      } else {
-        this.features_info = this.features_info + '<hr />'
-      }
+      if (obj.hasOwnProperty('features')) {
+        var features = obj.features
+        var layername = obj.layername
+        var assignedname = this.$store.state.internalLayers[layername] ? this.$store.state.internalLayers[layername].assigned_name : ''
 
-      var feature_properties
-      each(features, (f) => {
-        try {
-          feature_properties = f.getProperties()
-        } catch (e) {
-          if (f.hasOwnProperty('properties')) {
-            feature_properties = f.properties
-          } else {
-            feature_properties = f
-          }
+        if (this.features_info !== '') {
+          this.features_info = this.features_info + '<hr />'
         }
-        var layertitle = assignedname ? assignedname : layername
-        this.features_info = this.features_info + '<p class="text-center mb-2">Layer: ' + layertitle + '</p>'
 
-        each(feature_properties, (value, key) => {
-          if (key != "geometry" && value != null) {
-            if (isString(value) && value.includes('http')) {
-              this.features_info = this.features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> <a href="' + value + '" target="_blank">' + value + '</a></p>'
+        var feature_properties
+        each(features, (f) => {
+          try {
+            feature_properties = f.getProperties()
+          } catch (e) {
+            if (f.hasOwnProperty('properties')) {
+              feature_properties = f.properties
             } else {
-              this.features_info = this.features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> ' + value + '</p>'
+              feature_properties = f
             }
           }
-        })
-      })
+          var layertitle = assignedname ? assignedname : layername
+          this.features_info = this.features_info + '<p class="text-center mb-2">Layer: ' + layertitle + '</p>'
 
-      if (this.mapPopup.getPosition() != obj.coordinate) {
+          each(feature_properties, (value, key) => {
+            if (key != "geometry" && value != null) {
+              if (isString(value) && value.includes('http')) {
+                this.features_info = this.features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> <a href="' + value + '" target="_blank">' + value + '</a></p>'
+              } else {
+                this.features_info = this.features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> ' + value + '</p>'
+              }
+            }
+          })
+        })
+      }
+
+      this.layersFeaturesPopupCount++
+
+      if (this.layersFeaturesPopupCount === this.nExpectedCount) {
         $(element).popover('dispose')
-        if (features.length > 0) {
+        if (this.features_info != "") {
           this.mapPopup.setPosition(coordinate)
           $(element).popover({
             placement: 'top',
@@ -391,10 +431,9 @@ export default {
           })
           $(element).popover('show')
         }
-      } else {
-        $('.popover-body').html(this.features_info)
+        this.layersFeaturesPopupCount = 0
+        this.features_info = ''
       }
-
     })
 
     EventBus.$on('closeMapPopup', () => {
@@ -441,7 +480,11 @@ export default {
 
     EventBus.$on('zoomToLayer', (payload) => {
       if (payload.layerType === "internal") {
-        zoomToGeoserverLayer(payload.layerName)
+        if (this.internalLayers[payload.layerName].geomtype != 3) {
+          zoomToGeoserverVectorLayer(payload.layerName)
+        } else {
+          zoomToGeoserverRasterLayer(payload.layerName)
+        }
       }
     })
 
@@ -453,7 +496,7 @@ export default {
            opacity: 1,
            linewidth: 1,
            pointsize: 6,
-           bordercolor: '#ffffff',
+           bordercolor: '#000000',
            borderwidth: 1,
            dashedline: false,
            drawnline: 5,
@@ -481,6 +524,9 @@ export default {
             }
             if ($(xml).find("CssParameter[name='stroke-opacity']").text()) {
               this.layerStyle.opacity = $(xml).find("CssParameter[name='stroke-opacity']").text()
+            }
+            if ($(xml).find("Opacity").text()) {
+              this.layerStyle.opacity = $(xml).find("Opacity").text()
             }
             if ($(xml).find("CssParameter[name='stroke-width']").text()) {
               this.layerStyle.borderwidth = $(xml).find("CssParameter[name='stroke-width']").text()
@@ -510,23 +556,15 @@ export default {
       var themap = new Map({
         target: 'map',
         layers: [
-          // new TileLayer({
-          //   source: new OSM()
-          // }) OR
           new TileLayer({
             name: 'Basemap',
-            source: new XYZ({
-              url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            })
-          }),
+            zIndex: 0,
+            source: new OSM()
+          })
           // new TileLayer({
-          //   source: new Stamen({
-          //     layer: 'terrain'
-          //   })
-          // }),
-          // new TileLayer({
-          //   source: new Stamen({
-          //     layer: 'terrain-labels'
+          //   name: 'Basemap',
+          //   source: new XYZ({
+          //     url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png'
           //   })
           // })
         ],
@@ -603,6 +641,27 @@ export default {
       if (this.internalLayers[this.layerStyle.layername]) {
         return geomTypeArray.includes(this.internalLayers[this.layerStyle.layername].geomtype)
       }
+    },
+    changeBasemap (basemap_name) {
+      EventBus.$emit('removeLayer', 'Basemap')
+
+      var basemap_layer
+      if (basemap_name === 'osm') {
+        basemap_layer = new TileLayer({
+                          name: 'Basemap',
+                          zIndex: 0,
+                          source: new OSM()
+                        })
+      } else {
+        basemap_layer = new TileLayer({
+                          name: 'Basemap',
+                          zIndex: 0,
+                          source: new Stamen({
+                            layer: basemap_name
+                          })
+                        })
+      }
+      this.map.addLayer(basemap_layer)
     }
   }
 }

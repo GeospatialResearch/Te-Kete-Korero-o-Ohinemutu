@@ -80,4 +80,17 @@ var generatePolygonSLD = function (styleObj) {
   return sld_header + sld + sld_end
 }
 
-module.exports = { generatePointSLD, generateLineSLD, generatePolygonSLD }
+var generateRasterSLD = function (styleObj) {
+
+  var sld = `<FeatureTypeStyle>
+        			<Rule>
+        				<RasterSymbolizer>
+        				    <Opacity>` + styleObj.opacity + `</Opacity>
+        				</RasterSymbolizer>
+        			</Rule>
+        		</FeatureTypeStyle>`
+
+  return sld_header + sld + sld_end
+}
+
+module.exports = { generatePointSLD, generateLineSLD, generatePolygonSLD, generateRasterSLD }

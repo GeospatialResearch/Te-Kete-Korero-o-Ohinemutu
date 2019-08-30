@@ -15,7 +15,7 @@ var extLayersObj = {
     attribution: `<p><strong>Layer name:</strong> NZ Aerial Imagery</p>
                   <i>Sourced from the <a href="https://data.linz.govt.nz/">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> licence.</i>`,
     visible: false,
-    zindex: 0,
+    zindex: 1,
     functionToCall: function (obj) {
       return addAerialImageryWMTS(obj)
     }
@@ -27,7 +27,7 @@ var extLayersObj = {
                   <i>Sourced from the <a href="https://data.linz.govt.nz/">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> licence.</i>`,
     layer_id: 'layer-50804',
     visible: false,
-    zindex: null,
+    zindex: 10,
     minresolution: 0,
     maxresolution: 4.5,
     functionToCall: function (obj) {
@@ -43,7 +43,7 @@ var extLayersObj = {
                   <i>Sourced from the <a href="https://data.linz.govt.nz/">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> licence.</i>`,
     layer_id: 'layer-53564',
     visible: false,
-    zindex: null,
+    zindex: 10,
     minresolution: 0,
     maxresolution: 80,
     functionToCall: function (obj) {
@@ -59,7 +59,7 @@ var extLayersObj = {
                   <i>Sourced from the <a href="https://data.linz.govt.nz/">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> licence.</i>`,
     layer_id: 'layer-50284',
     visible: false,
-    zindex: null,
+    zindex: 10,
     minresolution: 0,
     maxresolution: 200,
     functionToCall: function (obj) {
@@ -75,7 +75,7 @@ var extLayersObj = {
                   <i>Sourced from the <a href="https://data.linz.govt.nz/">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> licence.</i>`,
     layer_id: 'layer-50182',
     visible: false,
-    zindex: null,
+    zindex: 10,
     minresolution: 0,
     maxresolution: 100,
     functionToCall: function (obj) {
@@ -91,7 +91,7 @@ var extLayersObj = {
                   <i>Sourced from the <a href="https://data.mfe.govt.nz/">MfE Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> licence.</i>`,
     layer_id: 'layer-99776',
     visible: false,
-    zindex: null,
+    zindex: 10,
     minresolution: 0,
     maxresolution: 300,
     functionToCall: function (obj) {
