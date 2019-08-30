@@ -76,25 +76,11 @@ var enableEventListeners = function () {
           jsonpCallback: layername // instead of a static name like 'getJson' to avoid the classic race issue
         }).done(function (response) {
           if (response.features.length > 0) {
-            if (store.state.internalLayers[layername].geomtype != 3) {
-              // Get properties info from database
-              response.features.forEach( (f) => {
-                store.dispatch('getFeatures', {'id': f.properties.id, 'geomtype': f.geometry.type})
-                .then(response => {
-                  EventBus.$emit('showLayersFeaturesPopup', {
-                    'features': [response.body],
-                    'coordinate': evt.coordinate,
-                    'layername': layername
-                  })
-                })
-              })
-            } else { // Raster
-              EventBus.$emit('showLayersFeaturesPopup', {
-                'features': response.features,
-                'coordinate': evt.coordinate,
-                'layername': layername
-              })
-            }
+            EventBus.$emit('showLayersFeaturesPopup', {
+              'features': response.features,
+              'coordinate': evt.coordinate,
+              'layername': layername
+            })
           } else {
             EventBus.$emit('showLayersFeaturesPopup', {
               'coordinate': evt.coordinate,

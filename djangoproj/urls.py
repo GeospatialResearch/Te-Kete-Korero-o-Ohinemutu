@@ -30,8 +30,7 @@ v1 = router.urls + [
     url(r'^delete_layer/', views.DeleteLayer.as_view()),
     url(r'^rename_layer/', views.RenameLayer.as_view()),
     url(r'^get_layer_bbox/', views.get_layer_bbox),
-    url(r'^datasets', views.dataset_list),
-    url(r'^features', views.spatial_features)
+    url(r'^datasets', views.dataset_list)
 ]
 
 urlpatterns = [

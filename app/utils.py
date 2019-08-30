@@ -11,19 +11,17 @@ kml_exts = ['.kml']
 json_exts = ['.json', '.geojson']
 vec_exts = shp_exts + csv_exts + kml_exts + json_exts
 
-cov_exts = ['.tif', '.tiff', '.geotiff', '.geotif', '.asc', '.jpg', '.jpeg', '.png']
+cov_exts = ['.tif', '.tiff', '.geotiff', '.geotif', '.asc', '.jpg', '.jpeg', '.png', '.vrt', '.grd']
 
-supported_ext = ['.shp', '.csv', '.kml', '.kmz', '.json',
-                 '.geojson', '.tif', '.tiff', '.geotiff',
-                 '.gml', '.xml']
+supported_ext = ['.shp', '.tif', '.tiff', '.geotiff']
 
 
 def layer_type(filename):
-    """Finds out if a filename is a Feature or a Vector
-       returns a gsconfig resource_type string
-       that can be either 'featureType' or 'coverage'
+    """Finds out if a filename is raster or a vector
     """
     base_name, extension = os.path.splitext(filename)
+
+    print(extension)
 
     if extension.lower() == '.zip':
         zf = ZipFile(filename)
@@ -31,22 +29,10 @@ def layer_type(filename):
         try:
             for n in zf.namelist():
                 b, e = os.path.splitext(n.lower())
-                # if e in shp_exts or e in cov_exts or e in csv_exts:
                 if e in vec_exts or e in cov_exts:
                     extension = e
         finally:
             zf.close()
-
-    # if extension.lower() == '.tar' or filename.endswith('.tar.gz'):
-    #     tf = tarfile.open(filename)
-    #     # TarFile doesn't support with statement in 2.6, so don't do it
-    #     try:
-    #         for n in tf.getnames():
-    #             b, e = os.path.splitext(n.lower())
-    #             if e in shp_exts or e in cov_exts or e in csv_exts:
-    #                 extension = e
-    #     finally:
-    #         tf.close()
 
     if extension.lower() in vec_exts:
         return 'vector'
@@ -56,6 +42,6 @@ def layer_type(filename):
 
 def get_catalog():
     gs_user = os.environ.get('GEOSERVER_USERNAME', 'admin')
-    gs_pass = os.environ.get('GEOSERVER_PASSWORD', 'password')
+    gs_pass = os.environ.get('GEOSERVER_PASSWORD', 'geoserver')
     cat = Catalog("http://geoserver:8080/geoserver/rest/", gs_user, gs_pass)
     return cat
