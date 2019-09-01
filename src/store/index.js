@@ -98,12 +98,6 @@ const store = new Vuex.Store({
         store.commit('SET_INTERNAL_LAYERS', response.body)
       })
     },
-    getFeatures (store, payload) {
-      return api.get(apiRoot + '/features/?id=' + payload.id + '&geomtype=' + payload.geomtype)
-      .then((response) => {
-        return response
-      })
-    },
     getInternalLayerStyle (store, layername) {
       return api.get(apiRoot + '/get_layer_style/?layername=' + layername)
       .then((response) => {

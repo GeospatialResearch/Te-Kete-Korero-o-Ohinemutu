@@ -195,7 +195,7 @@
 <script>
 
 import { EventBus } from 'store/event-bus'
-import { addGeoserverWMS, zoomToGeoserverVectorLayer, zoomToGeoserverRasterLayer, setSLDstyle } from 'utils/internalMapServices'
+import { addGeoserverWMS, zoomToGeoserverVectorLayer, zoomToGeoserverLayerBbox, setSLDstyle } from 'utils/internalMapServices'
 import { enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer } from 'utils/mapUtils'
 import { extLayersObj } from 'utils/objects'
 import { delay, each, isString } from 'underscore'
@@ -354,7 +354,7 @@ export default {
         if (payload.geomtype != 'raster') {
           zoomToGeoserverVectorLayer(layername)
         } else {
-          zoomToGeoserverRasterLayer(layername)
+          zoomToGeoserverLayerBbox(layername)
         }
       } else {
         // conditional to the dataset size (number of features)
@@ -404,7 +404,7 @@ export default {
           this.features_info = this.features_info + '<p class="text-center mb-2">Layer: ' + layertitle + '</p>'
 
           each(feature_properties, (value, key) => {
-            if (key != "geometry" && value != null) {
+            if (key.toLowerCase() != "geometry" && key.toLowerCase() != "bbox" && key.toLowerCase() != "id" && value != null && value != "") {
               if (isString(value) && value.includes('http')) {
                 this.features_info = this.features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> <a href="' + value + '" target="_blank">' + value + '</a></p>'
               } else {
@@ -481,9 +481,12 @@ export default {
     EventBus.$on('zoomToLayer', (payload) => {
       if (payload.layerType === "internal") {
         if (this.internalLayers[payload.layerName].geomtype != 3) {
-          zoomToGeoserverVectorLayer(payload.layerName)
+          // // for vector layers created with JDBCVirtualTable, the bbox is not generated,
+          // //so it's necessary to getFeatures from WFS to get the extent (but it takes more time)
+          // zoomToGeoserverVectorLayer(payload.layerName)
+          zoomToGeoserverLayerBbox(payload.layerName)
         } else {
-          zoomToGeoserverRasterLayer(payload.layerName)
+          zoomToGeoserverLayerBbox(payload.layerName)
         }
       }
     })
