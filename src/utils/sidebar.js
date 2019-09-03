@@ -1,5 +1,6 @@
 var EventBus = require('store/event-bus.js').EventBus
 var _ = require('underscore')
+const store = require('store').default
 
 $(function () {
 
@@ -103,7 +104,7 @@ $(function () {
       })
     })
 
-    // send EventBus on internal layer click option
+    // Send EventBus on internal layer click option
     $(document.body).on('click', "[id*='_zoomto']" ,function(){
       var layername = $(this).attr('id').replace("_zoomto", "")
       EventBus.$emit('zoomToLayer', {layerName:layername, layerType:'internal'})
@@ -119,5 +120,14 @@ $(function () {
     $(document.body).on('click', "[id*='_rename']" ,function(){
       var layername = $(this).attr('id').replace("_rename", "")
       EventBus.$emit('assignLayerNameModalOpen', layername)
+    })
+
+    // Send EventBus on story click option
+    $(document.body).on('click', "[id*='_view']" ,function(){
+      var story_id = $(this).attr('id').replace("_view", "")
+      store.dispatch('getStoryContent', story_id)
+      .then(() => {
+        store.commit('SET_PANEL_OPEN', true)
+      })
     })
 });

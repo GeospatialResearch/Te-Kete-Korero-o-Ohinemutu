@@ -27,9 +27,9 @@ html, body {
   width: 100vw;
   padding: 0 !important;
   margin: 0 !important;
-  border-left-width: 10px;
-  border-left-style: solid;
-  border-right-width: 10px;
+  /* border-left-width: 10px;
+  border-left-style: solid; */
+  border-right-width: 5px;
   border-right-style: solid;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   -moz-box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -126,7 +126,7 @@ html, body {
   padding: 50px 0;
 }
 
-.layer-line {
+.sidebar-line {
   display: block !important;
   padding-right: 20px !important;
 }

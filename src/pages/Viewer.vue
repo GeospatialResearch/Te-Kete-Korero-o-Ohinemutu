@@ -1,9 +1,9 @@
 <template>
   <div class="page-wrapper default-theme sidebar-bg bg1 toggled viewer-container">
-    <div class="row">
-      <side-bar />
-      <content-view />
-    </div>
+    <!-- <div class="row"> -->
+    <side-bar />
+    <content-view />
+    <!-- </div> -->
   </div>
 </template>
 

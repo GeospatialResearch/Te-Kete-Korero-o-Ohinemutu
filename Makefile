@@ -13,8 +13,11 @@ run-prod:
 	docker-compose $(PROD) up
 
 # Building things
-build-dev:
+build-dev-www:
 	docker-compose $(DEV) build www
+
+build-dev-api:
+	docker-compose $(DEV) build api
 
 build-prod:
 	docker-compose $(PROD) build

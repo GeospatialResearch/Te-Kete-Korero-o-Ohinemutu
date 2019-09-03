@@ -23,12 +23,15 @@ import { faInfo } from '@fortawesome/free-solid-svg-icons/faInfo'
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons/faInfoCircle'
 import { faEllipsisV } from '@fortawesome/free-solid-svg-icons/faEllipsisV'
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown'
+import { faCircle as farCircle } from '@fortawesome/free-regular-svg-icons/faCircle'
+import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 library.add(
   faCoffee, faBars, faTachometerAlt, faCircle, faSearch, faMapPin, faCog,
   faPowerOff, faEllipsisH, faGlobe, faBook, faEnvelope, faExclamation, faExclamationTriangle, faCheck,
-  faBell, faLayerGroup, faBookOpen, faFolderOpen, faInfo, faInfoCircle, faEllipsisV, faChevronDown
+  faBell, faLayerGroup, faBookOpen, faFolderOpen, faInfo, faInfoCircle, faEllipsisV, faChevronDown, farCircle,
+  faTimes
 )
 
 export {

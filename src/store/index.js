@@ -19,7 +19,9 @@ const store = new Vuex.Store({
     externalLayers: null,
     internalLayers: {},
     map_resolution: 0,
-    map_zoom: 0
+    map_zoom: 0,
+    stories: [],
+    storyContent: {}
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -67,6 +69,12 @@ const store = new Vuex.Store({
     SET_PANEL_OPEN (state, open) {
       state.isPanelOpen = open
       EventBus.$emit('adjustMap', 10)
+    },
+    SET_STORIES (state, response) {
+      state.stories = response.body
+    },
+    SET_STORY_CONTENT (state, response) {
+      state.storyContent = response
     },
     // Generic fail handling
     API_FAIL (state, error) {
@@ -127,6 +135,26 @@ const store = new Vuex.Store({
       .then((response) => {
         return response
       })
+    },
+    getStories () {
+      // To be filtered in the future based on the stories that the public/user has access
+      return api.get(apiRoot + '/stories')
+        .then((response) => store.commit('SET_STORIES', response))
+        // .catch((error) => store.commit('API_FAIL', error))
+    },
+    getStoryContent (store, storyid) {
+      // Add auth headers to the request in the future
+      var story_content = {}
+      return api.get(apiRoot + '/stories/' + storyid + '/')
+        .then((response) => {
+          story_content.content = response.body
+          return api.get(apiRoot + '/story_geoms_attrb/?story_id=' + storyid)
+            .then((response) => {
+              story_content.geoms = response.body
+              store.commit('SET_STORY_CONTENT', story_content)
+            })
+        })
+        // .catch((error) => store.commit('API_FAIL', error))
     }
   }
 })
