@@ -1,15 +1,14 @@
 <template>
-  <div class="col-md-6">
-    <h3>Form</h3>
-    <p>Form elements to be displayed here.</p>
-    <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-    </p>
+  <div :class="{'col-md-6':togglePanel, 'col-md-0':!togglePanel}">
+    <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closePanel()" />
+    <div class="mt-5 mb-5">
+      <h3>{{ story.hasOwnProperty('content') ? story.content.title : '' }}</h3>
+      <p>{{ story.hasOwnProperty('content') ? story.content.summary : '' }}</p>
+    </div>
 
-    <h2>Drag and Drop</h2>
-
-    <div class="col-6">
-      <h4>Draggable {{ draggingInfo }}</h4>
+    <div class="row col-md-6">
+      <h2>Drag and Drop</h2>
+      <!-- <h4>Draggable {{ draggingInfo }}</h4> -->
 
       <draggable
         :disabled="!enabled"
@@ -53,9 +52,18 @@ export default {
   computed: {
     draggingInfo() {
       return this.dragging ? "under drag" : "";
+    },
+    togglePanel (){
+      return this.$store.state.isPanelOpen
+    },
+    story() {
+      return this.$store.state.storyContent
     }
   },
   methods: {
+    closePanel() {
+      this.$store.commit('SET_PANEL_OPEN', false)
+    }
   }
 };
 </script>

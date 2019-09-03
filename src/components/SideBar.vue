@@ -55,7 +55,7 @@
           <div>
             <div class="input-group">
               <div class="form-control search-menu text-center label-info" @click="openPanel">
-                Open panel
+                Add new story
               </div>
             </div>
           </div>
@@ -104,7 +104,7 @@
               <div class="sidebar-submenu">
                 <ul>
                   <li v-for="(layer, layerkey) in externalLayers" :key="layerkey">
-                    <a href="#" class="layer-line">
+                    <a href="#" class="sidebar-line">
                       <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_extServ(layer, layerkey)" />
                       &emsp;{{ layer.layername }}
                       <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="hover" title="Layer Information" :data-content="createPopoverInfo(layer)">
@@ -113,7 +113,7 @@
                     </a>
                   </li>
                   <li v-for="(layer, layerkey) in internalLayers" :key="layerkey">
-                    <a href="#" class="layer-line">
+                    <a href="#" class="sidebar-line">
                       <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_intServ(layer, layerkey)" />
                       <span v-if="layer.assigned_name">
                         &emsp;{{ layer.assigned_name }}
@@ -134,21 +134,21 @@
                 <i class="fa fa-book-open" />
                 <!-- <i><font-awesome-icon icon="book-open" /></i> -->
                 <span class="menu-text">Stories</span>
-                <span class="badge badge-pill badge-warning">New</span>
+                <!-- <span class="badge badge-pill badge-warning">New</span> -->
               </a>
-              <div class="sidebar-submenu">
+              <div v-if="!stories.length" class="sidebar-submenu">
+                No stories available
+              </div>
+              <div v-else class="sidebar-submenu">
                 <ul>
-                  <li>
-                    <a href="#">
-                      Story 1
-                      <span class="badge badge-pill badge-success">Pro</span>
+                  <li v-for="story in stories" :key="story.id">
+                    <a href="#" class="sidebar-line">
+                      <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
+                      <span class="ml-2">{{ story.title }}</span>
+                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Story Options" :data-content="createPopoverStoryOptions(story)">
+                        <font-awesome-icon icon="ellipsis-v" />
+                      </span>
                     </a>
-                  </li>
-                  <li>
-                    <a href="#">Story 2</a>
-                  </li>
-                  <li>
-                    <a href="#">Story 3</a>
                   </li>
                 </ul>
               </div>
@@ -458,6 +458,9 @@
       },
       map () {
         return this.$store.state.map
+      },
+      stories () {
+        return this.$store.state.stories
       }
     },
     mounted: function () {
@@ -474,7 +477,8 @@
     },
     methods: {
       openPanel(){
-        this.$store.commit('SET_PANEL_OPEN', !this.$store.state.isPanelOpen)
+        this.$store.commit('SET_PANEL_OPEN', true)
+        this.$store.state.storyContent = {}
       },
       uploadDatasetClicked () {
         this.reset()
@@ -575,7 +579,17 @@
         .then(() => {
           EventBus.$emit('removeLayer', this.layerToDelete)
         })
-      }
+      },
+      createPopoverStoryOptions (story) {
+        var storyOptions = `<div class="layer-options">
+                              <a class="dropdown-item" id="` + story.id + `_view" href="#">View story</a>
+                              <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit story</a>
+                              <div class="dropdown-divider"></div>
+                              <a class="dropdown-item" id="` + story.id + `_deletestory" href="#">Delete story</a>
+                            </div>`
+
+        return storyOptions
+      },
     }
   }
 

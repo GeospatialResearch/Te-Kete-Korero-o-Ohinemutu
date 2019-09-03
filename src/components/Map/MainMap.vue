@@ -290,7 +290,8 @@ export default {
 
     // Set internal layers and other stuff before creating the map
     Promise.all([
-      this.$store.dispatch('getDatasets')
+      this.$store.dispatch('getDatasets'),
+      this.$store.dispatch('getStories')
     ]).then(() => {
       // Create the map
       this.initMap()
@@ -404,7 +405,7 @@ export default {
           this.features_info = this.features_info + '<p class="text-center mb-2">Layer: ' + layertitle + '</p>'
 
           each(feature_properties, (value, key) => {
-            if (key.toLowerCase() != "geometry" && key.toLowerCase() != "bbox" && key.toLowerCase() != "id" && value != null && value != "") {
+            if (key.toLowerCase() != "geometry" && key.toLowerCase() != "bbox" && key.toLowerCase() != "id" && value != null && value != "" && value != "NULL") {
               if (isString(value) && value.includes('http')) {
                 this.features_info = this.features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> <a href="' + value + '" target="_blank">' + value + '</a></p>'
               } else {

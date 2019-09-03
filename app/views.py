@@ -3,22 +3,20 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import DatasetSerializer
+from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer
 from django.http import JsonResponse
-from .models import Dataset
+from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom
 from rest_framework.exceptions import ParseError
 from tempfile import TemporaryDirectory
 import zipfile
 import os
-import sys
-from osgeo import ogr, osr, gdal
+from osgeo import ogr
 from geoserver.catalog import Catalog
-from geoserver.support import JDBCVirtualTable
-from django.contrib.gis.geos import MultiPolygon, MultiLineString, MultiPoint, GEOSGeometry, WKTWriter
 from django.db import transaction
 import re
 from .utils import layer_type, get_catalog
 import requests
+from rest_framework.decorators import detail_route
 
 # Util Functions
 def get_layer_from_file(file_obj, directory):
@@ -190,7 +188,7 @@ def createGeoserverShpLayer(layer, dataset_id=None):
 
     headers_zip = {'content-type': 'application/zip'}
     with open(local_filename, 'rb') as zip_file:
-            r_create_layer = requests.put("http://geoserver:8080/geoserver/rest/workspaces/storyapp/datastores/" + filename + "/file.shp",
+            r_create_layer = requests.put("http://geoserver:8080/geoserver/rest/workspaces/storyapp/datastores/" + filename + "/file.shp?charset=utf-8",
                 auth=(gs_user, gs_pass),
                 data=zip_file,
                 headers=headers_zip)
@@ -316,6 +314,31 @@ class UploadFileView(APIView):
 class DatasetViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DatasetSerializer
     queryset = Dataset.objects.all()
+
+
+class StoryViewSet(viewsets.ModelViewSet):
+    serializer_class = StorySerializer
+    queryset = Story.objects.all()
+
+
+class StoryGeomAttribViewSet(viewsets.ModelViewSet):
+    serializer_class = StoryGeomAttribSerializer
+    queryset = StoryGeomAttrib.objects.all()
+
+
+class StoryPointGeomViewSet(viewsets.ModelViewSet):
+    serializer_class = StoryPointGeomSerializer
+    queryset = StoryPointGeom.objects.all()
+
+
+class StoryLineGeomViewSet(viewsets.ModelViewSet):
+    serializer_class = StoryLineGeomSerializer
+    queryset = StoryLineGeom.objects.all()
+
+
+class StoryPolygonGeomViewSet(viewsets.ModelViewSet):
+    serializer_class = StoryPolygonGeomSerializer
+    queryset = StoryPolygonGeom.objects.all()
 
 
 def dataset_list(request):

@@ -22,6 +22,11 @@ from app import views
 # Construct v1 API routes (it needs rest_framework installed)
 router = routers.DefaultRouter()
 # router.register(r'datasets', views.DatasetViewSet)
+router.register(r'stories', views.StoryViewSet)
+router.register(r'story_geoms_attrb', views.StoryGeomAttribViewSet)
+# router.register(r'story_points', views.StoryGeomPointGeomViewSet)
+# router.register(r'story_lines', views.StoryGeomLineGeomViewSet)
+# router.register(r'story_polygons', views.StoryGeomPolygonGeomViewSet)
 
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),
@@ -30,7 +35,7 @@ v1 = router.urls + [
     url(r'^delete_layer/', views.DeleteLayer.as_view()),
     url(r'^rename_layer/', views.RenameLayer.as_view()),
     url(r'^get_layer_bbox/', views.get_layer_bbox),
-    url(r'^datasets', views.dataset_list)
+    url(r'^datasets/', views.dataset_list)
 ]
 
 urlpatterns = [
