@@ -151,10 +151,17 @@ const store = new Vuex.Store({
           return api.get(apiRoot + '/story_geoms_attrb/?story_id=' + storyid)
             .then((response) => {
               story_content.geoms = response.body
+              console.log(story_content)
               store.commit('SET_STORY_CONTENT', story_content)
             })
         })
         // .catch((error) => store.commit('API_FAIL', error))
+    },
+    saveStoryContent (store, storyContent) {
+      return api.patch(apiRoot + '/stories/' + storyContent.content.id + '/', storyContent.content)
+        .then((response) => {
+          console.log(response)
+        })
     }
   }
 })

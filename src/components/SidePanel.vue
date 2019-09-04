@@ -6,7 +6,11 @@
       <p>{{ story.hasOwnProperty('content') ? story.content.summary : '' }}</p>
     </div>
 
-    <div class="row col-md-6">
+    <button type="button" name="save-content" class="btn btn-primary" @click="saveStoryContent()">
+      Save
+    </button>
+
+    <div class="row col-md-12">
       <h2>Drag and Drop</h2>
       <!-- <h4>Draggable {{ draggingInfo }}</h4> -->
 
@@ -17,6 +21,9 @@
         @start="dragging = true"
         @end="dragging = false"
       >
+        <div class="list-group-item">
+          <vue-editor v-if="story.hasOwnProperty('content')" v-model="story.content.summary" :editor-toolbar="customToolbar" />
+        </div>
         <div class="list-group-item">
           <img id="id1" src="static/img/test_img.gif" dropable="false" width="150" height="31">
         </div>
@@ -38,20 +45,39 @@
 </template>
 
 <script>
-import draggable from "vuedraggable";
+import draggable from "vuedraggable"
+import { VueEditor } from "vue2-editor"
+
 export default {
   components: {
-    draggable
+    draggable,
+    VueEditor
   },
   data() {
     return {
       enabled: true,
-      dragging: false
-    };
+      dragging: false,
+      content: "",
+      customToolbar: [
+        [{ 'font': [] }],
+        [{ 'header': [false, 1, 2, 3, 4, 5, 6, ] }],
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{'align': ''}, {'align': 'center'}, {'align': 'right'}, {'align': 'justify'}],
+        [{ 'header': 1 }, { 'header': 2 }],
+        ['blockquote', 'code-block'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        [{ 'color': [] }, { 'background': [] }],
+        ['link', 'formula'],
+        ['clean'],
+      ],
+    }
   },
   computed: {
     draggingInfo() {
-      return this.dragging ? "under drag" : "";
+      return this.dragging ? "under drag" : ""
     },
     togglePanel (){
       return this.$store.state.isPanelOpen
@@ -63,7 +89,10 @@ export default {
   methods: {
     closePanel() {
       this.$store.commit('SET_PANEL_OPEN', false)
-    }
+    },
+    saveStoryContent: function (){
+     this.$store.dispatch('saveStoryContent', this.story)
+   }
   }
 };
 </script>
