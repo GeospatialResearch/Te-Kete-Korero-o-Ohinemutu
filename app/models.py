@@ -3,6 +3,7 @@ from django.contrib.postgres.fields import JSONField
 import uuid
 from model_utils import Choices
 from rest_framework.exceptions import ValidationError
+from ckeditor.fields import RichTextField
 
 
 # Create your models here.
@@ -43,8 +44,8 @@ class Story(models.Model):
     )
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
-    title = models.TextField()
-    summary = models.TextField()
+    title = RichTextField()
+    summary = RichTextField()
     status = models.CharField(max_length=20, default=STATUS.DRAFT, null=False, choices=STATUS)
 
 

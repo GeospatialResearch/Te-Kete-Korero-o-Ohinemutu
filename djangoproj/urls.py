@@ -24,9 +24,9 @@ router = routers.DefaultRouter()
 # router.register(r'datasets', views.DatasetViewSet)
 router.register(r'stories', views.StoryViewSet)
 router.register(r'story_geoms_attrb', views.StoryGeomAttribViewSet)
-# router.register(r'story_points', views.StoryGeomPointGeomViewSet)
-# router.register(r'story_lines', views.StoryGeomLineGeomViewSet)
-# router.register(r'story_polygons', views.StoryGeomPolygonGeomViewSet)
+# router.register(r'story_points', views.StoryPointGeomViewSet)
+# router.register(r'story_lines', views.StoryLineGeomViewSet)
+# router.register(r'story_polygons', views.StoryPolygonGeomViewSet)
 
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),
