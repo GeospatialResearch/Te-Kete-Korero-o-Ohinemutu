@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin, register
 from django.contrib.gis.admin import GeoModelAdmin
-from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom
+from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom, StoryBody
 
 # Register your models here.
 
@@ -10,11 +10,16 @@ from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGe
 @register(Dataset)
 class DatasetAdmin(ModelAdmin):
     list_display = ['name']
-    
+
 
 @register(Story)
 class StoryAdmin(ModelAdmin):
     list_display = ['title']
+
+
+@register(StoryBody)
+class StoryBodyAdmin(ModelAdmin):
+    list_display = ['name']
 
 
 @register(StoryGeomAttrib)
