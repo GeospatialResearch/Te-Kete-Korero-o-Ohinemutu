@@ -21,7 +21,14 @@ const store = new Vuex.Store({
     map_resolution: 0,
     map_zoom: 0,
     stories: [],
-    storyContent: {}
+    storyContent: {
+      content : {
+      title : '',
+      summary : '',
+      status : 'DRAFT'
+      }
+    },
+    storyBodyContent: {}
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -76,6 +83,9 @@ const store = new Vuex.Store({
     SET_STORY_CONTENT (state, response) {
       state.storyContent = response
     },
+    SET_STORY_BODY_CONTENT (state, response){
+      state.storyBodyContent = response
+    },
     // Generic fail handling
     API_FAIL (state, error) {
       if (error.status === 401 || error.status === 403) {
@@ -90,6 +100,19 @@ const store = new Vuex.Store({
     flavor: state => state.flavor
   },
   actions: {
+    uploadStoryBodyFile (store, datafile) {
+      console.log("uploadStoryBodyFile from index.js")
+      return api.post(apiRoot + '/upload_story_body_file/', datafile)
+        .then((response) => {
+          console.log(response)
+          store.commit('SET_STORY_BODY_CONTENT', response)
+          return response
+        })
+        .catch((error) => {
+          store.commit('API_FAIL', error)
+          return error
+        })
+    },
     uploadFile (store, datafile) {
       return api.post(apiRoot + '/upload_file/', datafile)
         .then((response) => {
@@ -147,6 +170,7 @@ const store = new Vuex.Store({
       var story_content = {}
       return api.get(apiRoot + '/stories/' + storyid + '/')
         .then((response) => {
+          console.log(response)
           story_content.content = response.body
           return api.get(apiRoot + '/story_geoms_attrb/?story_id=' + storyid)
             .then((response) => {
@@ -158,10 +182,20 @@ const store = new Vuex.Store({
         // .catch((error) => store.commit('API_FAIL', error))
     },
     saveStoryContent (store, storyContent) {
+      console.log("saveStoryContent from index........")
       return api.patch(apiRoot + '/stories/' + storyContent.content.id + '/', storyContent.content)
         .then((response) => {
           console.log(response)
         })
+    },
+    addStory (store, storyContent) {
+      console.log("addStory from index..........")
+      console.log(storyContent)
+      return api.post(apiRoot + '/stories/', storyContent.content)
+        // .then((response) => {
+        //   console.log(response)
+        //   store.commit('SET_STORY_CONTENT', storyContent)
+        // })
     }
   }
 })

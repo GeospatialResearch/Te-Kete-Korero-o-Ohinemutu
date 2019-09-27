@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom
+from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom, StoryBody
 
 class DatasetSerializer(ModelSerializer):
 
@@ -13,6 +13,12 @@ class StorySerializer(ModelSerializer):
 
     class Meta:
         model = Story
+        fields = '__all__'
+
+
+class StoryBodySerializer(ModelSerializer):
+    class Meta:
+        model = StoryBody
         fields = '__all__'
 
 

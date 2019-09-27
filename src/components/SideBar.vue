@@ -144,7 +144,8 @@
                   <li v-for="story in stories" :key="story.id">
                     <a href="#" class="sidebar-line">
                       <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
-                      <span class="ml-2">{{ story.title }}</span>
+                      <span v-if="story.title.length>30" class="ml-2">{{ story.title.substring(0,30)+".." }}</span>
+                      <span v-else class="ml-2">{{ story.title }}</span>
                       <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Story Options" :data-content="createPopoverStoryOptions(story)">
                         <font-awesome-icon icon="ellipsis-v" />
                       </span>
@@ -424,6 +425,26 @@
         </div>
       </div>
     </div>
+    <div id="deleteStoryModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Delete Story</h5>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete this story?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Cancel
+            </button>
+            <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="deleteStory()">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <!-- page-wrapper -->
 </template>
@@ -477,8 +498,14 @@
     },
     methods: {
       openPanel(){
+        this.$store.state.storyContent = {
+          content : {
+          title : '',
+          summary : '',
+          status : 'DRAFT'
+          }
+        }
         this.$store.commit('SET_PANEL_OPEN', true)
-        this.$store.state.storyContent = {}
       },
       uploadDatasetClicked () {
         this.reset()
@@ -585,7 +612,7 @@
                               <a class="dropdown-item" id="` + story.id + `_view" href="#">View story</a>
                               <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit story</a>
                               <div class="dropdown-divider"></div>
-                              <a class="dropdown-item" id="` + story.id + `_deletestory" href="#">Delete story</a>
+                              <a class="dropdown-item" id="` + story.id + `_delete" href="#">Delete story</a>
                             </div>`
 
         return storyOptions
