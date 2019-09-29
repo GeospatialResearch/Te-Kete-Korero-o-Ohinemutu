@@ -55,8 +55,8 @@ class StoryBody(models.Model):
     ('VIDEO', 'VIDEO')
     )
     id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
-    # story = models.ForeignKey(Story, on_delete=models.CASCADE)
-    element_type = models.CharField(max_length=20, default=FILETYPES.IMG, null=False, choices=FILETYPES)
+    story = models.ForeignKey(Story, on_delete=models.CASCADE)
+    file_type = models.CharField(max_length=20, default=FILETYPES.IMG, null=False, choices=FILETYPES)
     name = models.CharField(max_length=500)
     file_system_path = models.CharField(max_length=400)
 

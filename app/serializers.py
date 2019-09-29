@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer,ListField,SerializerMethodField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom, StoryBody
 
@@ -10,11 +10,24 @@ class DatasetSerializer(ModelSerializer):
 
 
 class StorySerializer(ModelSerializer):
+    elements = ListField(write_only=True)
+    storyBodies = SerializerMethodField()
 
     class Meta:
         model = Story
-        fields = '__all__'
+        fields = '__all__'#('created_date','modified_date','title','summary','status','storyBodies', 'elements')
 
+    def get_storyBodies(self, story):
+        sb = StoryBody.objects.filter( story=story)
+        serializer = StoryBodySerializer(instance=sb, many=True)
+        return serializer.data
+
+    def create(self, validated_data):
+        elements = validated_data.pop('elements')
+        story = Story.objects.create(**validated_data)
+        for element in elements:
+            StoryBody.objects.create(story=story,**element)
+        return story
 
 class StoryBodySerializer(ModelSerializer):
     class Meta:

@@ -297,7 +297,7 @@ class SetGeoServerDefaultStyle(APIView):
 
 class UploadStoryBodyFileView(APIView):
     def post(self, request):
-        print("UploadStoryBodyFileView here .........................................................................................................")
+        print("UploadStoryBodyFileView here ################# .............................................")
         file_obj = request.FILES['file']
         fs = FileSystemStorage()
         filename = fs.save(file_obj.name, file_obj)
@@ -315,7 +315,7 @@ class UploadStoryBodyFileView(APIView):
             # if layer is not None:
             #     insertDB(layer)
 
-        return Response({'filename': url})
+        return Response({'file_system_path': url})
 
 class UploadFileView(APIView):
     def post(self, request):
@@ -356,6 +356,8 @@ class DatasetViewSet(viewsets.ReadOnlyModelViewSet):
 class StoryViewSet(viewsets.ModelViewSet):
     serializer_class = StorySerializer
     queryset = Story.objects.all()
+    def perform_create(self,serializer):
+        serializer.save()
 
 class StoryBodyViewSet(viewsets.ModelViewSet):
     serializer_class = StoryBodySerializer
