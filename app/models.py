@@ -32,10 +32,10 @@ class Dataset(models.Model):
 
 class Story(models.Model):
     STATUS = Choices(
-        ('DRAFT', 'Draft'),
-        ('SUBMITTED', 'Submitted'),
-        ('ACCEPTED', 'Accepted'),
-        ('PUBLISHED', 'Published')
+        ('DRAFT', 'DRAFT'),
+        ('SUBMITTED', 'SUBMITTED'),
+        ('ACCEPTED', 'ACCEPTED'),
+        ('PUBLISHED', 'PUBLISHED')
     )
 
     id = models.UUIDField(
@@ -48,6 +48,17 @@ class Story(models.Model):
     summary = RichTextField()
     status = models.CharField(max_length=20, default=STATUS.DRAFT, null=False, choices=STATUS)
 
+class StoryBody(models.Model):
+    FILETYPES = Choices(
+    ('IMG', 'IMG'),
+    ('AUDIO', 'AUDIO'),
+    ('VIDEO', 'VIDEO')
+    )
+    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    story = models.ForeignKey(Story, on_delete=models.CASCADE)
+    file_type = models.CharField(max_length=20, default=FILETYPES.IMG, null=False, choices=FILETYPES)
+    name = models.CharField(max_length=500)
+    file_system_path = models.CharField(max_length=400)
 
 class StoryPointGeom(models.Model):
     id = models.UUIDField(

@@ -113,8 +113,8 @@ $(function () {
       var layername = $(this).attr('id').replace("_restyle", "")
       EventBus.$emit('restyleLayer', {layerName:layername, layerType:'internal'})
     })
-    $(document.body).on('click', "[id*='_delete']" ,function(){
-      var layername = $(this).attr('id').replace("_delete", "")
+    $(document.body).on('click', "[id*='_deleteLayer']" ,function(){
+      var layername = $(this).attr('id').replace("_deleteLayer", "")
       EventBus.$emit('deleteLayerModalOpen', layername)
     })
     $(document.body).on('click', "[id*='_rename']" ,function(){
@@ -127,7 +127,21 @@ $(function () {
       var story_id = $(this).attr('id').replace("_view", "")
       store.dispatch('getStoryContent', story_id)
       .then(() => {
+        store.commit('SET_STORY_VIEW_MODE', true)
         store.commit('SET_PANEL_OPEN', true)
       })
+    })
+    $(document.body).on('click', "[id*='_edit']" ,function(){
+      var story_id = $(this).attr('id').replace("_edit", "")
+      store.dispatch('getStoryContent', story_id)
+      .then(() => {
+        store.commit('SET_STORY_VIEW_MODE', false)
+        store.commit('SET_PANEL_OPEN', true)
+      })
+    })
+    $(document.body).on('click', "[id*='_deleteStory']" ,function(){
+      var storyid = $(this).attr('id').replace("_deleteStory", "")
+      console.log(storyid)
+      EventBus.$emit('deleteStory', storyid)
     })
 });

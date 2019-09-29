@@ -15,13 +15,26 @@ const store = new Vuex.Store({
     isLoading: false,
     isUploadingData: false,
     isPanelOpen: false,
+    storyViewMode: false,
     contentToShow: 'map',
     externalLayers: null,
     internalLayers: {},
     map_resolution: 0,
     map_zoom: 0,
     stories: [],
-    storyContent: {}
+    storyContent: {
+      content : {
+      title : '',
+      summary : '',
+      status : 'DRAFT'
+    }
+    },
+    elements: [],
+    storyBodyContent: {
+      file_type : 'IMG',
+      name : '',
+      file_system_path : ''
+    }
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -74,7 +87,19 @@ const store = new Vuex.Store({
       state.stories = response.body
     },
     SET_STORY_CONTENT (state, response) {
+      console.log(response)
       state.storyContent = response
+    },
+    SET_STORY_BODY_CONTENT (state, response){
+      console.log(response)
+      state.storyBodyContent = response
+    },
+    SET_ELEMENTS (state, response){
+      console.log("setting element in state...............",response)
+      state.elements = response
+    },
+    SET_STORY_VIEW_MODE (state, mode){
+      state.storyViewMode = mode
     },
     // Generic fail handling
     API_FAIL (state, error) {
@@ -90,6 +115,18 @@ const store = new Vuex.Store({
     flavor: state => state.flavor
   },
   actions: {
+    uploadStoryBodyFile (store, datafile) {
+      console.log("uploadStoryBodyFile from index.js")
+      console.log(datafile)
+      return api.post(apiRoot + '/upload_story_body_file/', datafile)
+        .then((response) => {
+          return response.body
+        })
+        .catch((error) => {
+          store.commit('API_FAIL', error)
+          return error
+        })
+    },
     uploadFile (store, datafile) {
       return api.post(apiRoot + '/upload_file/', datafile)
         .then((response) => {
@@ -136,6 +173,9 @@ const store = new Vuex.Store({
         return response
       })
     },
+    deleteStory (store, storyid) {
+      return api.delete(apiRoot + '/stories/' + storyid + '/')
+    },
     getStories () {
       // To be filtered in the future based on the stories that the public/user has access
       return api.get(apiRoot + '/stories')
@@ -147,21 +187,41 @@ const store = new Vuex.Store({
       var story_content = {}
       return api.get(apiRoot + '/stories/' + storyid + '/')
         .then((response) => {
+          console.log(response)
           story_content.content = response.body
-          return api.get(apiRoot + '/story_geoms_attrb/?story_id=' + storyid)
-            .then((response) => {
-              story_content.geoms = response.body
-              console.log(story_content)
-              store.commit('SET_STORY_CONTENT', story_content)
+          // return api.get(apiRoot + '/story_body/?story_id=' + storyid)
+          //   .then((response) => {
+          //     console.log("FROM STORY BODY ELEMENTS")
+          //     console.log(response.body)
+          store.commit('SET_ELEMENTS', response.body.storyBodies)
+              return api.get(apiRoot + '/story_geoms_attrb/?story_id=' + storyid)
+                .then((response) => {
+                  story_content.geoms = response.body
+                  console.log(story_content)
+                  store.commit('SET_STORY_CONTENT', story_content)
+                })
+              // })
             })
-        })
         // .catch((error) => store.commit('API_FAIL', error))
     },
     saveStoryContent (store, storyContent) {
+      console.log("saveStoryContent from index........")
       return api.patch(apiRoot + '/stories/' + storyContent.content.id + '/', storyContent.content)
         .then((response) => {
           console.log(response)
         })
+    },
+    addStory (store, storyContent) {
+      console.log("addStory from index..........")
+
+      let payload = storyContent.content;
+      payload['elements']=store.state.elements ;
+      console.log(payload)
+      return api.post(apiRoot + '/stories/',payload )
+        // .then((response) => {
+        //   console.log(response)
+        //   store.commit('SET_STORY_CONTENT', storyContent)
+        // })
     }
   }
 })

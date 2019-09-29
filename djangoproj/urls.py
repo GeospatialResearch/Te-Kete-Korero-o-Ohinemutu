@@ -24,12 +24,14 @@ router = routers.DefaultRouter()
 # router.register(r'datasets', views.DatasetViewSet)
 router.register(r'stories', views.StoryViewSet)
 router.register(r'story_geoms_attrb', views.StoryGeomAttribViewSet)
+router.register(r'story_body', views.StoryBodyViewSet)
 # router.register(r'story_points', views.StoryPointGeomViewSet)
 # router.register(r'story_lines', views.StoryLineGeomViewSet)
 # router.register(r'story_polygons', views.StoryPolygonGeomViewSet)
 
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),
+    url(r'^upload_story_body_file/', views.UploadStoryBodyFileView.as_view()),
     url(r'^set_layer_style/', views.SetGeoServerDefaultStyle.as_view()),
     url(r'^get_layer_style/', views.GetGeoServerDefaultStyle.as_view()),
     url(r'^delete_layer/', views.DeleteLayer.as_view()),

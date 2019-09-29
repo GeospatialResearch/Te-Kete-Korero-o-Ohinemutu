@@ -16,7 +16,13 @@ html, body {
   justify-content: center;
   align-items: center;
 }
+
 /* sidepanel drag and drop */
+.scroll-div{
+  max-height: 900px;
+  overflow-x: scroll;
+}
+
 .ghost {
   opacity: 0.5;
   background: #c8ebfb;

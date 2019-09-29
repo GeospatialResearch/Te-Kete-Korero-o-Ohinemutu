@@ -144,7 +144,8 @@
                   <li v-for="story in stories" :key="story.id">
                     <a href="#" class="sidebar-line">
                       <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
-                      <span class="ml-2">{{ story.title }}</span>
+                      <span v-if="story.title.length>25" class="ml-2">{{ story.title.substring(0,25)+' ...' }}</span>
+                      <span v-else class="ml-2"> {{ story.title }}</span>
                       <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Story Options" :data-content="createPopoverStoryOptions(story)">
                         <font-awesome-icon icon="ellipsis-v" />
                       </span>
@@ -424,6 +425,26 @@
         </div>
       </div>
     </div>
+    <!-- <div id="deleteStoryModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Delete Story</h5>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete this story?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Cancel
+            </button>
+            <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="deleteStory()">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div> -->
   </div>
   <!-- page-wrapper -->
 </template>
@@ -474,11 +495,25 @@
         this.layerToDelete = layername
         $('#deleteLayerModal').modal('show')
       })
+
+      EventBus.$on('deleteStory', (storyid) => {
+        console.log("eventbus.on from sidebar.vue")
+        console.log(storyid)
+        this.deleteStory(storyid)
+      })
     },
     methods: {
       openPanel(){
+        this.$store.state.storyContent = {
+          content : {
+          title : '',
+          summary : '',
+          status : 'DRAFT'
+        }
+      }
+        this.$store.commit('SET_ELEMENTS', [])
+        this.$store.commit('SET_STORY_VIEW_MODE', false)
         this.$store.commit('SET_PANEL_OPEN', true)
-        this.$store.state.storyContent = {}
       },
       uploadDatasetClicked () {
         this.reset()
@@ -566,7 +601,7 @@
                               <a class="dropdown-item` + disabled +`" id="` + layer.name + `_rename" href="#">Rename layer</a>
                               <a class="dropdown-item` + disabled +`" id="` + layer.name + `_restyle" href="#">Edit style</a>
                               <div class="dropdown-divider"></div>
-                              <a class="dropdown-item` + disabled +`" id="` + layer.name + `_delete" href="#">Delete layer</a>
+                              <a class="dropdown-item` + disabled +`" id="` + layer.name + `_deleteLayer" href="#">Delete layer</a>
                             </div>`
 
         return layerOptions
@@ -580,12 +615,17 @@
           EventBus.$emit('removeLayer', this.layerToDelete)
         })
       },
+      deleteStory (storyid) {
+        console.log("deleteStory fn from sidebar.vue")
+        console.log(storyid)
+        this.$store.dispatch('deleteStory', storyid)
+      },
       createPopoverStoryOptions (story) {
         var storyOptions = `<div class="layer-options">
-                              <a class="dropdown-item" id="` + story.id + `_view" href="#">View story</a>
                               <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit story</a>
+                              <a class="dropdown-item" id="` + story.id + `_view" href="#">View story</a>
                               <div class="dropdown-divider"></div>
-                              <a class="dropdown-item" id="` + story.id + `_deletestory" href="#">Delete story</a>
+                              <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">Delete story</a>
                             </div>`
 
         return storyOptions

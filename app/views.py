@@ -3,9 +3,9 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer
+from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer, StoryBodySerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom
+from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom, StoryBody
 from rest_framework.exceptions import ParseError
 from tempfile import TemporaryDirectory
 import zipfile
@@ -17,6 +17,8 @@ import re
 from .utils import layer_type, get_catalog
 import requests
 from rest_framework.decorators import detail_route
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
 
 # Util Functions
 def get_layer_from_file(file_obj, directory):
@@ -293,6 +295,27 @@ class SetGeoServerDefaultStyle(APIView):
 
         return Response({'result': None})
 
+class UploadStoryBodyFileView(APIView):
+    def post(self, request):
+        print("UploadStoryBodyFileView here ################# .............................................")
+        file_obj = request.FILES['file']
+        fs = FileSystemStorage()
+        filename = fs.save(file_obj.name, file_obj)
+        url = fs.url(filename)
+        print(filename,url)
+
+        # file=open(settings.STATIC_ROOT+'/'+file_obj.name,'w')
+        # file.write(file_obj)
+        # file.close()
+
+        # fs = FileSystemStorage(location=settings.STATIC_ROOT)
+        # print(settings.STATIC_URL+file_obj.name)
+        # filename = fs.save(file_obj.name, file_obj)
+
+            # if layer is not None:
+            #     insertDB(layer)
+
+        return Response({'file_system_path': url})
 
 class UploadFileView(APIView):
     def post(self, request):
@@ -308,6 +331,21 @@ class UploadFileView(APIView):
         return Response(layer)
 
 
+# https://www.techiediaries.com/django-rest-image-file-upload-tutorial/
+# class FileUploadView(APIView):
+#     parser_class = (FileUploadParser,)
+#
+#     def post(self, request, *args, **kwargs):
+#
+#       file_serializer = FileSerializer(data=request.data)
+#
+#       if file_serializer.is_valid():
+#           file_serializer.save()
+#           return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+#       else:
+#           return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 ## ViewSets are particularly useful for CRUD APIs
 ## (grouping operations on the same resource minimizing the amount of code you need to write and generating urls behind the scene)
 ## to be used with urls.py through router.register(r'datasets', views.DatasetViewSet)
@@ -315,31 +353,31 @@ class DatasetViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DatasetSerializer
     queryset = Dataset.objects.all()
 
-
 class StoryViewSet(viewsets.ModelViewSet):
     serializer_class = StorySerializer
     queryset = Story.objects.all()
+    def perform_create(self,serializer):
+        serializer.save()
 
+class StoryBodyViewSet(viewsets.ModelViewSet):
+    serializer_class = StoryBodySerializer
+    queryset = StoryBody.objects.all()
 
 class StoryGeomAttribViewSet(viewsets.ModelViewSet):
     serializer_class = StoryGeomAttribSerializer
     queryset = StoryGeomAttrib.objects.all()
 
-
 class StoryPointGeomViewSet(viewsets.ModelViewSet):
     serializer_class = StoryPointGeomSerializer
     queryset = StoryPointGeom.objects.all()
-
 
 class StoryLineGeomViewSet(viewsets.ModelViewSet):
     serializer_class = StoryLineGeomSerializer
     queryset = StoryLineGeom.objects.all()
 
-
 class StoryPolygonGeomViewSet(viewsets.ModelViewSet):
     serializer_class = StoryPolygonGeomSerializer
     queryset = StoryPolygonGeom.objects.all()
-
 
 def dataset_list(request):
     if request.method == 'GET':
