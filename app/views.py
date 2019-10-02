@@ -3,9 +3,9 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer, StoryBodySerializer
+from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer, StoryBodyElementSerializer, MediaFileSerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom, StoryBody
+from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom, StoryBodyElement, MediaFile
 from rest_framework.exceptions import ParseError
 from tempfile import TemporaryDirectory
 import zipfile
@@ -298,8 +298,8 @@ class SetGeoServerDefaultStyle(APIView):
 class UploadStoryBodyFileView(APIView):
     def post(self, request):
         print("UploadStoryBodyFileView here ################# .............................................")
-        file_obj = request.FILES['file']
-        fs = FileSystemStorage()
+        file_obj = request.FILES['mediafile']
+        fs = FileSystemStorage(location='static')
         filename = fs.save(file_obj.name, file_obj)
         url = fs.url(filename)
         print(filename,url)
@@ -356,12 +356,15 @@ class DatasetViewSet(viewsets.ReadOnlyModelViewSet):
 class StoryViewSet(viewsets.ModelViewSet):
     serializer_class = StorySerializer
     queryset = Story.objects.all()
+
     def perform_create(self,serializer):
         serializer.save()
+    def perform_update(self,serializer):
+        serializer.save()
 
-class StoryBodyViewSet(viewsets.ModelViewSet):
-    serializer_class = StoryBodySerializer
-    queryset = StoryBody.objects.all()
+class StoryBodyElementViewSet(viewsets.ModelViewSet):
+    serializer_class = StoryBodyElementSerializer
+    queryset = StoryBodyElement.objects.all()
 
 class StoryGeomAttribViewSet(viewsets.ModelViewSet):
     serializer_class = StoryGeomAttribSerializer
@@ -378,6 +381,11 @@ class StoryLineGeomViewSet(viewsets.ModelViewSet):
 class StoryPolygonGeomViewSet(viewsets.ModelViewSet):
     serializer_class = StoryPolygonGeomSerializer
     queryset = StoryPolygonGeom.objects.all()
+
+class MediaFileViewSet(viewsets.ModelViewSet):
+    serializer_class = MediaFileSerializer
+    queryset = MediaFile.objects.all()
+
 
 def dataset_list(request):
     if request.method == 'GET':

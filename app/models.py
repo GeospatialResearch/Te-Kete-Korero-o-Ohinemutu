@@ -44,21 +44,33 @@ class Story(models.Model):
     )
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
-    title = RichTextField()
-    summary = RichTextField()
+    title = models.CharField(max_length=50)
+    summary = models.TextField(max_length=400)
     status = models.CharField(max_length=20, default=STATUS.DRAFT, null=False, choices=STATUS)
 
-class StoryBody(models.Model):
-    FILETYPES = Choices(
-    ('IMG', 'IMG'),
-    ('AUDIO', 'AUDIO'),
-    ('VIDEO', 'VIDEO')
+
+class MediaFile(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    file = models.FileField(blank=False, null=False)
+    def __str__(self):
+        return self.file.name
+
+
+class StoryBodyElement(models.Model):
+    ELEMENT_TYPES = Choices(
+        ('TEXT', 'TEXT'),
+        ('IMG', 'IMG'),
+        ('AUDIO', 'AUDIO'),
+        ('VIDEO', 'VIDEO')
     )
     id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
     story = models.ForeignKey(Story, on_delete=models.CASCADE)
-    file_type = models.CharField(max_length=20, default=FILETYPES.IMG, null=False, choices=FILETYPES)
-    name = models.CharField(max_length=500)
-    file_system_path = models.CharField(max_length=400)
+    element_type = models.CharField(max_length=20, default=ELEMENT_TYPES.TEXT, null=False, choices=ELEMENT_TYPES)
+    text = RichTextField(default=None, blank=True, null=True)
+    mediafile_name = models.CharField(max_length=100, default=None, blank=True, null=True)
+    mediafile = models.ForeignKey(MediaFile, on_delete=models.CASCADE, blank=True, null=True)
+    media_description = models.TextField(max_length=400, default=None, blank=True, null=True)
+
 
 class StoryPointGeom(models.Model):
     id = models.UUIDField(

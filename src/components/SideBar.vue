@@ -504,14 +504,7 @@
     },
     methods: {
       openPanel(){
-        this.$store.state.storyContent = {
-          content : {
-          title : '',
-          summary : '',
-          status : 'DRAFT'
-        }
-      }
-        this.$store.commit('SET_ELEMENTS', [])
+        this.$store.commit('RESET_STORY_FORM')
         this.$store.commit('SET_STORY_VIEW_MODE', false)
         this.$store.commit('SET_PANEL_OPEN', true)
       },

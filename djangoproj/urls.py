@@ -18,13 +18,16 @@ from django.urls import path
 from django.conf.urls import include, url
 from rest_framework import routers
 from app import views
+from django.conf.urls.static import static
+from django.conf import settings
 
 # Construct v1 API routes (it needs rest_framework installed)
 router = routers.DefaultRouter()
 # router.register(r'datasets', views.DatasetViewSet)
 router.register(r'stories', views.StoryViewSet)
-router.register(r'story_geoms_attrb', views.StoryGeomAttribViewSet)
-router.register(r'story_body', views.StoryBodyViewSet)
+router.register(r'media', views.MediaFileViewSet, base_name='data')
+# router.register(r'story_geoms_attrib', views.StoryGeomAttribViewSet)
+# router.register(r'story_body', views.StoryBodyElementViewSet)
 # router.register(r'story_points', views.StoryPointGeomViewSet)
 # router.register(r'story_lines', views.StoryLineGeomViewSet)
 # router.register(r'story_polygons', views.StoryPolygonGeomViewSet)
@@ -46,4 +49,8 @@ urlpatterns = [
 
     # Version namespaced API routes
     url('^v1/', include(v1)),
+
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

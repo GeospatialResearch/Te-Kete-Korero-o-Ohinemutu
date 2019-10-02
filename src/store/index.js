@@ -15,21 +15,20 @@ const store = new Vuex.Store({
     isLoading: false,
     isUploadingData: false,
     isPanelOpen: false,
-    storyViewMode: false,
     contentToShow: 'map',
     externalLayers: null,
     internalLayers: {},
     map_resolution: 0,
     map_zoom: 0,
     stories: [],
+    storyViewMode: false,
     storyContent: {
-      content : {
       title : '',
       summary : '',
-      status : 'DRAFT'
-    }
+      status: 'DRAFT',
+      storyBodyElements: [],
+      storyGeomsAttrib: []
     },
-    elements: [],
     storyBodyContent: {
       file_type : 'IMG',
       name : '',
@@ -87,19 +86,19 @@ const store = new Vuex.Store({
       state.stories = response.body
     },
     SET_STORY_CONTENT (state, response) {
-      console.log(response)
       state.storyContent = response
-    },
-    SET_STORY_BODY_CONTENT (state, response){
-      console.log(response)
-      state.storyBodyContent = response
-    },
-    SET_ELEMENTS (state, response){
-      console.log("setting element in state...............",response)
-      state.elements = response
     },
     SET_STORY_VIEW_MODE (state, mode){
       state.storyViewMode = mode
+    },
+    RESET_STORY_FORM (state) {
+      state.storyContent = {
+        title : '',
+        summary : '',
+        status: 'DRAFT',
+        storyBodyElements: [],
+        storyGeomsAttrib: []
+      }
     },
     // Generic fail handling
     API_FAIL (state, error) {
@@ -184,44 +183,28 @@ const store = new Vuex.Store({
     },
     getStoryContent (store, storyid) {
       // Add auth headers to the request in the future
-      var story_content = {}
       return api.get(apiRoot + '/stories/' + storyid + '/')
         .then((response) => {
           console.log(response)
-          story_content.content = response.body
-          // return api.get(apiRoot + '/story_body/?story_id=' + storyid)
-          //   .then((response) => {
-          //     console.log("FROM STORY BODY ELEMENTS")
-          //     console.log(response.body)
-          store.commit('SET_ELEMENTS', response.body.storyBodies)
-              return api.get(apiRoot + '/story_geoms_attrb/?story_id=' + storyid)
-                .then((response) => {
-                  story_content.geoms = response.body
-                  console.log(story_content)
-                  store.commit('SET_STORY_CONTENT', story_content)
-                })
-              // })
-            })
+          store.commit('SET_STORY_CONTENT', response.body)
+          })
         // .catch((error) => store.commit('API_FAIL', error))
     },
-    saveStoryContent (store, storyContent) {
-      console.log("saveStoryContent from index........")
-      return api.patch(apiRoot + '/stories/' + storyContent.content.id + '/', storyContent.content)
+    saveStoryContent (store, story) {
+      return api.patch(apiRoot + '/stories/' + story.id + '/', story)
         .then((response) => {
-          console.log(response)
+          store.dispatch('getStories')
+          store.commit('SET_STORY_CONTENT', response.body)
+          store.commit('SET_STORY_VIEW_MODE', true)
         })
     },
-    addStory (store, storyContent) {
-      console.log("addStory from index..........")
-
-      let payload = storyContent.content;
-      payload['elements']=store.state.elements ;
-      console.log(payload)
-      return api.post(apiRoot + '/stories/',payload )
-        // .then((response) => {
-        //   console.log(response)
-        //   store.commit('SET_STORY_CONTENT', storyContent)
-        // })
+    addStory (store, story) {
+      return api.post(apiRoot + '/stories/', story)
+        .then((response) => {
+          store.dispatch('getStories')
+          store.commit('SET_STORY_CONTENT', response.body)
+          store.commit('SET_STORY_VIEW_MODE', true)
+        })
     }
   }
 })
