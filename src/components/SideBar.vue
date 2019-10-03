@@ -615,8 +615,8 @@
       },
       createPopoverStoryOptions (story) {
         var storyOptions = `<div class="layer-options">
-                              <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit story</a>
                               <a class="dropdown-item" id="` + story.id + `_view" href="#">View story</a>
+                              <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit story</a>
                               <div class="dropdown-divider"></div>
                               <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">Delete story</a>
                             </div>`

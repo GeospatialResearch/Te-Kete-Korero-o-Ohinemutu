@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import api from './api.js'
 import { EventBus } from './event-bus'
-import { each } from 'underscore'
+import { each, some } from 'underscore'
 
 Vue.use(Vuex)
 
@@ -100,6 +100,15 @@ const store = new Vuex.Store({
         storyGeomsAttrib: []
       }
     },
+    DELETE_ELEMENT (state, element) {
+      const elements = state.storyContent.storyBodyElements
+      some(state.storyContent.storyBodyElements, function (el, i) {
+        if (el.id === element.id) {
+          elements.splice(i, 1)
+          return true
+        }
+      })
+    },
     // Generic fail handling
     API_FAIL (state, error) {
       if (error.status === 401 || error.status === 403) {
@@ -191,6 +200,10 @@ const store = new Vuex.Store({
         // .catch((error) => store.commit('API_FAIL', error))
     },
     saveStoryContent (store, story) {
+      story.storyBodyElements_temp = story.storyBodyElements
+      story.storyGeomsAttrib_temp = story.storyGeomsAttrib
+      delete story['storyBodyElements']
+      delete story['storyGeomsAttrib']
       return api.patch(apiRoot + '/stories/' + story.id + '/', story)
         .then((response) => {
           store.dispatch('getStories')
@@ -205,6 +218,29 @@ const store = new Vuex.Store({
           store.commit('SET_STORY_CONTENT', response.body)
           store.commit('SET_STORY_VIEW_MODE', true)
         })
+    },
+    addMedia (store, media) {
+      return api.post(apiRoot + '/upload_media_file/', media, {
+        progress(e) {
+          if (e.lengthComputable) {
+            console.log(e.loaded / e.total * 100);
+          }
+        }
+      })
+        .then((response) => {
+          return response
+        })
+    },
+    deleteStoryBodyElement (store, element) {
+      return api.delete(apiRoot + '/storybodyelements/' + element.id + '/')
+        .then(() => store.commit('DELETE_ELEMENT', element))
+        // .catch((error) => store.commit('API_FAIL', error))
+    },
+    deleteUnusedMediaFiles () {
+      return api.post(apiRoot + '/delete_unused_media/')
+      .then((response) => {
+        return response
+      })
     }
   }
 })

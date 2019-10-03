@@ -70,6 +70,7 @@ class StoryBodyElement(models.Model):
     mediafile_name = models.CharField(max_length=100, default=None, blank=True, null=True)
     mediafile = models.ForeignKey(MediaFile, on_delete=models.CASCADE, blank=True, null=True)
     media_description = models.TextField(max_length=400, default=None, blank=True, null=True)
+    # order_position = 
 
 
 class StoryPointGeom(models.Model):

@@ -1,12 +1,14 @@
 # from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, ParseError
+from rest_framework.decorators import detail_route
+from rest_framework.parsers import FileUploadParser
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer, StoryBodyElementSerializer, MediaFileSerializer
 from django.http import JsonResponse
 from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom, StoryBodyElement, MediaFile
-from rest_framework.exceptions import ParseError
 from tempfile import TemporaryDirectory
 import zipfile
 import os
@@ -16,7 +18,6 @@ from django.db import transaction
 import re
 from .utils import layer_type, get_catalog
 import requests
-from rest_framework.decorators import detail_route
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 
@@ -295,27 +296,6 @@ class SetGeoServerDefaultStyle(APIView):
 
         return Response({'result': None})
 
-class UploadStoryBodyFileView(APIView):
-    def post(self, request):
-        print("UploadStoryBodyFileView here ################# .............................................")
-        file_obj = request.FILES['mediafile']
-        fs = FileSystemStorage(location='static')
-        filename = fs.save(file_obj.name, file_obj)
-        url = fs.url(filename)
-        print(filename,url)
-
-        # file=open(settings.STATIC_ROOT+'/'+file_obj.name,'w')
-        # file.write(file_obj)
-        # file.close()
-
-        # fs = FileSystemStorage(location=settings.STATIC_ROOT)
-        # print(settings.STATIC_URL+file_obj.name)
-        # filename = fs.save(file_obj.name, file_obj)
-
-            # if layer is not None:
-            #     insertDB(layer)
-
-        return Response({'file_system_path': url})
 
 class UploadFileView(APIView):
     def post(self, request):
@@ -332,18 +312,39 @@ class UploadFileView(APIView):
 
 
 # https://www.techiediaries.com/django-rest-image-file-upload-tutorial/
-# class FileUploadView(APIView):
-#     parser_class = (FileUploadParser,)
-#
-#     def post(self, request, *args, **kwargs):
-#
-#       file_serializer = FileSerializer(data=request.data)
-#
-#       if file_serializer.is_valid():
-#           file_serializer.save()
-#           return Response(file_serializer.data, status=status.HTTP_201_CREATED)
-#       else:
-#           return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class UploadMediaFileView(APIView):
+    parser_class = (FileUploadParser,)
+
+    def post(self, request, *args, **kwargs):
+        file_serializer = MediaFileSerializer(data=request.data)
+
+        # TODO Make some validation on media file format and size
+
+        if file_serializer.is_valid():
+            file_serializer.save()
+            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CleanMediaFilesView(APIView):
+
+    def post(self, request):
+        mediafiles = MediaFile.objects.all()
+        storybodyelements = StoryBodyElement.objects.all()
+
+        used_mediafiles = StoryBodyElement.objects.values_list('mediafile_name', flat=True)
+        used_mediafiles = list(used_mediafiles)
+        print(used_mediafiles)
+
+        for mediafile in mediafiles:
+            if str(mediafile.file) not in used_mediafiles:
+                print(str(mediafile.file) + " is not being used")
+                mediafile.file.delete() # Deletes file from filesystem
+                mediafile.delete() # Deletes record
+            else:
+                print(str(mediafile.file) + " IS BEING USED")
+        return Response({'result': None})
 
 
 ## ViewSets are particularly useful for CRUD APIs

@@ -274,3 +274,17 @@ html, body {
   cursor: pointer;
   margin-top: 75px;
 }
+
+.align-center {
+  text-align: center;
+}
+
+.story-elem-img {
+  max-height: 250px;
+  width: auto;
+}
+
+.story-elem-video {
+  max-height: auto;
+  max-width: 500px;
+}

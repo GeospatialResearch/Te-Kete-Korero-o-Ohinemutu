@@ -10,6 +10,8 @@ class DatasetSerializer(ModelSerializer):
 
 
 class StorySerializer(ModelSerializer):
+    storyBodyElements_temp = ListField(write_only=True)
+    storyGeomsAttrib_temp = ListField(write_only=True)
     storyBodyElements = SerializerMethodField()
     storyGeomsAttrib = SerializerMethodField()
 
@@ -29,7 +31,7 @@ class StorySerializer(ModelSerializer):
 
     def create(self, validated_data):
         print(validated_data)
-        elements = validated_data.pop('elements')
+        storyBodyElements_temp = validated_data.pop('storyBodyElements_temp')
         print(elements)
         story = Story.objects.create(**validated_data)
         # for element in elements:
@@ -37,9 +39,27 @@ class StorySerializer(ModelSerializer):
         return story
 
     def update(self, instance, validated_data):
-        print(validated_data)
+        storyBodyElements = validated_data.pop('storyBodyElements_temp')
+        storyGeomsAttrib = validated_data.pop('storyGeomsAttrib_temp')
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+
+        for element in storyBodyElements:
+            if 'id' in element:
+                element.pop('mediafile')
+                element.pop('mediafile_name')
+
+                elem = StoryBodyElement.objects.get(id=element["id"])
+                for attr, value in element.items():
+                    setattr(elem, attr, value)
+                elem.save()
+            else:
+                if 'mediafile' in element:
+                    if element['mediafile'] is not None:
+                        mediafile = MediaFile.objects.get(id=element['mediafile'])
+                        element['mediafile'] = mediafile
+                StoryBodyElement.objects.create(story=instance,**element)
+
         instance.save()
         return instance
 
