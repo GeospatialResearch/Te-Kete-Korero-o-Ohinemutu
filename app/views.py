@@ -18,8 +18,7 @@ from django.db import transaction
 import re
 from .utils import layer_type, get_catalog
 import requests
-from django.core.files.storage import FileSystemStorage
-from django.conf import settings
+from django.utils import timezone
 
 # Util Functions
 def get_layer_from_file(file_obj, directory):
@@ -318,7 +317,14 @@ class UploadMediaFileView(APIView):
     def post(self, request, *args, **kwargs):
         file_serializer = MediaFileSerializer(data=request.data)
 
-        # TODO Make some validation on media file format and size
+        # Make some validation on media file format
+        img_exts = ['.jpg', '.jpeg', '.png', '.svg', '.bmp']
+        video_exts = ['.mp4']
+        audio_exts = ['.mp3']
+        filename = str(request.data['file'])
+        base_name, ext = os.path.splitext(filename)
+        if ext.lower() not in img_exts and ext.lower() not in video_exts and ext.lower() not in audio_exts:
+            raise ValidationError("The format of the media file " + filename + " is not supported. Please, upload a media file with one of the following extensions: " + ",".join(img_exts) + "," + ",".join(video_exts) + " and" + ",".join(audio_exts))
 
         if file_serializer.is_valid():
             file_serializer.save()
@@ -335,15 +341,18 @@ class CleanMediaFilesView(APIView):
 
         used_mediafiles = StoryBodyElement.objects.values_list('mediafile_name', flat=True)
         used_mediafiles = list(used_mediafiles)
-        print(used_mediafiles)
+
+        hours_threshold = 4
+        seconds_threshold = hours_threshold * 60 * 60
 
         for mediafile in mediafiles:
             if str(mediafile.file) not in used_mediafiles:
-                print(str(mediafile.file) + " is not being used")
-                mediafile.file.delete() # Deletes file from filesystem
-                mediafile.delete() # Deletes record
-            else:
-                print(str(mediafile.file) + " IS BEING USED")
+                delta = timezone.now() - mediafile.created_date
+                # Condition to avoid deleting mediafiles that are being assigned for the first time on story editing
+                if delta.total_seconds() > seconds_threshold:
+                    mediafile.file.delete() # Deletes file from filesystem
+                    mediafile.delete() # Deletes record
+
         return Response({'result': None})
 
 

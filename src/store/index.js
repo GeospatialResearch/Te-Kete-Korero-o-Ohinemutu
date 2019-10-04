@@ -21,18 +21,13 @@ const store = new Vuex.Store({
     map_resolution: 0,
     map_zoom: 0,
     stories: [],
-    storyViewMode: false,
+    storyViewMode: true,
     storyContent: {
       title : '',
       summary : '',
       status: 'DRAFT',
       storyBodyElements: [],
       storyGeomsAttrib: []
-    },
-    storyBodyContent: {
-      file_type : 'IMG',
-      name : '',
-      file_system_path : ''
     }
   },
   mutations: {
@@ -123,18 +118,6 @@ const store = new Vuex.Store({
     flavor: state => state.flavor
   },
   actions: {
-    uploadStoryBodyFile (store, datafile) {
-      console.log("uploadStoryBodyFile from index.js")
-      console.log(datafile)
-      return api.post(apiRoot + '/upload_story_body_file/', datafile)
-        .then((response) => {
-          return response.body
-        })
-        .catch((error) => {
-          store.commit('API_FAIL', error)
-          return error
-        })
-    },
     uploadFile (store, datafile) {
       return api.post(apiRoot + '/upload_file/', datafile)
         .then((response) => {
@@ -147,42 +130,39 @@ const store = new Vuex.Store({
     },
     getDatasets (store) {
       return api.get(apiRoot + '/datasets/')
-      .then((response) => {
-        store.commit('SET_INTERNAL_LAYERS', response.body)
-      })
+        .then((response) => {
+          store.commit('SET_INTERNAL_LAYERS', response.body)
+        })
     },
     getInternalLayerStyle (store, layername) {
       return api.get(apiRoot + '/get_layer_style/?layername=' + layername)
-      .then((response) => {
-        return response
-      })
+        .then((response) => {
+          return response
+        })
     },
     setInternalLayerStyle (store, payload) {
       return api.post(apiRoot + '/set_layer_style/', payload)
-      .then((response) => {
-        return response
-      })
+        .then((response) => {
+          return response
+        })
     },
     deleteLayer (store, layername) {
       return api.post(apiRoot + '/delete_layer/', {'layername': layername})
-      .then(() => {
-        store.commit('DELETE_INTERNAL_LAYER', layername)
-      })
+        .then(() => {
+          store.commit('DELETE_INTERNAL_LAYER', layername)
+        })
     },
     renameLayer (store, payload) {
       return api.post(apiRoot + '/rename_layer/', payload)
-      .then(() => {
-        store.commit('RENAME_INTERNAL_LAYER', payload)
-      })
+        .then(() => {
+          store.commit('RENAME_INTERNAL_LAYER', payload)
+        })
     },
     getInternalRasterLayerBbox (store, layername) {
       return api.get(apiRoot + '/get_layer_bbox/?layername=' + layername)
-      .then((response) => {
-        return response
-      })
-    },
-    deleteStory (store, storyid) {
-      return api.delete(apiRoot + '/stories/' + storyid + '/')
+        .then((response) => {
+          return response
+        })
     },
     getStories () {
       // To be filtered in the future based on the stories that the public/user has access
@@ -194,7 +174,6 @@ const store = new Vuex.Store({
       // Add auth headers to the request in the future
       return api.get(apiRoot + '/stories/' + storyid + '/')
         .then((response) => {
-          console.log(response)
           store.commit('SET_STORY_CONTENT', response.body)
           })
         // .catch((error) => store.commit('API_FAIL', error))
@@ -212,6 +191,10 @@ const store = new Vuex.Store({
         })
     },
     addStory (store, story) {
+      story.storyBodyElements_temp = story.storyBodyElements
+      story.storyGeomsAttrib_temp = story.storyGeomsAttrib
+      delete story['storyBodyElements']
+      delete story['storyGeomsAttrib']
       return api.post(apiRoot + '/stories/', story)
         .then((response) => {
           store.dispatch('getStories')
@@ -230,6 +213,9 @@ const store = new Vuex.Store({
         .then((response) => {
           return response
         })
+        .catch((error) => {
+          return error
+        })
     },
     deleteStoryBodyElement (store, element) {
       return api.delete(apiRoot + '/storybodyelements/' + element.id + '/')
@@ -238,10 +224,17 @@ const store = new Vuex.Store({
     },
     deleteUnusedMediaFiles () {
       return api.post(apiRoot + '/delete_unused_media/')
-      .then((response) => {
-        return response
+        .then((response) => {
+          return response
+        })
+    },
+    deleteStory (store, storyid) {
+      return api.delete(apiRoot + '/stories/' + storyid + '/')
+      .then(() => {
+        store.dispatch('getStories')
+        store.dispatch('deleteUnusedMediaFiles')
       })
-    }
+    },
   }
 })
 

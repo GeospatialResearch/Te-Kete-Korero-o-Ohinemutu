@@ -280,11 +280,11 @@ html, body {
 }
 
 .story-elem-img {
-  max-height: 250px;
-  width: auto;
+  max-width: 70%;
+  max-height: auto;
 }
 
 .story-elem-video {
+  max-width: 70%;
   max-height: auto;
-  max-width: 500px;
 }

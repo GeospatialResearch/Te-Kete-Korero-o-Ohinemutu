@@ -35,13 +35,13 @@ router.register(r'storybodyelements', views.StoryBodyElementViewSet)
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),
     url(r'^upload_media_file/', views.UploadMediaFileView.as_view()),
+    url(r'^delete_unused_media/', views.CleanMediaFilesView.as_view()),
     url(r'^set_layer_style/', views.SetGeoServerDefaultStyle.as_view()),
     url(r'^get_layer_style/', views.GetGeoServerDefaultStyle.as_view()),
     url(r'^delete_layer/', views.DeleteLayer.as_view()),
     url(r'^rename_layer/', views.RenameLayer.as_view()),
     url(r'^get_layer_bbox/', views.get_layer_bbox),
     url(r'^datasets/', views.dataset_list),
-    url(r'^delete_unused_media/', views.CleanMediaFilesView.as_view()),
 
 ]
 

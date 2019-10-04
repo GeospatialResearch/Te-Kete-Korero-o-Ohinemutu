@@ -144,8 +144,10 @@
                   <li v-for="story in stories" :key="story.id">
                     <a href="#" class="sidebar-line">
                       <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
-                      <span v-if="story.title.length>25" class="ml-2">{{ story.title.substring(0,25)+' ...' }}</span>
-                      <span v-else class="ml-2"> {{ story.title }}</span>
+                      <span @click="openStory(story)">
+                        <span v-if="story.title.length>25" class="ml-2">{{ story.title.substring(0,25)+' ...' }}</span>
+                        <span v-else class="ml-2"> {{ story.title }}</span>
+                      </span>
                       <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Story Options" :data-content="createPopoverStoryOptions(story)">
                         <font-awesome-icon icon="ellipsis-v" />
                       </span>
@@ -425,7 +427,7 @@
         </div>
       </div>
     </div>
-    <!-- <div id="deleteStoryModal" class="modal fade">
+    <div id="deleteStoryModal" class="modal fade">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -444,7 +446,24 @@
           </div>
         </div>
       </div>
-    </div> -->
+    </div>
+    <div id="storyIsBeingEditedWarningModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Attention</h5>
+          </div>
+          <div class="modal-body text-center">
+            <h6>A story is being edited, be sure you save the changes before opening another story.</h6>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <!-- page-wrapper -->
 </template>
@@ -460,7 +479,8 @@
         uploadError: null,
         layerAssignedName: null,
         layerName: null,
-        layerToDelete: null
+        layerToDelete: null,
+        storyToDelete: null
       }
     },
     computed: {
@@ -496,10 +516,9 @@
         $('#deleteLayerModal').modal('show')
       })
 
-      EventBus.$on('deleteStory', (storyid) => {
-        console.log("eventbus.on from sidebar.vue")
-        console.log(storyid)
-        this.deleteStory(storyid)
+      EventBus.$on('deleteStoryModalOpen', (storyid) => {
+        this.storyToDelete = storyid
+        $('#deleteStoryModal').modal('show')
       })
     },
     methods: {
@@ -608,10 +627,9 @@
           EventBus.$emit('removeLayer', this.layerToDelete)
         })
       },
-      deleteStory (storyid) {
-        console.log("deleteStory fn from sidebar.vue")
-        console.log(storyid)
-        this.$store.dispatch('deleteStory', storyid)
+      deleteStory () {
+        this.$store.dispatch('deleteStory', this.storyToDelete)
+        this.$store.commit('SET_PANEL_OPEN', false)
       },
       createPopoverStoryOptions (story) {
         var storyOptions = `<div class="layer-options">
@@ -623,6 +641,17 @@
 
         return storyOptions
       },
+      openStory (story) {
+        if (!this.$store.state.storyViewMode) {
+          $('#storyIsBeingEditedWarningModal').modal('show')
+        } else {
+          this.$store.dispatch('getStoryContent', story.id)
+          .then(() => {
+            this.$store.commit('SET_STORY_VIEW_MODE', true)
+            this.$store.commit('SET_PANEL_OPEN', true)
+          })
+        }
+      }
     }
   }
 

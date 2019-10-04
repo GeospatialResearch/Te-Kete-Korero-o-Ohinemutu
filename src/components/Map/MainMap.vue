@@ -291,7 +291,8 @@ export default {
     // Set internal layers and other stuff before creating the map
     Promise.all([
       this.$store.dispatch('getDatasets'),
-      this.$store.dispatch('getStories')
+      this.$store.dispatch('getStories'),
+      this.$store.dispatch('deleteUnusedMediaFiles')
     ]).then(() => {
       // Create the map
       this.initMap()

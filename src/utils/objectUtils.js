@@ -54,4 +54,5 @@ var imgFormats = ['jpg', 'jpeg', 'png', 'svg', 'bmp']
 var videoFormats = ['mp4']
 var audioFormats = ['mp3']
 
+
 module.exports = { polygonStyle, lineStyle, pointStyle, imgFormats, videoFormats, audioFormats }

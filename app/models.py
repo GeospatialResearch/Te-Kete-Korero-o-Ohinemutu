@@ -50,6 +50,7 @@ class Story(models.Model):
 
 
 class MediaFile(models.Model):
+    created_date = models.DateTimeField(auto_now_add=True)
     id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
     file = models.FileField(blank=False, null=False)
     def __str__(self):
@@ -70,7 +71,7 @@ class StoryBodyElement(models.Model):
     mediafile_name = models.CharField(max_length=100, default=None, blank=True, null=True)
     mediafile = models.ForeignKey(MediaFile, on_delete=models.CASCADE, blank=True, null=True)
     media_description = models.TextField(max_length=400, default=None, blank=True, null=True)
-    # order_position = 
+    # order_position =
 
 
 class StoryPointGeom(models.Model):

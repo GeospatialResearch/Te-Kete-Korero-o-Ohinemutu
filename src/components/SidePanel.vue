@@ -3,7 +3,7 @@
     <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closePanel()" />
 
     <div v-if="isStoryViewMode" class="mt-5 mb-5">
-      <div v-html="story.length == 0 ? 'empty' : 'Story status : '+ story.status " />
+      <h5><span class="badge badge-warning mb-2">{{ story.status }}</span></h5>
       <h4 v-html="story.length == 0 ? '' : story.title" />
       <p v-html="story.length == 0 ? '' : story.summary" />
       <hr />
@@ -29,16 +29,18 @@
       </div>
     </div>
     <div v-else>
-      <div class="row col-md-12">
-        <h5 class="mb-0">
-          Title
-        </h5>
-        <input v-model="story.title" type="text" class="form-control form-control-sm mb-3" title="Title of the story">
-        <h5 class="mb-0">
-          Summary
-        </h5>
-        <textarea v-model="story.summary" class="form-control form-control-sm" title="Story summary" />
-      </div>
+      <form :id="story.id + '_storyform'">
+        <div class="row col-md-12">
+          <h5 class="mb-0">
+            Title
+          </h5>
+          <input v-model="story.title" required type="text" class="form-control form-control-sm mb-3" title="Title of the story">
+          <h5 class="mb-0">
+            Summary
+          </h5>
+          <textarea v-model="story.summary" required class="form-control form-control-sm" title="Story summary" />
+        </div>
+      </form>
 
       <hr />
       <p class="text-muted">
@@ -104,11 +106,11 @@
                     {{ uploadedFile.name }}
                   </p>
                 </div>
+                <h6 class="mb-1 mt-3">
+                  Media description (optional)
+                </h6>
+                <textarea v-model="tempMediaDescription" class="form-control form-control-sm" title="Media description" />
               </form>
-              <h6 class="mb-1 mt-3">
-                Media description (optional)
-              </h6>
-              <textarea v-model="tempMediaDescription" class="form-control form-control-sm" title="Media description" />
               <div v-if="uploadError" class="alert alert-danger text-center">
                 <h5>Upload failed with error:</h5>
                 <code>{{ uploadError }}</code>
@@ -117,11 +119,12 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="reset()">
-                Close
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="cancelAddMediaElement()">
+                <span v-if="!uploadError">Cancel</span>
+                <span v-else>Close</span>
               </button>
-              <button type="button" class="btn btn-primary" data-dismiss="modal" @click="addMediaElement()">
-                Save
+              <button v-if="!uploadError" type="button" class="btn btn-primary" data-dismiss="modal" @click="addMediaElement()">
+                Add
               </button>
             </div>
           </div>
@@ -130,19 +133,19 @@
     </div>
     <div class="clear" />
     <div :class="[togglePanel ? 'visible': 'invisible', 'row sidepanel-footer']">
-      <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStoryContent()">
+      <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
         Update story
       </button>
-      <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="addStory()">
+      <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
         Save story
       </button>
-      <button v-if="!isStoryViewMode" type="button" class="btn btn-danger ml-2" @click="closePanel()">
+      <button v-if="!isStoryViewMode" type="button" class="btn btn-danger ml-2" @click="cancelStorySaving()">
         Cancel
       </button>
       <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-primary" @click="editStory()">
         Edit story
       </button>
-      <div v-if="isStoryViewMode" class="btn-group dropup">
+      <div v-if="isStoryViewMode" class="btn-group dropup ml-3">
         <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <font-awesome-icon icon="share-alt" class="mr-2" />
         </button>
@@ -182,6 +185,7 @@
 import draggable from "vuedraggable"
 import { VueEditor } from "vue2-editor"
 import { imgFormats, videoFormats, audioFormats } from 'utils/objectUtils'
+import { some } from 'underscore'
 
 export default {
   components: {
@@ -222,9 +226,6 @@ export default {
     story() {
       return this.$store.state.storyContent
     },
-    storyBody(){
-      return this.$store.state.storyBodyContent
-    },
     isStoryViewMode (){
       return this.$store.state.storyViewMode
     },
@@ -249,6 +250,14 @@ export default {
       $('#uploadFileModal').modal('show')
     },
     fileChange (fileList) {
+
+      var FileSize = fileList[0].size / 1024 / 1024; // in MB
+        if (FileSize > 500) {
+          this.uploadError = 'The file size exceeds 500 MB. Please, upload a smaller media file.'
+          fileList = ''
+          return
+        }
+
       const formData = new FormData()
 
       if (!fileList.length) return
@@ -262,7 +271,19 @@ export default {
 
       this.$store.dispatch('addMedia', formData)
       .then((response) => {
-        this.uploadedFile = response.body
+        if (response.ok) {
+          if (response.body) {
+            this.uploadedFile = response.body
+          }
+        } else {
+          if (response.body[0].indexOf('Request') == -1) {
+            this.uploadError = response.body[0]
+          } else {
+            this.uploadError = response.body.split('Request')[0]
+          }
+        }
+        fileList = ''
+
       })
       .catch((err) => {
         console.log(err)
@@ -278,13 +299,34 @@ export default {
       })
       this.reset()
     },
-    saveStoryContent: function () {
-      console.log("saveStoryContent from vue",this.story)
-      this.$store.dispatch('saveStoryContent', this.story)
-      },
-    addStory: function () {
-      console.log(this.story)
-      this.$store.dispatch('addStory', this.story)
+    saveStory: function () {
+      var storyform = document.getElementById(this.story.id + "_storyform")
+
+      if (storyform.checkValidity()) {
+        // Remove empty text elements from storyBodyElements array
+        const elements = this.story.storyBodyElements
+        some(this.story.storyBodyElements, function (el, i) {
+          if (el.element_type === 'TEXT' && (el.text === undefined || el.text === null || el.text === "")) {
+            elements.splice(i, 1)
+            return true
+          }
+        })
+        // Create or update
+        if (this.story.hasOwnProperty('id')) {
+          this.$store.dispatch('saveStoryContent', this.story)
+        } else {
+          this.$store.dispatch('addStory', this.story)
+        }
+        // Remove validated class
+        storyform.classList.remove("was-validated")
+      }else {
+        storyform.classList.add("was-validated")
+        $('#sidePanel').animate({ scrollTop: 0 }, 'fast')
+      }
+    },
+    cancelStorySaving: function () {
+      this.cleanUnusedMediaFiles()
+      this.closePanel()
     },
     editStory: function () {
       this.$store.commit('SET_STORY_VIEW_MODE', false)
@@ -294,13 +336,29 @@ export default {
       $('#deleteElementModal').modal('show')
     },
     deleteElement: function () {
-      this.$store.dispatch('deleteStoryBodyElement', this.elementToDelete)
-      .then(() => {
-        if (this.elementToDelete.element_type != 'TEXT') {
-          this.$store.dispatch('deleteUnusedMediaFiles')
+      if (this.elementToDelete.hasOwnProperty('id')) {
+        this.$store.dispatch('deleteStoryBodyElement', this.elementToDelete)
+        .then(() => {
+          if (this.elementToDelete.element_type != 'TEXT') {
+            this.cleanUnusedMediaFiles()
+          }
+        })
+      } else {
+        var index = this.story.storyBodyElements.indexOf(this.elementToDelete)
+        if (index > -1) {
+            this.story.storyBodyElements.splice(index, 1)
         }
-      })
-
+        if (this.elementToDelete.element_type != 'TEXT') {
+          this.cleanUnusedMediaFiles()
+        }
+      }
+    },
+    cleanUnusedMediaFiles: function () {
+      this.$store.dispatch('deleteUnusedMediaFiles')
+    },
+    cancelAddMediaElement: function () {
+      this.reset()
+      this.cleanUnusedMediaFiles()
     }
   }
 };

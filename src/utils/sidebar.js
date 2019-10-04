@@ -141,7 +141,6 @@ $(function () {
     })
     $(document.body).on('click', "[id*='_deleteStory']" ,function(){
       var storyid = $(this).attr('id').replace("_deleteStory", "")
-      console.log(storyid)
-      EventBus.$emit('deleteStory', storyid)
+      EventBus.$emit('deleteStoryModalOpen', storyid)
     })
 });
