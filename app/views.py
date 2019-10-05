@@ -1,12 +1,14 @@
 # from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, ParseError
+from rest_framework.decorators import detail_route
+from rest_framework.parsers import FileUploadParser
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer, StoryBodySerializer
+from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer, StoryBodyElementSerializer, MediaFileSerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom, StoryBody
-from rest_framework.exceptions import ParseError
+from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom, StoryBodyElement, MediaFile
 from tempfile import TemporaryDirectory
 import zipfile
 import os
@@ -16,9 +18,7 @@ from django.db import transaction
 import re
 from .utils import layer_type, get_catalog
 import requests
-from rest_framework.decorators import detail_route
-from django.core.files.storage import FileSystemStorage
-from django.conf import settings
+from django.utils import timezone
 
 # Util Functions
 def get_layer_from_file(file_obj, directory):
@@ -295,27 +295,6 @@ class SetGeoServerDefaultStyle(APIView):
 
         return Response({'result': None})
 
-class UploadStoryBodyFileView(APIView):
-    def post(self, request):
-        print("UploadStoryBodyFileView here ################# .............................................")
-        file_obj = request.FILES['file']
-        fs = FileSystemStorage()
-        filename = fs.save(file_obj.name, file_obj)
-        url = fs.url(filename)
-        print(filename,url)
-
-        # file=open(settings.STATIC_ROOT+'/'+file_obj.name,'w')
-        # file.write(file_obj)
-        # file.close()
-
-        # fs = FileSystemStorage(location=settings.STATIC_ROOT)
-        # print(settings.STATIC_URL+file_obj.name)
-        # filename = fs.save(file_obj.name, file_obj)
-
-            # if layer is not None:
-            #     insertDB(layer)
-
-        return Response({'file_system_path': url})
 
 class UploadFileView(APIView):
     def post(self, request):
@@ -332,18 +311,49 @@ class UploadFileView(APIView):
 
 
 # https://www.techiediaries.com/django-rest-image-file-upload-tutorial/
-# class FileUploadView(APIView):
-#     parser_class = (FileUploadParser,)
-#
-#     def post(self, request, *args, **kwargs):
-#
-#       file_serializer = FileSerializer(data=request.data)
-#
-#       if file_serializer.is_valid():
-#           file_serializer.save()
-#           return Response(file_serializer.data, status=status.HTTP_201_CREATED)
-#       else:
-#           return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class UploadMediaFileView(APIView):
+    parser_class = (FileUploadParser,)
+
+    def post(self, request, *args, **kwargs):
+        file_serializer = MediaFileSerializer(data=request.data)
+
+        # Make some validation on media file format
+        img_exts = ['.jpg', '.jpeg', '.png', '.svg', '.bmp']
+        video_exts = ['.mp4']
+        audio_exts = ['.mp3']
+        filename = str(request.data['file'])
+        base_name, ext = os.path.splitext(filename)
+        if ext.lower() not in img_exts and ext.lower() not in video_exts and ext.lower() not in audio_exts:
+            raise ValidationError("The format of the media file " + filename + " is not supported. Please, upload a media file with one of the following extensions: " + ",".join(img_exts) + "," + ",".join(video_exts) + " and" + ",".join(audio_exts))
+
+        if file_serializer.is_valid():
+            file_serializer.save()
+            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CleanMediaFilesView(APIView):
+
+    def post(self, request):
+        mediafiles = MediaFile.objects.all()
+        storybodyelements = StoryBodyElement.objects.all()
+
+        used_mediafiles = StoryBodyElement.objects.values_list('mediafile_name', flat=True)
+        used_mediafiles = list(used_mediafiles)
+
+        hours_threshold = 4
+        seconds_threshold = hours_threshold * 60 * 60
+
+        for mediafile in mediafiles:
+            if str(mediafile.file) not in used_mediafiles:
+                delta = timezone.now() - mediafile.created_date
+                # Condition to avoid deleting mediafiles that are being assigned for the first time on story editing
+                if delta.total_seconds() > seconds_threshold:
+                    mediafile.file.delete() # Deletes file from filesystem
+                    mediafile.delete() # Deletes record
+
+        return Response({'result': None})
 
 
 ## ViewSets are particularly useful for CRUD APIs
@@ -356,12 +366,15 @@ class DatasetViewSet(viewsets.ReadOnlyModelViewSet):
 class StoryViewSet(viewsets.ModelViewSet):
     serializer_class = StorySerializer
     queryset = Story.objects.all()
+
     def perform_create(self,serializer):
         serializer.save()
+    def perform_update(self,serializer):
+        serializer.save()
 
-class StoryBodyViewSet(viewsets.ModelViewSet):
-    serializer_class = StoryBodySerializer
-    queryset = StoryBody.objects.all()
+class StoryBodyElementViewSet(viewsets.ModelViewSet):
+    serializer_class = StoryBodyElementSerializer
+    queryset = StoryBodyElement.objects.all()
 
 class StoryGeomAttribViewSet(viewsets.ModelViewSet):
     serializer_class = StoryGeomAttribSerializer
@@ -378,6 +391,11 @@ class StoryLineGeomViewSet(viewsets.ModelViewSet):
 class StoryPolygonGeomViewSet(viewsets.ModelViewSet):
     serializer_class = StoryPolygonGeomSerializer
     queryset = StoryPolygonGeom.objects.all()
+
+class MediaFileViewSet(viewsets.ModelViewSet):
+    serializer_class = MediaFileSerializer
+    queryset = MediaFile.objects.all()
+
 
 def dataset_list(request):
     if request.method == 'GET':

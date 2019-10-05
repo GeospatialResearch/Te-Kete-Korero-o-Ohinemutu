@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import api from './api.js'
 import { EventBus } from './event-bus'
-import { each } from 'underscore'
+import { each, some } from 'underscore'
 
 Vue.use(Vuex)
 
@@ -15,25 +15,19 @@ const store = new Vuex.Store({
     isLoading: false,
     isUploadingData: false,
     isPanelOpen: false,
-    storyViewMode: false,
     contentToShow: 'map',
     externalLayers: null,
     internalLayers: {},
     map_resolution: 0,
     map_zoom: 0,
     stories: [],
+    storyViewMode: true,
     storyContent: {
-      content : {
       title : '',
       summary : '',
-      status : 'DRAFT'
-    }
-    },
-    elements: [],
-    storyBodyContent: {
-      file_type : 'IMG',
-      name : '',
-      file_system_path : ''
+      status: 'DRAFT',
+      storyBodyElements: [],
+      storyGeomsAttrib: []
     }
   },
   mutations: {
@@ -87,19 +81,28 @@ const store = new Vuex.Store({
       state.stories = response.body
     },
     SET_STORY_CONTENT (state, response) {
-      console.log(response)
       state.storyContent = response
-    },
-    SET_STORY_BODY_CONTENT (state, response){
-      console.log(response)
-      state.storyBodyContent = response
-    },
-    SET_ELEMENTS (state, response){
-      console.log("setting element in state...............",response)
-      state.elements = response
     },
     SET_STORY_VIEW_MODE (state, mode){
       state.storyViewMode = mode
+    },
+    RESET_STORY_FORM (state) {
+      state.storyContent = {
+        title : '',
+        summary : '',
+        status: 'DRAFT',
+        storyBodyElements: [],
+        storyGeomsAttrib: []
+      }
+    },
+    DELETE_ELEMENT (state, element) {
+      const elements = state.storyContent.storyBodyElements
+      some(state.storyContent.storyBodyElements, function (el, i) {
+        if (el.id === element.id) {
+          elements.splice(i, 1)
+          return true
+        }
+      })
     },
     // Generic fail handling
     API_FAIL (state, error) {
@@ -115,18 +118,6 @@ const store = new Vuex.Store({
     flavor: state => state.flavor
   },
   actions: {
-    uploadStoryBodyFile (store, datafile) {
-      console.log("uploadStoryBodyFile from index.js")
-      console.log(datafile)
-      return api.post(apiRoot + '/upload_story_body_file/', datafile)
-        .then((response) => {
-          return response.body
-        })
-        .catch((error) => {
-          store.commit('API_FAIL', error)
-          return error
-        })
-    },
     uploadFile (store, datafile) {
       return api.post(apiRoot + '/upload_file/', datafile)
         .then((response) => {
@@ -139,42 +130,39 @@ const store = new Vuex.Store({
     },
     getDatasets (store) {
       return api.get(apiRoot + '/datasets/')
-      .then((response) => {
-        store.commit('SET_INTERNAL_LAYERS', response.body)
-      })
+        .then((response) => {
+          store.commit('SET_INTERNAL_LAYERS', response.body)
+        })
     },
     getInternalLayerStyle (store, layername) {
       return api.get(apiRoot + '/get_layer_style/?layername=' + layername)
-      .then((response) => {
-        return response
-      })
+        .then((response) => {
+          return response
+        })
     },
     setInternalLayerStyle (store, payload) {
       return api.post(apiRoot + '/set_layer_style/', payload)
-      .then((response) => {
-        return response
-      })
+        .then((response) => {
+          return response
+        })
     },
     deleteLayer (store, layername) {
       return api.post(apiRoot + '/delete_layer/', {'layername': layername})
-      .then(() => {
-        store.commit('DELETE_INTERNAL_LAYER', layername)
-      })
+        .then(() => {
+          store.commit('DELETE_INTERNAL_LAYER', layername)
+        })
     },
     renameLayer (store, payload) {
       return api.post(apiRoot + '/rename_layer/', payload)
-      .then(() => {
-        store.commit('RENAME_INTERNAL_LAYER', payload)
-      })
+        .then(() => {
+          store.commit('RENAME_INTERNAL_LAYER', payload)
+        })
     },
     getInternalRasterLayerBbox (store, layername) {
       return api.get(apiRoot + '/get_layer_bbox/?layername=' + layername)
-      .then((response) => {
-        return response
-      })
-    },
-    deleteStory (store, storyid) {
-      return api.delete(apiRoot + '/stories/' + storyid + '/')
+        .then((response) => {
+          return response
+        })
     },
     getStories () {
       // To be filtered in the future based on the stories that the public/user has access
@@ -184,45 +172,69 @@ const store = new Vuex.Store({
     },
     getStoryContent (store, storyid) {
       // Add auth headers to the request in the future
-      var story_content = {}
       return api.get(apiRoot + '/stories/' + storyid + '/')
         .then((response) => {
-          console.log(response)
-          story_content.content = response.body
-          // return api.get(apiRoot + '/story_body/?story_id=' + storyid)
-          //   .then((response) => {
-          //     console.log("FROM STORY BODY ELEMENTS")
-          //     console.log(response.body)
-          store.commit('SET_ELEMENTS', response.body.storyBodies)
-              return api.get(apiRoot + '/story_geoms_attrb/?story_id=' + storyid)
-                .then((response) => {
-                  story_content.geoms = response.body
-                  console.log(story_content)
-                  store.commit('SET_STORY_CONTENT', story_content)
-                })
-              // })
-            })
+          store.commit('SET_STORY_CONTENT', response.body)
+          })
         // .catch((error) => store.commit('API_FAIL', error))
     },
-    saveStoryContent (store, storyContent) {
-      console.log("saveStoryContent from index........")
-      return api.patch(apiRoot + '/stories/' + storyContent.content.id + '/', storyContent.content)
+    saveStoryContent (store, story) {
+      story.storyBodyElements_temp = story.storyBodyElements
+      story.storyGeomsAttrib_temp = story.storyGeomsAttrib
+      delete story['storyBodyElements']
+      delete story['storyGeomsAttrib']
+      return api.patch(apiRoot + '/stories/' + story.id + '/', story)
         .then((response) => {
-          console.log(response)
+          store.dispatch('getStories')
+          store.commit('SET_STORY_CONTENT', response.body)
+          store.commit('SET_STORY_VIEW_MODE', true)
         })
     },
-    addStory (store, storyContent) {
-      console.log("addStory from index..........")
-
-      let payload = storyContent.content;
-      payload['elements']=store.state.elements ;
-      console.log(payload)
-      return api.post(apiRoot + '/stories/',payload )
-        // .then((response) => {
-        //   console.log(response)
-        //   store.commit('SET_STORY_CONTENT', storyContent)
-        // })
-    }
+    addStory (store, story) {
+      story.storyBodyElements_temp = story.storyBodyElements
+      story.storyGeomsAttrib_temp = story.storyGeomsAttrib
+      delete story['storyBodyElements']
+      delete story['storyGeomsAttrib']
+      return api.post(apiRoot + '/stories/', story)
+        .then((response) => {
+          store.dispatch('getStories')
+          store.commit('SET_STORY_CONTENT', response.body)
+          store.commit('SET_STORY_VIEW_MODE', true)
+        })
+    },
+    addMedia (store, media) {
+      return api.post(apiRoot + '/upload_media_file/', media, {
+        progress(e) {
+          if (e.lengthComputable) {
+            console.log(e.loaded / e.total * 100);
+          }
+        }
+      })
+        .then((response) => {
+          return response
+        })
+        .catch((error) => {
+          return error
+        })
+    },
+    deleteStoryBodyElement (store, element) {
+      return api.delete(apiRoot + '/storybodyelements/' + element.id + '/')
+        .then(() => store.commit('DELETE_ELEMENT', element))
+        // .catch((error) => store.commit('API_FAIL', error))
+    },
+    deleteUnusedMediaFiles () {
+      return api.post(apiRoot + '/delete_unused_media/')
+        .then((response) => {
+          return response
+        })
+    },
+    deleteStory (store, storyid) {
+      return api.delete(apiRoot + '/stories/' + storyid + '/')
+      .then(() => {
+        store.dispatch('getStories')
+        store.dispatch('deleteUnusedMediaFiles')
+      })
+    },
   }
 })
 

@@ -72,11 +72,11 @@ create-superuser:
 # 	docker-compose $(DEV) up -d db && sleep 10
 # 	make initialise-db
 #
-# reset-db:
-# 	-docker-compose $(DEV) stop db
-# 	docker-compose $(DEV) rm --force db
-# 	docker-compose $(DEV) up -d db && sleep 10
-# 	make migrate
+reset-db:
+	-docker-compose $(DEV) stop db
+	docker-compose $(DEV) rm --force db
+	docker-compose $(DEV) up -d db && sleep 10
+	# make migrate
 
 # Code checking
 check: flake8 eslint
