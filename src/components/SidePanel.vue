@@ -5,7 +5,7 @@
     <div v-if="isStoryViewMode" class="mt-5 mb-5">
       <span class="badge badge-warning mb-2" style="vertical-align: middle;">{{ story.status }}</span>
       <h4 v-html="story.length == 0 ? '' : story.title" />
-      <p v-html="story.length == 0 ? '' : story.summary" class="story-summary"/>
+      <p v-html="story.length == 0 ? '' : story.summary" class="story-summary" />
       <hr />
 
       <div v-for="element in story.storyBodyElements" :key="element.id" class="col-md-12">
@@ -15,7 +15,7 @@
         <div class="align-center">
           <img v-if="element.element_type == 'IMG'" :src="mediaRoot + element.mediafile_name" class="story-elem-img">
           <video v-if="element.element_type == 'VIDEO'" controls class="story-elem-video">
-            <source :src="mediaRoot + element.mediafile_name" type="video/mp4" >
+            <source :src="mediaRoot + element.mediafile_name" type="video/mp4">
             Your browser does not support the video tag.
           </video>
           <audio v-if="element.element_type == 'AUDIO'" controls>
@@ -58,7 +58,7 @@
       </div>
 
       <div class="row col-md-12">
-        <draggable :disabled="!enabled" class="list-group" ghost-class="ghost" @start="dragging = true" @end="dragging = false">
+        <draggable v-model="story.storyBodyElements" class="list-group" ghost-class="ghost" @start="dragging = true" @end="dragging = false">
           <div v-for="element in story.storyBodyElements" :key="element.id" class="row mb-2">
             <div class="col-md-11 mt-3">
               <div v-if="element.element_type == 'TEXT'">
@@ -185,7 +185,7 @@
 import draggable from "vuedraggable"
 import { VueEditor } from "vue2-editor"
 import { imgFormats, videoFormats, audioFormats } from 'utils/objectUtils'
-import { some } from 'underscore'
+import { some, each } from 'underscore'
 
 export default {
   components: {
@@ -197,7 +197,6 @@ export default {
       mediaRoot: process.env.API_HOST + '/media/',
       uploadFieldName: 'file',
       uploadError: null,
-      enabled: true,
       dragging: false,
       customToolbar: [
         // [{ 'font': [] }],
@@ -228,7 +227,7 @@ export default {
     },
     isStoryViewMode (){
       return this.$store.state.storyViewMode
-    },
+    }
   },
   methods: {
     closePanel() {
@@ -311,12 +310,19 @@ export default {
             return true
           }
         })
+
+        // Assign the order_position attribute
+        each(this.story.storyBodyElements, (elem, index) => {
+          elem.order_position = index
+        })
+
         // Create or update
         if (this.story.hasOwnProperty('id')) {
           this.$store.dispatch('saveStoryContent', this.story)
         } else {
           this.$store.dispatch('addStory', this.story)
         }
+
         // Remove validated class
         storyform.classList.remove("was-validated")
       }else {
