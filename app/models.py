@@ -45,7 +45,7 @@ class Story(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
     title = models.CharField(max_length=50)
-    summary = models.TextField(max_length=400)
+    summary = models.TextField(max_length=1000)
     status = models.CharField(max_length=20, default=STATUS.DRAFT, null=False, choices=STATUS)
 
 

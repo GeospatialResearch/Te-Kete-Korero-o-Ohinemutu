@@ -156,10 +156,9 @@
                 </ul>
               </div>
             </li>
-            <li class="sidebar-dropdown">
+            <!-- <li class="sidebar-dropdown">
               <a href="#">
                 <i class="fa fa-tachometer-alt" />
-                <!-- <i><font-awesome-icon icon="tachometer-alt" /></i> -->
                 <span class="menu-text">Dashboard</span>
                 <span class="badge badge-pill badge-warning">New</span>
               </a>
@@ -179,7 +178,7 @@
                   </li>
                 </ul>
               </div>
-            </li>
+            </li> -->
             <li class="header-menu">
               <span>Extra</span>
             </li>
@@ -188,7 +187,7 @@
                 <i class="fa fa-book" />
                 <!-- <i><font-awesome-icon icon="book" /></i> -->
                 <span class="menu-text">Documentation</span>
-                <span class="badge badge-pill badge-primary">Beta</span>
+                <!-- <span class="badge badge-pill badge-primary">Beta</span> -->
               </a>
             </li>
             <!-- <li>
@@ -209,7 +208,7 @@
       </div>
       <!-- sidebar-footer  -->
       <div class="sidebar-footer">
-        <div class="dropdown">
+        <!-- <div class="dropdown">
           <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i class="text-info"><font-awesome-icon icon="bell" /></i>
             <span class="badge badge-pill badge-warning notification">3</span>
@@ -224,7 +223,6 @@
               <div class="notification-content">
                 <div class="icon border border-success text-center">
                   <i class="text-success"><font-awesome-icon icon="check" /></i>
-                  <!-- <i class="fas fa-check text-success border border-success" /> -->
                 </div>
                 <div class="content">
                   <div class="notification-detail">Lorem ipsum dolor sit amet consectetur adipisicing elit. In totam explicabo</div>
@@ -236,7 +234,6 @@
               <div class="notification-content">
                 <div class="icon border border-info text-center">
                   <i class="text-info"><font-awesome-icon icon="exclamation" /></i>
-                  <!-- <i class="fas fa-exclamation text-info border border-info" /> -->
                 </div>
                 <div class="content">
                   <div class="notification-detail">Lorem ipsum dolor sit amet consectetur adipisicing elit. In totam explicabo</div>
@@ -248,7 +245,6 @@
               <div class="notification-content">
                 <div class="icon border border-warning text-center">
                   <i class="text-warning"><font-awesome-icon icon="exclamation-triangle" /></i>
-                  <!-- <i class="fas fa-exclamation-triangle text-warning border border-warning" /> -->
                 </div>
                 <div class="content">
                   <div class="notification-detail">Lorem ipsum dolor sit amet consectetur adipisicing elit. In totam explicabo</div>
@@ -259,7 +255,7 @@
             <div class="dropdown-divider" />
             <a class="dropdown-item text-center" href="#">View all notifications</a>
           </div>
-        </div>
+        </div> -->
         <div class="dropdown">
           <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i><font-awesome-icon icon="envelope" /></i>

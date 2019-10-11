@@ -3,9 +3,9 @@
     <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closePanel()" />
 
     <div v-if="isStoryViewMode" class="mt-5 mb-5">
-      <h5><span class="badge badge-warning mb-2">{{ story.status }}</span></h5>
+      <span class="badge badge-warning mb-2" style="vertical-align: middle;">{{ story.status }}</span>
       <h4 v-html="story.length == 0 ? '' : story.title" />
-      <p v-html="story.length == 0 ? '' : story.summary" />
+      <p v-html="story.length == 0 ? '' : story.summary" class="story-summary"/>
       <hr />
 
       <div v-for="element in story.storyBodyElements" :key="element.id" class="col-md-12">
@@ -22,7 +22,7 @@
             <source :src="mediaRoot + element.mediafile_name" type="audio/mpeg">
             Your browser does not support the audio element.
           </audio>
-          <p v-if="element.element_type != 'TEXT'">
+          <p v-if="element.element_type != 'TEXT'" class="media-caption">
             {{ element.media_description }}
           </p>
         </div>
@@ -327,6 +327,7 @@ export default {
     cancelStorySaving: function () {
       this.cleanUnusedMediaFiles()
       this.closePanel()
+      this.$store.commit('SET_STORY_VIEW_MODE', true)
     },
     editStory: function () {
       this.$store.commit('SET_STORY_VIEW_MODE', false)
