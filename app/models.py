@@ -45,7 +45,7 @@ class Story(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
     title = models.CharField(max_length=50)
-    summary = models.TextField(max_length=400)
+    summary = models.TextField(max_length=1000)
     status = models.CharField(max_length=20, default=STATUS.DRAFT, null=False, choices=STATUS)
 
 
@@ -71,7 +71,7 @@ class StoryBodyElement(models.Model):
     mediafile_name = models.CharField(max_length=100, default=None, blank=True, null=True)
     mediafile = models.ForeignKey(MediaFile, on_delete=models.CASCADE, blank=True, null=True)
     media_description = models.TextField(max_length=400, default=None, blank=True, null=True)
-    # order_position =
+    order_position = models.IntegerField(blank=True, null=True)
 
 
 class StoryPointGeom(models.Model):

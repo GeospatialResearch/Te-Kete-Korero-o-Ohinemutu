@@ -246,15 +246,25 @@ html, body {
   margin: 3px;
 }
 
-.custom-ql-editor .ql-editor {
+.custom-ql-editor .ql-editor  {
   min-height: 100px;
   font-size: 14px;
+  background-color: white;
+  border-radius: 0 0 0.2rem 0.2rem;
+}
+
+.ql-toolbar {
+  background-color: white;
+  border-radius: 0.2rem 0.2rem 0 0;
 }
 
 #sidePanel {
   height:100vh;
   position: relative;
   overflow-y: scroll;
+  background-color: #edeee9;
+  background-image: url(../../static/img/pattern_sidePanel.png);
+  background-size: cover;
 }
 
 .clear {
@@ -282,9 +292,19 @@ html, body {
 .story-elem-img {
   max-width: 70%;
   max-height: auto;
+  border-radius: 3px;
+  border: solid 2px #b6aeaa;
 }
 
 .story-elem-video {
   max-width: 70%;
   max-height: auto;
+}
+
+.media-caption {
+  color: #867c7c;
+}
+
+.story-summary {
+  font-style: italic;
 }
