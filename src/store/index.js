@@ -81,6 +81,8 @@ const store = new Vuex.Store({
       state.stories = response.body
     },
     SET_STORY_CONTENT (state, response) {
+      // Sort the storyBodyElements array by attribute order_position
+      response.storyBodyElements.sort((a, b) => parseFloat(a.order_position) - parseFloat(b.order_position))
       state.storyContent = response
     },
     SET_STORY_VIEW_MODE (state, mode){

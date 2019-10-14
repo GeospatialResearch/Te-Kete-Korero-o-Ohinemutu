@@ -5,12 +5,12 @@
     <div v-if="isStoryViewMode" class="mt-5 mb-5">
       <span class="badge badge-warning mb-2" style="vertical-align: middle;">{{ story.status }}</span>
       <h4 v-html="story.length == 0 ? '' : story.title" />
-      <p v-html="story.length == 0 ? '' : story.summary" class="story-summary" />
+      <p class="story-summary" v-html="story.length == 0 ? '' : story.summary" />
       <hr />
 
       <div v-for="element in story.storyBodyElements" :key="element.id" class="col-md-12">
         <div v-if="element.element_type == 'TEXT'">
-          <div v-html="element.text" />
+          <div v-html="element.text" class="ql-text" />
         </div>
         <div class="align-center">
           <img v-if="element.element_type == 'IMG'" :src="mediaRoot + element.mediafile_name" class="story-elem-img">
@@ -58,9 +58,15 @@
       </div>
 
       <div class="row col-md-12">
-        <draggable v-model="story.storyBodyElements" class="list-group" ghost-class="ghost" @start="dragging = true" @end="dragging = false">
-          <div v-for="element in story.storyBodyElements" :key="element.id" class="row mb-2">
+        <draggable v-model="story.storyBodyElements" ghost-class="ghost" handle=".handle" @start="dragging = true" @end="dragging = false">
+          <div v-for="element in story.storyBodyElements" id="editor" :key="element.id" class="row mb-2">
             <div class="col-md-11 mt-3">
+              <div class="text-center">
+                <button class="btn btn-sm btn-secondary drag-element handle">
+                  Drag me
+                  <i class="fas fa-arrows-alt" />
+                </button>
+              </div>
               <div v-if="element.element_type == 'TEXT'">
                 <vue-editor v-model="element.text" :editor-toolbar="customToolbar" class="custom-ql-editor" />
               </div>
@@ -77,8 +83,8 @@
               </div>
               <textarea v-if="element.element_type != 'TEXT'" v-model="element.media_description" rows="1" class="form-control form-control-sm mt-1" title="Media description" placeholder="Media description (optional)" />
             </div>
-            <div class="col-md-1">
-              <font-awesome-icon icon="times-circle" size="lg" color="grey" class="delete-element" @click="deleteElementModal(element)" />
+            <div class="col-md-1 delete-element">
+              <font-awesome-icon icon="times-circle" size="lg" color="grey" class="handle" @click="deleteElementModal(element)" />
             </div>
           </div>
         </draggable>
@@ -206,7 +212,6 @@ export default {
         [{'align': ''}, {'align': 'center'}, {'align': 'right'}, {'align': 'justify'}],
         [{ 'list': 'ordered'}, { 'list': 'bullet' }],
         [{ 'script': 'sub'}, { 'script': 'super' }],
-        [{ 'indent': '-1'}, { 'indent': '+1' }],
         [{ 'color': [] }, { 'background': [] }],
         ['link']
       ],
@@ -225,7 +230,7 @@ export default {
     story() {
       return this.$store.state.storyContent
     },
-    isStoryViewMode (){
+    isStoryViewMode () {
       return this.$store.state.storyViewMode
     }
   },

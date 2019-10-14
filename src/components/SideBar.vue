@@ -142,11 +142,10 @@
               <div v-else class="sidebar-submenu">
                 <ul>
                   <li v-for="story in stories" :key="story.id">
-                    <a href="#" class="sidebar-line">
+                    <a href="#" class="sidebar-line" :title="story.title">
                       <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
-                      <span @click="openStory(story)">
-                        <span v-if="story.title.length>25" class="ml-2">{{ story.title.substring(0,25)+' ...' }}</span>
-                        <span v-else class="ml-2"> {{ story.title }}</span>
+                      <span class="inline-text" @click="openStory(story)">
+                        <span class="ml-2 ellipsis-text"> {{ story.title }}</span>
                       </span>
                       <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Story Options" :data-content="createPopoverStoryOptions(story)">
                         <font-awesome-icon icon="ellipsis-v" />
