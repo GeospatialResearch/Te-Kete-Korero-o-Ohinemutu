@@ -54,7 +54,7 @@
         <div class="sidebar-item sidebar-search">
           <div>
             <div class="input-group">
-              <div class="form-control search-menu text-center label-info" @click="openPanel">
+              <div class="form-control search-menu text-center label-info" @click="openPanel()">
                 Add new story
               </div>
             </div>
@@ -133,7 +133,7 @@
               <a href="#">
                 <i class="fa fa-book-open" />
                 <!-- <i><font-awesome-icon icon="book-open" /></i> -->
-                <span class="menu-text">Stories</span>
+                <span class="menu-text">Stories/Narratives</span>
                 <!-- <span class="badge badge-pill badge-warning">New</span> -->
               </a>
               <div v-if="!stories.length" class="sidebar-submenu">
@@ -144,7 +144,7 @@
                   <li v-for="story in stories" :key="story.id">
                     <a href="#" class="sidebar-line" :title="story.title">
                       <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
-                      <span class="inline-text" @click="openStory(story)">
+                      <span class="inline-text">
                         <span class="ml-2 ellipsis-text"> {{ story.title }}</span>
                       </span>
                       <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Story Options" :data-content="createPopoverStoryOptions(story)">
@@ -496,6 +496,12 @@
         return this.$store.state.map
       },
       stories () {
+        $(function () {
+          $('[data-toggle="popover"]').popover({
+            boundary:'window',
+            html: true
+          })
+        })
         return this.$store.state.stories
       }
     },
@@ -515,16 +521,29 @@
         this.storyToDelete = storyid
         $('#deleteStoryModal').modal('show')
       })
+
+      EventBus.$on('storyIsBeingEditedWarning', () => {
+        $('#storyIsBeingEditedWarningModal').modal('show')
+      })
     },
     methods: {
       openPanel(){
-        this.$store.commit('RESET_STORY_FORM')
-        this.$store.commit('SET_STORY_VIEW_MODE', false)
-        this.$store.commit('SET_PANEL_OPEN', true)
+        if (!this.$store.state.storyViewMode) {
+          $('#storyIsBeingEditedWarningModal').modal('show')
+        } else {
+          this.$store.commit('RESET_STORY_FORM')
+          this.$store.commit('SET_STORY_VIEW_MODE', false)
+          this.$store.commit('SET_PANEL_OPEN', true)
+          EventBus.$emit('addStoryGeomsToMap', [])
+        }
       },
       uploadDatasetClicked () {
         this.reset()
-        $('#uploadDatasetModal').modal('show')
+        if (!this.$store.state.storyViewMode) {
+          $('#storyIsBeingEditedWarningModal').modal('show')
+        } else {
+          $('#uploadDatasetModal').modal('show')
+        }
       },
       reset () {
         this.uploadError = null
@@ -624,7 +643,12 @@
       },
       deleteStory () {
         this.$store.dispatch('deleteStory', this.storyToDelete)
+        .then( () => {
+          this.$store.dispatch('deleteUnusedMediaFiles')
+          this.$store.dispatch('deleteUnusedGeomAttrs')
+        })
         this.$store.commit('SET_PANEL_OPEN', false)
+        EventBus.$emit('removeLayer', 'storyGeomsLayer')
       },
       createPopoverStoryOptions (story) {
         var storyOptions = `<div class="layer-options">
@@ -635,17 +659,6 @@
                             </div>`
 
         return storyOptions
-      },
-      openStory (story) {
-        if (!this.$store.state.storyViewMode) {
-          $('#storyIsBeingEditedWarningModal').modal('show')
-        } else {
-          this.$store.dispatch('getStoryContent', story.id)
-          .then(() => {
-            this.$store.commit('SET_STORY_VIEW_MODE', true)
-            this.$store.commit('SET_PANEL_OPEN', true)
-          })
-        }
       }
     }
   }

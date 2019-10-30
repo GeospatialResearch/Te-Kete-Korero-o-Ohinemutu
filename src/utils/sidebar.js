@@ -4,143 +4,149 @@ const store = require('store').default
 
 $(function () {
 
-    // Dropdown menu
-    $(".sidebar-dropdown > a").click(function () {
-        $(".sidebar-submenu").slideUp(200);
-        if ($(this).parent().hasClass("active")) {
-            $(".sidebar-dropdown").removeClass("active");
-            $(this).parent().removeClass("active");
-        } else {
-            $(".sidebar-dropdown").removeClass("active");
-            $(this).next(".sidebar-submenu").slideDown(200);
-            $(this).parent().addClass("active");
-        }
-    });
+  // Dropdown menu
+  $(".sidebar-dropdown > a").click(function () {
+      $(".sidebar-submenu").slideUp(200);
+      if ($(this).parent().hasClass("active")) {
+          $(".sidebar-dropdown").removeClass("active");
+          $(this).parent().removeClass("active");
+      } else {
+          $(".sidebar-dropdown").removeClass("active");
+          $(this).next(".sidebar-submenu").slideDown(200);
+          $(this).parent().addClass("active");
+      }
+  });
 
-    //toggle sidebar
-    $("#toggle-sidebar").click(function () {
-        $(".page-wrapper").toggleClass("toggled");
-        _.delay(() => {
-          EventBus.$emit("updateMapWidth")
-        }, 100)
+  //toggle sidebar
+  $("#toggle-sidebar").click(function () {
+      $(".page-wrapper").toggleClass("toggled");
+      _.delay(() => {
+        EventBus.$emit("updateMapWidth")
+      }, 100)
 
-    });
+  });
 
-    //Pin sidebar
-    $("#pin-sidebar").click(function () {
-        if ($(".page-wrapper").hasClass("pinned")) {
-            // unpin sidebar when hovered
-            $(".page-wrapper").removeClass("pinned");
-            $("#sidebar").unbind( "hover");
-        } else {
-            $(".page-wrapper").addClass("pinned");
-            $("#sidebar").hover(
-                function () {
-                    $(".page-wrapper").addClass("sidebar-hovered");
-                },
-                function () {
-                    $(".page-wrapper").removeClass("sidebar-hovered");
-                }
-            )
-        }
-    });
+  //Pin sidebar
+  $("#pin-sidebar").click(function () {
+      if ($(".page-wrapper").hasClass("pinned")) {
+          // unpin sidebar when hovered
+          $(".page-wrapper").removeClass("pinned");
+          $("#sidebar").unbind( "hover");
+      } else {
+          $(".page-wrapper").addClass("pinned");
+          $("#sidebar").hover(
+              function () {
+                  $(".page-wrapper").addClass("sidebar-hovered");
+              },
+              function () {
+                  $(".page-wrapper").removeClass("sidebar-hovered");
+              }
+          )
+      }
+  });
 
-    //toggle sidebar overlay
-    $("#overlay").click(function () {
-        $(".page-wrapper").toggleClass("toggled");
-    });
+  //toggle sidebar overlay
+  $("#overlay").click(function () {
+      $(".page-wrapper").toggleClass("toggled");
+  });
 
-    //switch between themes
-    var themes = "default-theme legacy-theme chiller-theme ice-theme cool-theme light-theme";
-    $('[data-theme]').click(function () {
-        $('[data-theme]').removeClass("selected");
-        $(this).addClass("selected");
-        $('.page-wrapper').removeClass(themes);
-        $('.page-wrapper').addClass($(this).attr('data-theme'));
-    });
+  //switch between themes
+  var themes = "default-theme legacy-theme chiller-theme ice-theme cool-theme light-theme";
+  $('[data-theme]').click(function () {
+      $('[data-theme]').removeClass("selected");
+      $(this).addClass("selected");
+      $('.page-wrapper').removeClass(themes);
+      $('.page-wrapper').addClass($(this).attr('data-theme'));
+  });
 
-    // switch between background images
-    var bgs = "bg1 bg2 bg3 bg4";
-    $('[data-bg]').click(function () {
-        $('[data-bg]').removeClass("selected");
-        $(this).addClass("selected");
-        $('.page-wrapper').removeClass(bgs);
-        $('.page-wrapper').addClass($(this).attr('data-bg'));
-    });
+  // switch between background images
+  var bgs = "bg1 bg2 bg3 bg4";
+  $('[data-bg]').click(function () {
+      $('[data-bg]').removeClass("selected");
+      $(this).addClass("selected");
+      $('.page-wrapper').removeClass(bgs);
+      $('.page-wrapper').addClass($(this).attr('data-bg'));
+  });
 
-    // toggle background image
-    $("#toggle-bg").change(function (e) {
-        e.preventDefault();
-        $('.page-wrapper').toggleClass("sidebar-bg");
-    });
+  // toggle background image
+  $("#toggle-bg").change(function (e) {
+      e.preventDefault();
+      $('.page-wrapper').toggleClass("sidebar-bg");
+  });
 
-    // toggle border radius
-    $("#toggle-border-radius").change(function (e) {
-        e.preventDefault();
-        $('.page-wrapper').toggleClass("boder-radius-on");
-    });
+  // toggle border radius
+  $("#toggle-border-radius").change(function (e) {
+      e.preventDefault();
+      $('.page-wrapper').toggleClass("boder-radius-on");
+  });
 
-    // custom scroll bar is only used on desktop
-    if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        $(".sidebar-content").mCustomScrollbar({
-            axis: "y",
-            autoHideScrollbar: true,
-            scrollInertia: 300,
-            mouseWheel:{
-            enable:true,
-            scrollAmount:50
-            }
-        });
-        $(".sidebar-content").addClass("desktop");
-    }
+  // custom scroll bar is only used on desktop
+  if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+      $(".sidebar-content").mCustomScrollbar({
+          axis: "y",
+          autoHideScrollbar: true,
+          scrollInertia: 300,
+          mouseWheel:{
+          enable:true,
+          scrollAmount:50
+          }
+      });
+      $(".sidebar-content").addClass("desktop");
+  }
 
-    // Hide any open sidebar layer popover when the anywhere else in the body is clicked
-    $('body').on('click', function (e) {
-      $('[data-toggle=popover]').each(function () {
-        if (!$(this).is(e.target) && $(this).has(e.target).length === 0 ) {
-          $(this).popover('hide')
-        }
-        // && $('.popover').has(e.target).length === 0 // avoids to hide the popover if we click on it
-      })
+  // Hide any open sidebar layer popover when the anywhere else in the body is clicked
+  $('body').on('click', function (e) {
+    $('[data-toggle=popover]').each(function () {
+      if (!$(this).is(e.target) && $(this).has(e.target).length === 0 ) {
+        $(this).popover('hide')
+      }
+      // && $('.popover').has(e.target).length === 0 // avoids to hide the popover if we click on it
     })
+  })
 
-    // Send EventBus on internal layer click option
-    $(document.body).on('click', "[id*='_zoomto']" ,function(){
-      var layername = $(this).attr('id').replace("_zoomto", "")
-      EventBus.$emit('zoomToLayer', {layerName:layername, layerType:'internal'})
-    })
-    $(document.body).on('click', "[id*='_restyle']" ,function(){
-      var layername = $(this).attr('id').replace("_restyle", "")
-      EventBus.$emit('restyleLayer', {layerName:layername, layerType:'internal'})
-    })
-    $(document.body).on('click', "[id*='_deleteLayer']" ,function(){
-      var layername = $(this).attr('id').replace("_deleteLayer", "")
-      EventBus.$emit('deleteLayerModalOpen', layername)
-    })
-    $(document.body).on('click', "[id*='_rename']" ,function(){
-      var layername = $(this).attr('id').replace("_rename", "")
-      EventBus.$emit('assignLayerNameModalOpen', layername)
-    })
+  // Send EventBus on internal layer click option
+  $(document.body).on('click', "[id*='_zoomto']" ,function(){
+    var layername = $(this).attr('id').replace("_zoomto", "")
+    EventBus.$emit('zoomToLayer', {layerName:layername, layerType:'internal'})
+  })
+  $(document.body).on('click', "[id*='_restyle']" ,function(){
+    var layername = $(this).attr('id').replace("_restyle", "")
+    EventBus.$emit('restyleLayer', {layerName:layername, layerType:'internal'})
+  })
+  $(document.body).on('click', "[id*='_deleteLayer']" ,function(){
+    var layername = $(this).attr('id').replace("_deleteLayer", "")
+    EventBus.$emit('deleteLayerModalOpen', layername)
+  })
+  $(document.body).on('click', "[id*='_rename']" ,function(){
+    var layername = $(this).attr('id').replace("_rename", "")
+    EventBus.$emit('assignLayerNameModalOpen', layername)
+  })
 
-    // Send EventBus on story click option
-    $(document.body).on('click', "[id*='_view']" ,function(){
+  // Send EventBus on story click option
+  $(document.body).on('click', "[id*='_view']" ,function(){
+    if (!store.state.storyViewMode) {
+      EventBus.$emit('storyIsBeingEditedWarning')
+    } else {
       var story_id = $(this).attr('id').replace("_view", "")
       store.dispatch('getStoryContent', story_id)
-      .then(() => {
+      .then((story) => {
         store.commit('SET_STORY_VIEW_MODE', true)
         store.commit('SET_PANEL_OPEN', true)
+        EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
       })
+    }
+  })
+  $(document.body).on('click', "[id*='_edit']" ,function(){
+    var story_id = $(this).attr('id').replace("_edit", "")
+    store.dispatch('getStoryContent', story_id)
+    .then((story) => {
+      store.commit('SET_STORY_VIEW_MODE', false)
+      store.commit('SET_PANEL_OPEN', true)
+      EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
     })
-    $(document.body).on('click', "[id*='_edit']" ,function(){
-      var story_id = $(this).attr('id').replace("_edit", "")
-      store.dispatch('getStoryContent', story_id)
-      .then(() => {
-        store.commit('SET_STORY_VIEW_MODE', false)
-        store.commit('SET_PANEL_OPEN', true)
-      })
-    })
-    $(document.body).on('click', "[id*='_deleteStory']" ,function(){
-      var storyid = $(this).attr('id').replace("_deleteStory", "")
-      EventBus.$emit('deleteStoryModalOpen', storyid)
-    })
+  })
+  $(document.body).on('click', "[id*='_deleteStory']" ,function(){
+    var storyid = $(this).attr('id').replace("_deleteStory", "")
+    EventBus.$emit('deleteStoryModalOpen', storyid)
+  })
 });

@@ -27,15 +27,14 @@ router = routers.DefaultRouter()
 router.register(r'stories', views.StoryViewSet)
 router.register(r'mediafiles', views.MediaFileViewSet)
 router.register(r'storybodyelements', views.StoryBodyElementViewSet)
-# router.register(r'story_geoms_attrib', views.StoryGeomAttribViewSet)
-# router.register(r'story_points', views.StoryPointGeomViewSet)
-# router.register(r'story_lines', views.StoryLineGeomViewSet)
-# router.register(r'story_polygons', views.StoryPolygonGeomViewSet)
+router.register(r'storygeomsattrib', views.StoryGeomAttribViewSet)
+# router.register(r'storygeoms', views.StoryGeometryViewSet)
 
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),
     url(r'^upload_media_file/', views.UploadMediaFileView.as_view()),
     url(r'^delete_unused_media/', views.CleanMediaFilesView.as_view()),
+    url(r'^delete_unused_geoms/', views.CleanGeomsView.as_view()),
     url(r'^set_layer_style/', views.SetGeoServerDefaultStyle.as_view()),
     url(r'^get_layer_style/', views.GetGeoServerDefaultStyle.as_view()),
     url(r'^delete_layer/', views.DeleteLayer.as_view()),

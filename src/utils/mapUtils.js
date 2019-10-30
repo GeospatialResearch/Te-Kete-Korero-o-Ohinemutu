@@ -3,6 +3,8 @@ var EventBus = require('store/event-bus.js').EventBus
 const Style = require('ol/style/Style').default
 const Fill = require('ol/style/Fill').default
 const Stroke = require('ol/style/Stroke').default
+const CircleStyle = require('ol/style/Circle').default
+const Text = require('ol/style/Text').default
 const Projection = require('ol/proj/Projection').default
 var createXYZ = require('ol/tilegrid').createXYZ
 var geojsonvt = require('geojson-vt').default
@@ -17,11 +19,83 @@ const extLayersObj = require('utils/objects').extLayersObj
 var _ = require('underscore')
 
 
+var singleClickCallbackFunction = function (evt) {
+  const map = store.state.map
+  EventBus.$emit('closeMapPopup')
+
+  // Attempt to find a marker from the map layers
+  var layers = map.getLayers()
+  var viewResolution = map.getView().getResolution()
+  var projection = map.getView().getProjection()
+
+  // Define nExpectedCount
+  var nExpectedCount = 0
+  _.each(store.state.internalLayers, (layer) => {
+    if (layer.visible) {
+      nExpectedCount++
+    }
+  })
+  map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
+    if (layer.get('name') !== 'storyGeomsLayer') {
+      nExpectedCount++
+    }
+  })
+  EventBus.$emit('defineExpectedCount', nExpectedCount)
+
+  // External vector layers
+  map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
+    if (extLayersObj[layer.get('name')]) {  // if the extLayersObj has this layer name (in order to exclude the name storyGeomsLayer)
+      EventBus.$emit('showLayersFeaturesPopup', {
+        'features': [feature],
+        'coordinate': evt.coordinate,
+        'layername': extLayersObj[layer.get('name')].layername
+      })
+    }
+  })
+
+  // Internal geoserser wms layers
+  layers.forEach( (layer) => {
+    var layername = layer.get('name')
+    if (layer.getVisible() && !['Basemap', 'drawingLayer', 'storyGeomsLayer'].includes(layername) && !Object.keys(store.state.externalLayers).includes(layername)) {
+      $.ajax({
+        url: layer.getSource().getGetFeatureInfoUrl(evt.coordinate, viewResolution, projection,  // creates the WMS getFeatureInfo request for us
+          { 'INFO_FORMAT': 'text/javascript',
+            'format_options': 'callback:' + layername,
+          }
+        ),
+        dataType: 'jsonp',
+        jsonpCallback: layername // instead of a static name like 'getJson' to avoid the classic race issue
+      }).done(function (response) {
+        if (response.features.length > 0) {
+          EventBus.$emit('showLayersFeaturesPopup', {
+            'features': response.features,
+            'coordinate': evt.coordinate,
+            'layername': layername
+          })
+        } else {
+          EventBus.$emit('showLayersFeaturesPopup', {
+            'coordinate': evt.coordinate,
+          })
+        }
+      })
+    }
+  })
+
+  // Show storyGeomsLayer features info
+  map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
+    if (layer.get('name') === 'storyGeomsLayer') {
+      EventBus.$emit('getStoryGeomInfo', feature)
+    }
+  })
+
+}
+
+
 var enableEventListeners = function () {
   const map = store.state.map
 
   map.on('movestart', () => {
-    EventBus.$emit('closeMapPopup')
+      EventBus.$emit('closeMapPopup')
   })
 
   map.on('moveend', () => {
@@ -32,70 +106,23 @@ var enableEventListeners = function () {
     EventBus.$emit('resolutionNotification')
   })
 
-  map.on('singleclick', (evt) => {
-
-    EventBus.$emit('closeMapPopup')
-
-    // Attempt to find a marker from the map layers
-    var layers = map.getLayers()
-    var viewResolution = map.getView().getResolution()
-    var projection = map.getView().getProjection()
-
-    // Define nExpectedCount
-    var nExpectedCount = 0
-    _.each(store.state.internalLayers, (layer) => {
-      if (layer.visible) {
-        nExpectedCount++
-      }
-    })
-    map.forEachFeatureAtPixel(evt.pixel, () => {
-      nExpectedCount++
-    })
-    EventBus.$emit('defineExpectedCount', nExpectedCount)
-
-    // external vector layers
-    map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
-      EventBus.$emit('showLayersFeaturesPopup', {
-        'features': [feature],
-        'coordinate': evt.coordinate,
-        'layername': extLayersObj[layer.get('name')].layername
-      })
-    })
-
-    // internal geoserser wms layers
-    layers.forEach( (layer) => {
-      var layername = layer.get('name')
-      if (layer.getVisible() && layername!='Basemap' && !Object.keys(store.state.externalLayers).includes(layername)) {
-        $.ajax({
-          url: layer.getSource().getGetFeatureInfoUrl(evt.coordinate, viewResolution, projection,  // creates the WMS getFeatureInfo request for us
-            { 'INFO_FORMAT': 'text/javascript',
-              'format_options': 'callback:' + layername,
-            }
-          ),
-          dataType: 'jsonp',
-          jsonpCallback: layername // instead of a static name like 'getJson' to avoid the classic race issue
-        }).done(function (response) {
-          if (response.features.length > 0) {
-            EventBus.$emit('showLayersFeaturesPopup', {
-              'features': response.features,
-              'coordinate': evt.coordinate,
-              'layername': layername
-            })
-          } else {
-            EventBus.$emit('showLayersFeaturesPopup', {
-              'coordinate': evt.coordinate,
-            })
-          }
-        })
-      }
-    })
-  })
+  map.on('singleclick', singleClickCallbackFunction)
 
   map.on('pointermove', (evt) => {
     if (evt.dragging) {
       EventBus.$emit('closeMapPopup')
     }
   })
+}
+
+var disableEventListenerSingleClick = function () {
+  const map = store.state.map
+  map.un('singleclick', singleClickCallbackFunction)
+}
+
+var enableEventListenerSingleClick = function () {
+  const map = store.state.map
+  map.on('singleclick', singleClickCallbackFunction)
 }
 
 var getCorrectExtent = function (geojsonObj) {
@@ -235,11 +262,71 @@ var isLayerDisplayed = function (layer) {
 }
 
 
+// Styles
+var drawingStyle = new Style({
+                    fill: new Fill({
+                      color: 'rgba(255, 204, 51, 0.5)'
+                    }),
+                    stroke: new Stroke({
+                      color: 'rgba(255, 204, 51, 1)',
+                      width: 2
+                    }),
+                    image: new CircleStyle({
+                      radius: 5,
+                      fill: new Fill({
+                        color: 'rgba(255, 204, 51, 0.5)'
+                      }),
+                      stroke: new Stroke({
+                        color: 'rgba(255, 204, 51, 1)',
+                        width: 2
+                      })
+                    })
+                  })
+
+var defaultStoryGeomStyle = function (feature) {
+  return new Style({
+             fill: new Fill({
+               color: 'rgba(31, 109, 224, 0.5)'
+             }),
+             stroke: new Stroke({
+               color: 'rgba(31, 109, 224, 1)',
+               width: 2
+             }),
+             image: new CircleStyle({
+               radius: 5,
+               fill: new Fill({
+                 color: 'rgba(31, 109, 224, 0.5)'
+               }),
+               stroke: new Stroke({
+                 color: 'rgba(31, 109, 224, 1)',
+                 width: 2
+               })
+             }),
+             text: new Text({
+               font: 'bold 13px Calibri,sans-serif',
+               fill: new Fill({ color: '#000' }),
+               stroke: new Stroke({
+                 color: '#f2a2a2', width: 4
+               }),
+               text: typeof feature == 'string' ? feature : feature.get('label'),
+               offsetY:15,
+               overflow: true
+             })
+           })
+}
+
+
+var defaultStoryGeomLayerStyle = function (feature) {
+  return [defaultStoryGeomStyle(feature)]
+}
+
+
 // Closes the map popup when clicking the cross button
 $(document).on("click", ".popover .close" , function(){
   $(this).parents(".popover").popover('hide')
 })
-// Hide the map popup when the anywhere else in the body is clicked
+
+// Hide the map layers feature popup when the anywhere else in the body is clicked
 $('body').on('click', function (e) {
   $('.feature-popup').each(function () {
     if (!$(this).is(e.target) && $(this).has(e.target).length === 0 ) {
@@ -249,4 +336,6 @@ $('body').on('click', function (e) {
 })
 
 
-module.exports = {enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer, isLayerDisplayed}
+module.exports = {enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer,
+                isLayerDisplayed, disableEventListenerSingleClick, enableEventListenerSingleClick,
+                drawingStyle, defaultStoryGeomStyle, defaultStoryGeomLayerStyle}

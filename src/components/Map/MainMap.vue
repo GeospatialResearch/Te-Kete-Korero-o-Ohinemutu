@@ -72,6 +72,25 @@
         </div>
       </div>
     </div>
+
+    <div v-if="isDrawMode" class="ol-control draw-buttons">
+      <button v-if="!drawnFeature.geometry" type="button" title="Draw point" @click="drawGeom('Point')">
+        <img src="static/img/drawPoint.png" class="draw-img" />
+      </button>
+      <button v-if="!drawnFeature.geometry" type="button" title="Draw line" @click="drawGeom('LineString')">
+        <img src="static/img/drawLine.png" class="draw-img" />
+      </button>
+      <button v-if="!drawnFeature.geometry" type="button" title="Draw polygon" @click="drawGeom('Polygon')">
+        <img src="static/img/drawPolygon.png" class="draw-img" />
+      </button>
+      <button v-if="drawnFeature.geometry && !drawnFeature.geometry.id" type="button" title="Remove feature" @click="deleteGeom()">
+        <img src="static/img/trash.png" class="draw-img" />
+      </button>
+      <button type="button" style="background-color: #a21515;" title="Stop drawing" @click="stopDrawing()">
+        <i><font-awesome-icon icon="ban" color="white" /></i>
+      </button>
+    </div>
+
     <div v-if="isUploadingData || isLoading" class="loading-background" />
     <div v-if="isUploadingData || isLoading" class="loader-upload" />
     <div v-if="isUploadingData">
@@ -83,18 +102,73 @@
 
     <div class="resolution-box text-center">
       <p>
-        <small>Resolution:</small>
-      </p>
-      <p>
-        <small>{{ mapResolution }}</small>
+        <small>Resolution: {{ mapResolution }}</small>
       </p>
       <!-- <p>
         <small>Zoom: {{ mapZoom }}</small>
       </p> -->
     </div>
 
+    <!-- Map services feature popup -->
     <div style="display: none;">
       <div id="feature_popup" />
+    </div>
+
+    <!-- Drawn geometry panel info -->
+    <div v-if="drawnFeature.geometry" class="geometry-info">
+      <div class="row pl-3 pr-3">
+        <h6 class="col-md-11 p-2 mb-0">
+          Feature Info
+        </h6>
+        <div class="col-md-1 mt-2">
+          <font-awesome-icon v-if="!isDrawMode" icon="times" class="float-right pointer" size="lg" @click="hideStoryGeomInfo()" />
+          <font-awesome-icon v-if="isDrawMode && !drawnFeature.id" icon="times" class="float-right pointer" size="lg" @click="deleteGeom()" />
+        </div>
+      </div>
+      <hr class="mt-0" />
+      <form id="geomAttrForm" class="m-2">
+        <!-- :id="geom.id + '_geometryform'" -->
+        <div class="form-group row mb-0">
+          <label for="geomName" class="col-sm-2 col-form-label col-form-label-sm"><strong>Name</strong></label>
+          <div class="col-sm-10 col-form-label col-form-label-sm">
+            <input v-if="isDrawMode" id="geomName" v-model="drawnFeature.name" required type="text" class="form-control form-control-sm" placeholder="Name of the geographical feature">
+            <span v-else>{{ drawnFeature.name }}</span>
+          </div>
+        </div>
+        <div class="form-group row mb-0">
+          <label for="geomDesc" class="col-sm-2 col-form-label col-form-label-sm"><strong>Description</strong></label>
+          <div class="col-sm-10 col-form-label col-form-label-sm">
+            <textarea v-if="isDrawMode" id="geomDesc" v-model="drawnFeature.description" required class="form-control form-control-sm" placeholder="Description of what the geographical feature represents" />
+            <span v-else>{{ drawnFeature.description }}</span>
+          </div>
+        </div>
+      </form>
+      <button v-if="isDrawMode" type="button" class="btn btn-danger geometry-cancel-btn" @click="stopDrawing()">
+        Cancel
+      </button>
+      <button v-if="isDrawMode" type="button" class="btn btn-success geometry-save-btn" @click="saveGeomAttrb()">
+        <span v-if="!drawnFeature.id">Add feature to story</span>
+        <span v-else>Update feature</span>
+      </button>
+    </div>
+
+    <!-- Modals -->
+    <div id="drawInfoModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content draw-info">
+          <div class="modal-header">
+            <h5>Attention</h5>
+          </div>
+          <div class="modal-body text-center">
+            <h6>Use the drawing buttons on the upper left corner of the map to draw points, lines and polygons.</h6>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Got it!
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="restyleLayerModal" class="modal fade" data-keyboard="false" data-backdrop="static">
@@ -186,43 +260,111 @@
         </div>
       </div>
     </div>
+
+    <div id="restyleStoryGeomModal" class="modal fade" data-keyboard="false" data-backdrop="static">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Feature style</h5>
+          </div>
+          <div class="modal-body">
+            <div class="container">
+              <form>
+                <div class="form-group">
+                  <div class="mt-2">
+                    <div>
+                      <p class="mb-0">
+                        <strong>Color</strong>
+                      </p>
+                      <input v-model="storyGeomStyle.color" style="width:100%" type="color" class="form-control form-control-sm">
+                    </div>
+                    <div>
+                      <p class="mt-4 mb-0">
+                        <strong>Opacity</strong>
+                      </p>
+                      <div class="slidecontainer">
+                        <input v-model="storyGeomStyle.opacity" type="range" min="0" max="1" step="0.1" class="slider form-control form-control-sm">
+                      </div>
+                      <p class="float-right">
+                        {{ storyGeomStyle.opacity }}
+                      </p>
+                    </div>
+                    <div>
+                      <p class="mt-4 mb-0">
+                        <strong>Line width</strong>
+                      </p>
+                      <div class="form-group container row">
+                        <input v-model="storyGeomStyle.linewidth" class="form-control form-control-sm col-sm-2" type="number" min="1">
+                        <label class="col-sm-2 col-form-label col-form-label-sm">px</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Cancel
+            </button>
+            <button class="btn btn-success btn-ok" @click="setOLStyle()">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <!-- <select id="layer-select" @change="onChangeBasemap($event)">
-   <option value="'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png'">openstreetmap</option>
- </select> -->
 </template>
 
 <script>
 
 import { EventBus } from 'store/event-bus'
 import { addGeoserverWMS, zoomToGeoserverVectorLayer, zoomToGeoserverLayerBbox, setSLDstyle } from 'utils/internalMapServices'
-import { enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer } from 'utils/mapUtils'
+import { enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer,
+  disableEventListenerSingleClick, enableEventListenerSingleClick, drawingStyle, defaultStoryGeomStyle, defaultStoryGeomLayerStyle } from 'utils/mapUtils'
 import { extLayersObj } from 'utils/objects'
+import { hexToRgba, hexToRgb } from 'utils/objectUtils'
 import { delay, each, isString } from 'underscore'
 // Import everything from ol
 import Map from 'ol/Map'
 import View from 'ol/View'
-import {Tile as TileLayer} from 'ol/layer'
+import { Tile as TileLayer } from 'ol/layer'
 import Stamen from 'ol/source/Stamen'
 // import XYZ from 'ol/source/XYZ'
 import OSM from 'ol/source/OSM'
 // import TileJSON from 'ol/source/TileJSON'
-// import VectorSource from 'ol/source/Vector'
-// import VectorLayer from 'ol/layer/Vector'
-// import { Point, MultiPoint, LineString, MultiLineString} from 'ol/geom'
-// import GeoJSON from 'ol/format/GeoJSON'
+import VectorSource from 'ol/source/Vector'
+import VectorLayer from 'ol/layer/Vector'
+import { Draw, Snap, Modify } from 'ol/interaction'
+import Feature from 'ol/Feature'
+import { Point, LineString, Polygon} from 'ol/geom'
+import GeoJSON from 'ol/format/GeoJSON'
 // import { getWidth } from 'ol/extent' // getCenter,
 import Overlay from 'ol/Overlay'
-// import { Fill, Stroke, Style } from 'ol/style' // Circle as CircleStyle
+import { Fill, Stroke, Style, Circle as CircleStyle, Text } from 'ol/style'
 import { Zoom, Attribution, ScaleLine } from 'ol/control'
 // import { tile } from 'ol/loadingstrategy' // bbox as bboxStrategy,
 // import { createXYZ } from 'ol/tilegrid'
+import { defaults } from 'ol/interaction'
 
+var draw, snap, modify // global so we can remove them later
+
+// Esc key to remove last drawn point during drawing interaction
+document.addEventListener('keydown', function(e) {
+  if (e.which == 27)
+      draw.removeLastPoint()
+})
+
+var mapDrawingNotify
 
 export default {
   name: 'MapView',
   data() {
     return {
+      mapView_projection: 'EPSG:3857', // 'EPSG:4326',  // this distorts the view
+      mapView_center: [19410113.214624517, -5044843.866821633], // [172.79296875, -41.868896484375]
+      mapView_zoom: 6,
       features_info: '',
       layersFeaturesPopupCount: 0,
       nExpectedCount: null,
@@ -237,18 +379,27 @@ export default {
          drawnline: 5,
          blankspace: 8,
          layername: null
-       }
+       },
+       drawingSource: null,
+       drawnFeature: {
+         geometry: null,
+         name: null,
+         description: null
+       },
+       storyGeomStyle: {
+          color: '#1f6de0',
+          opacity: 0.5,
+          linewidth: 2
+        },
     }
   },
   computed: {
 
     mapView () {
       var view = new View({
-        projection: 'EPSG:3857',
-        center: [19410113.214624517, -5044843.866821633],
-        // projection: 'EPSG:4326',  // this distorts the view
-        // center: [172.79296875, -41.868896484375],
-        zoom: 6,
+        projection: this.mapView_projection,
+        center: this.mapView_center,
+        zoom: this.mapView_zoom,
         minZoom: 2
       })
       return view
@@ -282,6 +433,9 @@ export default {
     },
     mapZoom () {
       return this.$store.state.map_zoom.toFixed(1)
+    },
+    isDrawMode () {
+      return this.$store.state.drawMode
     }
   },
   created: function () {
@@ -292,7 +446,8 @@ export default {
     Promise.all([
       this.$store.dispatch('getDatasets'),
       this.$store.dispatch('getStories'),
-      this.$store.dispatch('deleteUnusedMediaFiles')
+      // this.$store.dispatch('deleteUnusedMediaFiles'),
+      // this.$store.dispatch('deleteUnusedGeomAttrs')
     ]).then(() => {
       // Create the map
       this.initMap()
@@ -466,7 +621,7 @@ export default {
                                               placement: {
                                                 from: "top",
                                                 align: "center"
-                                              },
+                                              }
                                             })
             }
           } else {
@@ -553,6 +708,262 @@ export default {
       }
     })
 
+    EventBus.$on('addDrawingLayer', () => {
+
+      EventBus.$emit('resetDrawnFeature')
+
+      disableEventListenerSingleClick()
+      this.showDrawingNotify()
+      $('#drawInfoModal').modal('show')
+
+      this.createDrawingLayer()
+    })
+
+
+    EventBus.$on('addStoryGeomsToMap', (storyBodyElements) => {
+
+      EventBus.$emit('removeLayer', 'storyGeomsLayer')
+      EventBus.$emit('resetDrawnFeature')
+
+      // Create an empty storyGeomsLayer layer
+      var storyGeomsSource = new VectorSource({
+        format: new GeoJSON()
+      })
+      var storyGeomsVector = new VectorLayer({
+        source: storyGeomsSource,
+        name: 'storyGeomsLayer',
+        style: defaultStoryGeomLayerStyle,
+        zIndex: 30
+      })
+      this.map.addLayer(storyGeomsVector)
+
+      // Get storybodyelements of type GEOM
+      var geoms = []
+      each(storyBodyElements, (elem) => {
+        if (elem.element_type === 'GEOM') {
+          geoms.push(elem)
+        }
+      })
+      if (geoms.length === 0) {
+        this.map.getView().setZoom(this.mapView_zoom)
+        this.map.getView().setCenter(this.mapView_center)
+
+      } else {
+
+        var featuresToAdd = []
+        var geomAttrStyles = {}
+        var temp_geom
+        each(geoms, (geomElem) => {
+
+          if (geomElem.geom_attr.geometry.geom.type == 'Polygon') {
+            temp_geom = new Polygon(geomElem.geom_attr.geometry.geom.coordinates)
+          } else if (geomElem.geom_attr.geometry.geom.type == 'LineString') {
+            temp_geom = new LineString(geomElem.geom_attr.geometry.geom.coordinates)
+          } else {
+            temp_geom = new Point(geomElem.geom_attr.geometry.geom.coordinates)
+          }
+
+          featuresToAdd.push(new Feature({
+              geometry: temp_geom,
+              name: geomElem.geom_attr.geometry.id,
+              label: geomElem.geom_attr.name
+          }))
+
+          geomAttrStyles[geomElem.geom_attr.geometry.id] = geomElem.geom_attr.style
+        })
+        storyGeomsSource.addFeatures(featuresToAdd)
+
+        // Set specific styles when geom_attr.style is not null
+        var features = storyGeomsSource.getFeatures()
+        features.forEach((feature) => {
+          if (geomAttrStyles[feature.getProperties().name]) {
+            var geomAttrStyle = this.createOLStyle({ 'label': feature.getProperties().label, 'styleObj': geomAttrStyles[feature.getProperties().name] })
+            feature.setStyle(geomAttrStyle)
+          }
+        })
+
+        EventBus.$emit('zoomToAllStoryGeoms')
+      }
+    })
+
+
+    EventBus.$on('zoomToAllStoryGeoms', () => {
+      this.map.getLayers().forEach( (layer) => {
+        if (layer.get('name') === 'storyGeomsLayer') {
+          var extent = layer.getSource().getExtent()
+          if (layer.getSource().getFeatures().length > 1) {
+            this.map.getView().fit(extent, { duration: 2000 })
+          } else {
+            this.map.getView().fit(extent, { duration: 2000, maxZoom:18 })
+          }
+        }
+      })
+    })
+
+
+    EventBus.$on('addNewStoryGeomToMap', (geomAttr) => {
+      var temp_geom
+      if (geomAttr.geometry.geom.type == 'Polygon') {
+        temp_geom = new Polygon(geomAttr.geometry.geom.coordinates)
+      } else if (geomAttr.geometry.geom.type == 'LineString') {
+        temp_geom = new LineString(geomAttr.geometry.geom.coordinates)
+      } else {
+        temp_geom = new Point(geomAttr.geometry.geom.coordinates)
+      }
+      this.map.getLayers().forEach( (layer) => {
+        if (layer.get('name') === 'storyGeomsLayer') {
+          var feature = new Feature({
+              geometry: temp_geom,
+              name: geomAttr.geometry.id,
+              label: geomAttr.name
+          })
+          layer.getSource().addFeatures([feature])
+        }
+      })
+    })
+
+
+    EventBus.$on('removeStoryGeomFromMap', (geomAttr) => {
+      EventBus.$emit('resetDrawnFeature')
+      this.map.getLayers().forEach( (layer) => {
+        if (layer.get('name') === 'storyGeomsLayer') {
+          var features = layer.getSource().getFeatures()
+          features.forEach((feature) => {
+            if (feature.getProperties().name === geomAttr.geometry.id) {
+              layer.getSource().removeFeature(feature)
+            }
+          })
+        }
+      })
+    })
+
+
+    EventBus.$on('showStoryGeomInfo', (geomAttr) => {
+      this.drawnFeature = $.extend(true, {}, geomAttr) // clone object to avoid binding
+    })
+
+
+    EventBus.$on('zoomToGeometry', (geomAttr) => {
+      EventBus.$emit('showStoryGeomInfo', geomAttr)
+
+      var features
+      this.map.getLayers().forEach( (layer) => {
+        if (layer.get('name') === 'storyGeomsLayer') {
+          features = layer.getSource().getFeatures()
+        }
+      })
+      features.forEach( (feature) => {
+        if (feature.getProperties().name === geomAttr.geometry.id) {
+          var extent = feature.getGeometry().getExtent()
+          this.map.getView().fit(extent, { duration: 2000, maxZoom:18 })
+        }
+      })
+    })
+
+
+    EventBus.$on('editGeomAttr', (geomAttr) => {
+      EventBus.$emit('zoomToGeometry', geomAttr)
+
+      this.$store.commit('SET_DRAW_MODE', true)
+      this.drawnFeature = $.extend(true, {}, geomAttr)
+
+      disableEventListenerSingleClick()
+      this.showDrawingNotify()
+
+      this.createDrawingLayer()
+
+      // Add editing geometry to drawing layer
+      var temp_geom
+      if (geomAttr.geometry.geom.type == 'Polygon') {
+        temp_geom = new Polygon(geomAttr.geometry.geom.coordinates)
+      } else if (geomAttr.geometry.geom.type == 'LineString') {
+        temp_geom = new LineString(geomAttr.geometry.geom.coordinates)
+      } else {
+        temp_geom = new Point(geomAttr.geometry.geom.coordinates)
+      }
+      this.map.getLayers().forEach( (layer) => {
+        if (layer.get('name') === 'drawingLayer') {
+          var feature = new Feature({
+              geometry: temp_geom,
+              name: geomAttr.geometry.id
+          })
+          layer.getSource().addFeatures([feature])
+        }
+      })
+
+      // Add only interactions snap and modify
+      snap = new Snap({source: this.drawingSource})
+      this.map.addInteraction(snap)
+      modify = new Modify({source: this.drawingSource})
+      this.map.addInteraction(modify)
+
+      modify.on('modifyend', (e) => {
+        // Get GeoJSON
+        var writer = new GeoJSON()
+        var geojsonStr = JSON.parse(writer.writeFeatures([e.features.getArray()[0]]))
+
+        this.drawnFeature.geometry = geojsonStr.features[0]
+        this.drawnFeature.geometry.id = geomAttr.geometry.id // Assign the geometry id to the generated geojson
+      }) //modifyend event
+    })
+
+
+    EventBus.$on('replaceStoryGeomToMap', (geomAttr) => {
+      EventBus.$emit('resetDrawnFeature')
+
+      var temp_geom
+      if (geomAttr.geometry.geom.type == 'Polygon') {
+        temp_geom = new Polygon(geomAttr.geometry.geom.coordinates)
+      } else if (geomAttr.geometry.geom.type == 'LineString') {
+        temp_geom = new LineString(geomAttr.geometry.geom.coordinates)
+      } else {
+        temp_geom = new Point(geomAttr.geometry.geom.coordinates)
+      }
+
+      this.map.getLayers().forEach( (layer) => {
+        if (layer.get('name') === 'storyGeomsLayer') {
+          var features = layer.getSource().getFeatures()
+          features.forEach((feature) => {
+            if (feature.getProperties().name === geomAttr.geometry.id) {
+              feature.setGeometry(temp_geom)
+              var geomAttrStyle = this.createOLStyle({ 'label': geomAttr.name, 'styleObj': geomAttr.style })
+              feature.setStyle(geomAttrStyle)
+            }
+          })
+        }
+      })
+    })
+
+
+    EventBus.$on('editGeometryStyle', (geomAttr) => {
+      EventBus.$emit('zoomToGeometry', geomAttr)
+
+      this.map.getLayers().forEach( (layer) => {
+        if (layer.get('name') === 'storyGeomsLayer') {
+          var features = layer.getSource().getFeatures()
+          features.forEach((feature) => {
+            if (feature.getProperties().name === geomAttr.geometry.id) {
+              if (geomAttr.style !== null) {
+                this.storyGeomStyle = geomAttr.style
+              }
+              this.storyGeomStyle.feature = feature
+              this.storyGeomStyle.geomAttr = geomAttr
+              $('#restyleStoryGeomModal').modal('show')
+            }
+          })
+        }
+      })
+    })
+
+
+    EventBus.$on('resetDrawnFeature', () => {
+      this.drawnFeature = {
+        geometry: null,
+        name: null,
+        description: null
+      }
+    })
+
   },
   methods: {
 
@@ -578,7 +989,8 @@ export default {
           new Zoom(),
           new ScaleLine(),
           new Attribution()
-        ]
+        ],
+        interactions: defaults({ doubleClickZoom: false, handfree: false })
       })
 
       // Update the store with the new map we made
@@ -667,6 +1079,181 @@ export default {
                         })
       }
       this.map.addLayer(basemap_layer)
+    },
+    drawGeom (geomtype) {
+
+      this.map.removeInteraction(draw)
+      this.map.removeInteraction(snap)
+
+      draw = new Draw({
+        source: this.drawingSource,
+        type: geomtype,
+        freehand: false
+      })
+      this.map.addInteraction(draw)
+      snap = new Snap({source: this.drawingSource})
+      this.map.addInteraction(snap)
+      modify = new Modify({source: this.drawingSource})
+      this.map.addInteraction(modify)
+
+      draw.on('drawend', (e) => {
+        // Get GeoJSON
+        var writer = new GeoJSON()
+        var geojsonStr = JSON.parse(writer.writeFeatures([e.feature]))
+
+        this.drawnFeature.geometry = geojsonStr.features[0]
+        this.map.removeInteraction(draw)
+      }) //drawend event
+
+      modify.on('modifyend', (e) => {
+        // Get GeoJSON
+        var writer = new GeoJSON()
+        var geojsonStr = JSON.parse(writer.writeFeatures([e.features.getArray()[0]]))
+
+        this.drawnFeature.geometry = geojsonStr.features[0]
+      }) //modifyend event
+    },
+    deleteGeom () {
+      EventBus.$emit('resetDrawnFeature')
+      var features = this.drawingSource.getFeatures()
+      var lastFeature = features[features.length - 1]
+      this.drawingSource.removeFeature(lastFeature)
+    },
+    saveGeomAttrb () {
+
+      var geomform = document.getElementById("geomAttrForm")
+
+      if (geomform.checkValidity()) {
+
+        // Create or update
+        if (this.drawnFeature.id) {
+          this.$store.dispatch('updateGeometryAttrb', this.drawnFeature)
+          .then((response) => {
+            EventBus.$emit('updateGeometryElement', response.body)
+            this.stopDrawing()
+          })
+        } else {
+          this.$store.dispatch('addGeometryAttrb', this.drawnFeature)
+          .then((response) => {
+            if (response.ok) {
+              if (response.body) {
+                EventBus.$emit('addGeometryElement', response.body)
+                this.stopDrawing()
+              }
+            } else {
+              if (response.body[0].indexOf('Request') == -1) {
+                // this.uploadError = response.body[0]
+              } else {
+                // this.uploadError = response.body.split('Request')[0]
+              }
+            }
+          })
+          .catch((err) => {
+            console.log(err)
+          })
+        }
+
+        // Remove validated class
+        geomform.classList.remove("was-validated")
+      } else {
+        geomform.classList.add("was-validated")
+      }
+
+    },
+    showDrawingNotify () {
+      mapDrawingNotify = $.notify({
+                            message: "<div class='text-center'><i class='fa fa-pen' /><strong>&nbsp;&nbsp;Map drawing interaction is active</strong></div>"
+                          }, {
+                            type: 'info',
+                            z_index: 2000,
+                            animate: {
+                              enter: 'animated fadeInDown',
+                              exit: 'animated fadeOutUp'
+                            },
+                            allow_dismiss: false,
+                            delay: 0,
+                            placement: {
+                              from: "top",
+                              align: "center"
+                            }
+                          })
+    },
+    stopDrawing () {
+      this.$store.commit('SET_DRAW_MODE', false)
+      mapDrawingNotify.close()
+      this.drawingSource = null
+      EventBus.$emit('resetDrawnFeature')
+      enableEventListenerSingleClick()
+      EventBus.$emit('removeLayer', 'drawingLayer')
+      this.map.removeInteraction(draw)
+      this.map.removeInteraction(modify)
+      this.map.removeInteraction(snap)
+    },
+    hideStoryGeomInfo () {
+      EventBus.$emit('resetDrawnFeature')
+    },
+    setOLStyle () {
+      var style = this.createOLStyle({'label': this.storyGeomStyle['geomAttr'].name, 'styleObj': this.storyGeomStyle})
+
+      this.storyGeomStyle.feature.setStyle(style)
+      $('#restyleStoryGeomModal').modal('hide')
+
+      // Save geomAttr style
+      var geomAttr = this.storyGeomStyle['geomAttr']
+      delete this.storyGeomStyle['feature']
+      delete this.storyGeomStyle['geomAttr']
+      geomAttr.style = this.storyGeomStyle
+      this.$store.dispatch('updateGeometryAttrb', geomAttr)
+      .then((response) => {
+        EventBus.$emit('updateGeometryElement', response.body)
+      })
+    },
+    createOLStyle (obj) {
+      if (!obj.styleObj) {
+        return defaultStoryGeomStyle(obj.label)
+      } else {
+        var color = obj.styleObj.color
+        var style = new Style({
+                        fill: new Fill({
+                          color: hexToRgba(color, obj.styleObj.opacity)
+                        }),
+                        stroke: new Stroke({
+                          color: 'rgba(' + hexToRgb(color).r + ', ' + hexToRgb(color).g + ', ' + hexToRgb(color).b  + ', 1)',
+                          width: obj.styleObj.linewidth
+                        }),
+                        image: new CircleStyle({
+                          radius: 5,
+                          fill: new Fill({
+                            color: hexToRgba(color, obj.styleObj.opacity)
+                          }),
+                          stroke: new Stroke({
+                            color: 'rgba(' + hexToRgb(color).r + ', ' + hexToRgb(color).g + ', ' + hexToRgb(color).b  + ', 1)',
+                            width: obj.styleObj.linewidth
+                          })
+                        }),
+                        text: new Text({
+                          font: 'bold 13px Calibri,sans-serif',
+                          fill: new Fill({ color: '#000' }),
+                          stroke: new Stroke({
+                            color: '#f2a2a2', width: 4
+                          }),
+                          text: obj.label,
+                          offsetY: 15,
+                          overflow: true
+                        })
+                      })
+        return style
+      }
+    },
+    createDrawingLayer () {
+      this.drawingSource = new VectorSource()
+      var drawingVector = new VectorLayer({
+        source: this.drawingSource,
+        name: 'drawingLayer',
+        style: drawingStyle,
+        zIndex: 40
+      })
+      this.map.addLayer(drawingVector)
     }
   }
 }

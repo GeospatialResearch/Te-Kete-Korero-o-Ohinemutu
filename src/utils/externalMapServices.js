@@ -48,7 +48,7 @@ var addLinzWFS = function (obj) {
   var vl = new VectorLayer({
     source: vs,
 		name: obj.keyname,
-		// zIndex: obj.zindex,
+		zIndex: obj.zindex,
     minResolution: obj.minresolution,
     maxResolution: obj.maxresolution,
     style: obj.style

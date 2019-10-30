@@ -57,12 +57,34 @@ class MediaFile(models.Model):
         return self.file.name
 
 
+class StoryGeometry(models.Model):
+    id = models.UUIDField(
+        default=uuid.uuid4, editable=False,
+        unique=True, primary_key=True
+    )
+    created_date = models.DateTimeField(auto_now_add=True)
+    geom = models.GeometryField()
+
+
+class StoryGeomAttrib(models.Model):
+    id = models.UUIDField(
+        default=uuid.uuid4, editable=False,
+        unique=True, primary_key=True
+    )
+    created_date = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=30)
+    description = models.TextField()
+    style = JSONField(default=None, blank=True, null=True)
+    geometry = models.ForeignKey(StoryGeometry, on_delete=models.CASCADE)
+
+
 class StoryBodyElement(models.Model):
     ELEMENT_TYPES = Choices(
         ('TEXT', 'TEXT'),
         ('IMG', 'IMG'),
         ('AUDIO', 'AUDIO'),
-        ('VIDEO', 'VIDEO')
+        ('VIDEO', 'VIDEO'),
+        ('GEOM', 'GEOM')
     )
     id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
     story = models.ForeignKey(Story, on_delete=models.CASCADE)
@@ -71,52 +93,5 @@ class StoryBodyElement(models.Model):
     mediafile_name = models.CharField(max_length=100, default=None, blank=True, null=True)
     mediafile = models.ForeignKey(MediaFile, on_delete=models.CASCADE, blank=True, null=True)
     media_description = models.TextField(max_length=400, default=None, blank=True, null=True)
+    geom_attr = models.ForeignKey(StoryGeomAttrib, on_delete=models.CASCADE, blank=True, null=True)
     order_position = models.IntegerField(blank=True, null=True)
-
-
-class StoryPointGeom(models.Model):
-    id = models.UUIDField(
-        default=uuid.uuid4, editable=False,
-        unique=True, primary_key=True
-    )
-    geom = models.PointField()
-
-
-class StoryLineGeom(models.Model):
-    id = models.UUIDField(
-        default=uuid.uuid4, editable=False,
-        unique=True, primary_key=True
-    )
-    geom = models.LineStringField()
-
-
-class StoryPolygonGeom(models.Model):
-    id = models.UUIDField(
-        default=uuid.uuid4, editable=False,
-        unique=True, primary_key=True
-    )
-    geom = models.PolygonField()
-
-
-class StoryGeomAttrib(models.Model):
-    id = models.UUIDField(
-        default=uuid.uuid4, editable=False,
-        unique=True, primary_key=True
-    )
-    name = models.CharField(max_length=30)
-    description = models.TextField()
-    style = JSONField(default=None, blank=True, null=True)
-    story = models.ForeignKey(Story, on_delete=models.CASCADE)
-    point = models.ForeignKey(StoryPointGeom, on_delete=models.CASCADE, default=None, blank=True, null=True)
-    line = models.ForeignKey(StoryLineGeom, on_delete=models.CASCADE, default=None, blank=True, null=True)
-    polygon = models.ForeignKey(StoryPolygonGeom, on_delete=models.CASCADE, default=None, blank=True, null=True)
-
-    def clean(self):
-        if not (self.point or self.line or self.polygon):
-            raise ValidationError("You must specify one geometry.")
-        if (self.point is not None and self.line is not None):
-            raise ValidationError("Only one geometry should be specified.")
-        elif (self.point is not None and self.polygon is not None):
-            raise ValidationError("Only one geometry should be specified.")
-        elif (self.line is not None and self.polygon is not None):
-            raise ValidationError("Only one geometry should be specified.")

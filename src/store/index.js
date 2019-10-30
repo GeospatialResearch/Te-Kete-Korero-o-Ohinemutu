@@ -26,9 +26,9 @@ const store = new Vuex.Store({
       title : '',
       summary : '',
       status: 'DRAFT',
-      storyBodyElements: [],
-      storyGeomsAttrib: []
-    }
+      storyBodyElements: []
+    },
+    drawMode: false
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -93,8 +93,7 @@ const store = new Vuex.Store({
         title : '',
         summary : '',
         status: 'DRAFT',
-        storyBodyElements: [],
-        storyGeomsAttrib: []
+        storyBodyElements: []
       }
     },
     DELETE_ELEMENT (state, element) {
@@ -105,6 +104,9 @@ const store = new Vuex.Store({
           return true
         }
       })
+    },
+    SET_DRAW_MODE (state, mode){
+      state.drawMode = mode
     },
     // Generic fail handling
     API_FAIL (state, error) {
@@ -177,14 +179,13 @@ const store = new Vuex.Store({
       return api.get(apiRoot + '/stories/' + storyid + '/')
         .then((response) => {
           store.commit('SET_STORY_CONTENT', response.body)
+          return response.body
           })
         // .catch((error) => store.commit('API_FAIL', error))
     },
     saveStoryContent (store, story) {
       story.storyBodyElements_temp = story.storyBodyElements
-      story.storyGeomsAttrib_temp = story.storyGeomsAttrib
       delete story['storyBodyElements']
-      delete story['storyGeomsAttrib']
       return api.patch(apiRoot + '/stories/' + story.id + '/', story)
         .then((response) => {
           store.dispatch('getStories')
@@ -194,9 +195,7 @@ const store = new Vuex.Store({
     },
     addStory (store, story) {
       story.storyBodyElements_temp = story.storyBodyElements
-      story.storyGeomsAttrib_temp = story.storyGeomsAttrib
       delete story['storyBodyElements']
-      delete story['storyGeomsAttrib']
       return api.post(apiRoot + '/stories/', story)
         .then((response) => {
           store.dispatch('getStories')
@@ -230,6 +229,12 @@ const store = new Vuex.Store({
           return response
         })
     },
+    deleteUnusedGeomAttrs () {
+      return api.post(apiRoot + '/delete_unused_geoms/')
+        .then((response) => {
+          return response
+        })
+    },
     deleteStory (store, storyid) {
       return api.delete(apiRoot + '/stories/' + storyid + '/')
       .then(() => {
@@ -237,6 +242,22 @@ const store = new Vuex.Store({
         store.dispatch('deleteUnusedMediaFiles')
       })
     },
+    addGeometryAttrb (store, drawnfeature) {
+      drawnfeature.geom_temp = drawnfeature.geometry
+      delete drawnfeature['geometry']
+      return api.post(apiRoot + '/storygeomsattrib/', drawnfeature)
+        .then((response) => {
+          return response
+        })
+    },
+    updateGeometryAttrb (store, drawnfeature) {
+      drawnfeature.geom_temp = drawnfeature.geometry
+      delete drawnfeature['geometry']
+      return api.patch(apiRoot + '/storygeomsattrib/' + drawnfeature.id + '/', drawnfeature)
+        .then((response) => {
+          return response
+        })
+    }
   }
 })
 

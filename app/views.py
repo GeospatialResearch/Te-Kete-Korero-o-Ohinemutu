@@ -6,9 +6,9 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer, StoryBodyElementSerializer, MediaFileSerializer
+from .serializers import DatasetSerializer, StorySerializer, StoryGeometrySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer  #StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer,
 from django.http import JsonResponse
-from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom, StoryBodyElement, MediaFile
+from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile
 from tempfile import TemporaryDirectory
 import zipfile
 import os
@@ -337,7 +337,6 @@ class CleanMediaFilesView(APIView):
 
     def post(self, request):
         mediafiles = MediaFile.objects.all()
-        storybodyelements = StoryBodyElement.objects.all()
 
         used_mediafiles = StoryBodyElement.objects.values_list('mediafile_name', flat=True)
         used_mediafiles = list(used_mediafiles)
@@ -348,10 +347,42 @@ class CleanMediaFilesView(APIView):
         for mediafile in mediafiles:
             if str(mediafile.file) not in used_mediafiles:
                 delta = timezone.now() - mediafile.created_date
-                # Condition to avoid deleting mediafiles that are being assigned for the first time on story editing
+                # Condition to avoid deleting mediafiles that are being assigned for the first time on story editing (concurrent execution)
                 if delta.total_seconds() > seconds_threshold:
                     mediafile.file.delete() # Deletes file from filesystem
                     mediafile.delete() # Deletes record
+
+        return Response({'result': None})
+
+
+class CleanGeomsView(APIView):
+
+    def post(self, request):
+        geomAttrs = StoryGeomAttrib.objects.all()
+        geoms = StoryGeometry.objects.all()
+
+        used_geomattrs = StoryBodyElement.objects.values_list('geom_attr', flat=True)
+        used_geomattrs = list(used_geomattrs)
+
+        hours_threshold = 4
+        seconds_threshold = hours_threshold * 60 * 60
+
+        for geomattr in geomAttrs:
+            if geomattr.id not in used_geomattrs:
+                delta = timezone.now() - geomattr.created_date
+                # Condition to avoid deleting geomattrs that are being assigned for the first time on story editing (concurrent execution)
+                if delta.total_seconds() > seconds_threshold:
+                    geomattr.delete()
+
+        used_geoms = StoryGeomAttrib.objects.values_list('geometry', flat=True)
+        used_geoms = list(used_geoms)
+
+        for geom in geoms:
+            if geom.id not in used_geoms:
+                delta = timezone.now() - geom.created_date
+                # Condition to avoid deleting geomattrs that are being assigned for the first time on story editing (concurrent execution)
+                if delta.total_seconds() > seconds_threshold:
+                    geom.delete()
 
         return Response({'result': None})
 
@@ -380,17 +411,14 @@ class StoryGeomAttribViewSet(viewsets.ModelViewSet):
     serializer_class = StoryGeomAttribSerializer
     queryset = StoryGeomAttrib.objects.all()
 
-class StoryPointGeomViewSet(viewsets.ModelViewSet):
-    serializer_class = StoryPointGeomSerializer
-    queryset = StoryPointGeom.objects.all()
+    def perform_create(self,serializer):
+        serializer.save()
+    def perform_update(self,serializer):
+        serializer.save()
 
-class StoryLineGeomViewSet(viewsets.ModelViewSet):
-    serializer_class = StoryLineGeomSerializer
-    queryset = StoryLineGeom.objects.all()
-
-class StoryPolygonGeomViewSet(viewsets.ModelViewSet):
-    serializer_class = StoryPolygonGeomSerializer
-    queryset = StoryPolygonGeom.objects.all()
+class StoryGeometryViewSet(viewsets.ModelViewSet):
+    serializer_class = StoryGeometrySerializer
+    queryset = StoryGeometry.objects.all()
 
 class MediaFileViewSet(viewsets.ModelViewSet):
     serializer_class = MediaFileSerializer

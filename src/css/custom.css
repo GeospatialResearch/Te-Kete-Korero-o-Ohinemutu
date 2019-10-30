@@ -24,7 +24,11 @@ html, body {
 }
 
 .handle {
-  cursor: move;
+  cursor:grabbing;
+}
+
+.pointer {
+  cursor: pointer;
 }
 
 .ghost {
@@ -178,7 +182,7 @@ html, body {
   position: absolute;
   bottom: 20px;
   right: 10px;
-  padding:10px 10px;
+  padding:5px 10px 5px 10px;
   margin: 0;
   font-size: 15px;
   border-radius: 3px;
@@ -325,10 +329,33 @@ html, body {
 
 .media-caption {
   color: #867c7c;
+  font-size: 13px;
 }
 
 .story-summary {
   font-style: italic;
+}
+
+.story-elem-geom {
+  max-width: 100%;
+  border: solid 1px #ced4da;
+  border-radius: 0.2rem;
+  background-color: #F1F3F4;
+}
+
+.draw-buttons {
+  top: 5em;
+  left: 0.5em;
+  z-index: 1000;
+}
+
+.draw-img {
+  max-width:100%;
+  padding: 5px;
+}
+
+.draw-info {
+  margin-top: 5em;
 }
 
 /* Quill style for DOM */
@@ -357,3 +384,40 @@ html, body {
   color: #06c !important;
 }
 /* Quill style for DOM */
+
+.geometry-info {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: solid 2px rgba(0, 60, 136, 0.5);
+  border-radius: 3px;
+  position: absolute;
+  width: auto;
+  height: 350px;
+  left: 70px;
+  right: 70px;
+  bottom: 60px;
+  z-index: 99;
+}
+
+.geometry-save-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+}
+
+.geometry-cancel-btn {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+}
+
+.positioner {
+  cursor: pointer;
+  top: 45%;
+  left: 50%;
+  position: absolute;
+  opacity: 0.5;
+}
+
+.positioner:hover {
+  opacity: 1;
+}

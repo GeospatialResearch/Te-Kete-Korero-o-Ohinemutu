@@ -1,6 +1,6 @@
 <template>
   <div id="sidePanel" :class="{'col-md-6':togglePanel, 'col-md-0':!togglePanel}">
-    <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closePanel()" />
+    <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closeStory()" />
 
     <div v-if="isStoryViewMode" class="mt-5 mb-5">
       <span class="badge badge-warning mb-2" style="vertical-align: middle;">{{ story.status }}</span>
@@ -10,15 +10,25 @@
 
       <div v-for="element in story.storyBodyElements" :key="element.id" class="col-md-12">
         <div v-if="element.element_type == 'TEXT'">
-          <div v-html="element.text" class="ql-text" />
+          <div class="ql-text" v-html="element.text" />
+        </div>
+        <div v-if="element.element_type == 'GEOM'">
+          <div class="text-center m-4">
+            <i><font-awesome-icon icon="map-marked-alt" size="lg" class="pointer" title="Zoom to geometry" @click="zoomToGeometry(element)" /></i>&nbsp; Geometry name:
+            <strong><span class="ql-text" v-html="element.geom_attr.name" /></strong>
+          </div>
         </div>
         <div class="align-center">
-          <img v-if="element.element_type == 'IMG'" :src="mediaRoot + element.mediafile_name" class="story-elem-img">
-          <video v-if="element.element_type == 'VIDEO'" controls class="story-elem-video">
+          <div v-if="element.element_type == 'IMG'">
+            <img :src="mediaRoot + element.mediafile_name" class="story-elem-img img-fluid" >
+            <i><font-awesome-icon icon="search-plus" size="lg" class="positioner" @click="magnifyImage(element)" /></i>
+          </div>
+
+          <video v-if="element.element_type == 'VIDEO'" controls controlsList="nodownload" class="story-elem-video">
             <source :src="mediaRoot + element.mediafile_name" type="video/mp4">
             Your browser does not support the video tag.
           </video>
-          <audio v-if="element.element_type == 'AUDIO'" controls>
+          <audio v-if="element.element_type == 'AUDIO'" controls controlsList="nodownload">
             <source :src="mediaRoot + element.mediafile_name" type="audio/mpeg">
             Your browser does not support the audio element.
           </audio>
@@ -48,43 +58,57 @@
         Use the button below to add new elements to the story and reorder the elements dragging and dropping them.
       </p>
       <div class="btn-group dropright mb-4">
-        <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button type="button" :disabled="isDrawMode" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           Add element to the story
         </button>
         <div class="dropdown-menu">
           <a class="dropdown-item" href="#" @click="addEmptyVueEditor()">New Text field</a>
           <a class="dropdown-item" href="#" @click="uploadFileClicked()">Upload Media file</a>
+          <a class="dropdown-item" href="#" @click="drawGeometry()">Draw map geometry</a>
         </div>
       </div>
 
-      <div class="row col-md-12">
+      <div class="row col-md-12 pl-5">
         <draggable v-model="story.storyBodyElements" ghost-class="ghost" handle=".handle" @start="dragging = true" @end="dragging = false">
-          <div v-for="element in story.storyBodyElements" id="editor" :key="element.id" class="row mb-2">
+          <div v-for="element in story.storyBodyElements" :key="element.id" class="row mb-2">
             <div class="col-md-11 mt-3">
-              <div class="text-center">
+              <div class="text-center handle">
                 <button class="btn btn-sm btn-secondary drag-element handle">
-                  Drag me
-                  <i class="fas fa-arrows-alt" />
+                  Drag me&nbsp;
+                  <i><font-awesome-icon icon="arrows-alt" /></i>
                 </button>
+              </div>
+              <div v-if="element.element_type == 'GEOM'">
+                <div class="story-elem-geom text-center">
+                  <span><strong>Geometry name:</strong>
+                    <i>{{ element.geom_attr.name }}</i>
+                  </span>
+                  <button type="button" class="btn pr-0" title="Edit geometry" @click="editGeometry(element.geom_attr)">
+                    <i><font-awesome-icon icon="edit" /></i>
+                  </button>
+                  <button type="button" class="btn pl-0" title="Edit geometry style" @click="editGeometryStyle(element.geom_attr)">
+                    <i><font-awesome-icon icon="paint-brush" /></i>
+                  </button>
+                </div>
               </div>
               <div v-if="element.element_type == 'TEXT'">
                 <vue-editor v-model="element.text" :editor-toolbar="customToolbar" class="custom-ql-editor" />
               </div>
               <div class="align-center">
                 <img v-if="element.element_type == 'IMG'" :src="mediaRoot + element.mediafile_name" class="story-elem-img">
-                <video v-if="element.element_type == 'VIDEO'" controls class="story-elem-video">
+                <video v-if="element.element_type == 'VIDEO'" controls controlsList="nodownload" class="story-elem-video">
                   <source :src="mediaRoot + element.mediafile_name" type="video/mp4">
                   Your browser does not support the video tag.
                 </video>
-                <audio v-if="element.element_type == 'AUDIO'" controls class="col-md-12">
+                <audio v-if="element.element_type == 'AUDIO'" controls controlsList="nodownload" class="story-elem-video">
                   <source :src="mediaRoot + element.mediafile_name" type="audio/mpeg">
                   Your browser does not support the audio element.
                 </audio>
               </div>
-              <textarea v-if="element.element_type != 'TEXT'" v-model="element.media_description" rows="1" class="form-control form-control-sm mt-1" title="Media description" placeholder="Media description (optional)" />
+              <textarea v-if="!['TEXT','GEOM'].includes(element.element_type)" v-model="element.media_description" rows="1" class="form-control form-control-sm mt-1" title="Media description" placeholder="Media description (optional)" />
             </div>
             <div class="col-md-1 delete-element">
-              <font-awesome-icon icon="times-circle" size="lg" color="grey" class="handle" @click="deleteElementModal(element)" />
+              <font-awesome-icon disabled icon="times-circle" size="lg" color="grey" class="pointer" @click="deleteElementModal(element)" />
             </div>
           </div>
         </draggable>
@@ -145,7 +169,7 @@
       <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
         Save story
       </button>
-      <button v-if="!isStoryViewMode" type="button" class="btn btn-danger ml-2" @click="cancelStorySaving()">
+      <button v-if="!isStoryViewMode" type="button" class="btn btn-danger ml-2" @click="showCancelStorySavingModal()">
         Cancel
       </button>
       <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-primary" @click="editStory()">
@@ -184,6 +208,56 @@
         </div>
       </div>
     </div>
+
+    <div id="editingWarningModal" class="modal fade">
+      <div class="modal-dialog">
+        <div :class="[isDrawMode ? 'draw-info': '', 'modal-content']">
+          <div class="modal-header">
+            <h5>Attention</h5>
+          </div>
+          <div class="modal-body text-center">
+            <div v-if="isDrawMode">
+              <h6>The map drawing interaction is active, please stop drawing before close the story.</h6>
+            </div>
+            <div v-else>
+              <h6>Don't forget to save changes before closing the story panel.</h6>
+              <h6>Are you sure you want to cancel editing?</h6>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <div v-if="isDrawMode" class="btn btn-secondary btn-ok" data-dismiss="modal">
+              Got it!
+            </div>
+            <div v-else>
+              <button type="button" class="btn btn-danger" data-dismiss="modal">
+                No
+              </button>
+              <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="cancelStorySaving()">
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="magnifyImageModal" class="modal fade">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content" style="background-color: #FFE;">
+          <div class="modal-body text-center mt-5">
+            <img v-if="magnifyImageElem" :src="mediaRoot + magnifyImageElem.mediafile_name" class="story-elem-img mb-3" style="width:1000px;">
+            <p v-if="magnifyImageElem">
+              {{ magnifyImageElem.media_description }}
+            </p>
+          </div>
+          <div class="modal-footer">
+            <div class="btn btn-secondary btn-ok" data-dismiss="modal">
+              Close
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -192,6 +266,7 @@ import draggable from "vuedraggable"
 import { VueEditor } from "vue2-editor"
 import { imgFormats, videoFormats, audioFormats } from 'utils/objectUtils'
 import { some, each } from 'underscore'
+import { EventBus } from 'store/event-bus'
 
 export default {
   components: {
@@ -217,7 +292,8 @@ export default {
       ],
       tempMediaDescription: null,
       uploadedFile: null,
-      elementToDelete: null
+      elementToDelete: null,
+      magnifyImageElem: null
     }
   },
   computed: {
@@ -228,26 +304,69 @@ export default {
       return this.$store.state.isPanelOpen
     },
     story() {
+      console.log(this.$store.state.storyContent)
       return this.$store.state.storyContent
     },
     isStoryViewMode () {
       return this.$store.state.storyViewMode
+    },
+    isDrawMode () {
+      if (this.$store.state.drawMode) {
+        $('#sidePanel :button').prop('disabled', true)
+      }else {
+        $('#sidePanel :button').prop('disabled', false)
+      }
+      return this.$store.state.drawMode
     }
+  },
+  mounted: function () {
+    EventBus.$on('addGeometryElement', (geomAttr) => {
+      this.story.storyBodyElements.unshift({
+        element_type: 'GEOM',
+        geom_attr: geomAttr
+      })
+      EventBus.$emit('addNewStoryGeomToMap', geomAttr)
+    })
+
+    EventBus.$on('updateGeometryElement', (geomAttr) => {
+      this.story.storyBodyElements.forEach( (elem) => {
+        if (elem.element_type === 'GEOM') {
+          if (elem.geom_attr.id === geomAttr.id) {
+            elem.geom_attr = geomAttr
+          }
+        }
+      })
+      EventBus.$emit('replaceStoryGeomToMap', geomAttr)
+    })
+
+    EventBus.$on('getStoryGeomInfo', (feature) => {
+      var geomAttr
+      this.story.storyBodyElements.forEach( (elem) => {
+        if (elem.element_type === 'GEOM') {
+          if (elem.geom_attr.geometry.id == feature.getProperties().name) {
+            geomAttr = elem.geom_attr
+          }
+        }
+      })
+      EventBus.$emit('showStoryGeomInfo', geomAttr)
+    })
   },
   methods: {
     closePanel() {
       this.$store.commit('SET_PANEL_OPEN', false)
+      EventBus.$emit('removeLayer', 'storyGeomsLayer')
+      EventBus.$emit('resetDrawnFeature')
+    },
+    reset () {
+      this.uploadError = null
+      this.uploadedFile = null
+      this.tempMediaDescription = null
     },
     addEmptyVueEditor: function () {
       this.story.storyBodyElements.unshift({
         element_type: 'TEXT',
         text: null
       })
-    },
-    reset () {
-      this.uploadError = null
-      this.uploadedFile = null
-      this.tempMediaDescription = null
     },
     uploadFileClicked () {
       this.reset()
@@ -303,6 +422,10 @@ export default {
       })
       this.reset()
     },
+    drawGeometry: function () {
+      this.$store.commit('SET_DRAW_MODE', true)
+      EventBus.$emit('addDrawingLayer')
+    },
     saveStory: function () {
       var storyform = document.getElementById(this.story.id + "_storyform")
 
@@ -335,42 +458,89 @@ export default {
         $('#sidePanel').animate({ scrollTop: 0 }, 'fast')
       }
     },
+    showCancelStorySavingModal: function () {
+      if (!this.isStoryViewMode) {
+        $('#editingWarningModal').modal('show')
+      } else {
+        this.cancelStorySaving()
+      }
+    },
     cancelStorySaving: function () {
       this.cleanUnusedMediaFiles()
-      this.closePanel()
+      this.cleanUnusedGeomAttrs()
+
       this.$store.commit('SET_STORY_VIEW_MODE', true)
+      this.$store.commit('SET_DRAW_MODE', false)
+
+      if (this.story.hasOwnProperty('id')) {
+        this.$store.dispatch('getStoryContent', this.story.id)
+        .then((story) => {
+          EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
+        })
+      } else {
+        this.closePanel()
+      }
+    },
+    closeStory: function () {
+      if (!this.isStoryViewMode) {
+        $('#editingWarningModal').modal('show')
+      } else {
+        this.closePanel()
+      }
     },
     editStory: function () {
       this.$store.commit('SET_STORY_VIEW_MODE', false)
     },
     deleteElementModal: function (element) {
-      this.elementToDelete = element
-      $('#deleteElementModal').modal('show')
+      if (!this.isDrawMode) {
+        this.elementToDelete = element
+        $('#deleteElementModal').modal('show')
+      }
     },
     deleteElement: function () {
       if (this.elementToDelete.hasOwnProperty('id')) {
         this.$store.dispatch('deleteStoryBodyElement', this.elementToDelete)
         .then(() => {
-          if (this.elementToDelete.element_type != 'TEXT') {
-            this.cleanUnusedMediaFiles()
-          }
+          this.clean()
         })
       } else {
         var index = this.story.storyBodyElements.indexOf(this.elementToDelete)
         if (index > -1) {
             this.story.storyBodyElements.splice(index, 1)
         }
-        if (this.elementToDelete.element_type != 'TEXT') {
-          this.cleanUnusedMediaFiles()
-        }
+        this.clean()
+      }
+    },
+    clean: function () {
+      if (['IMG', 'VIDEO', 'AUDIO'].includes(this.elementToDelete.element_type)) {
+        this.cleanUnusedMediaFiles()
+      } else if (this.elementToDelete.element_type === 'GEOM') {
+        this.cleanUnusedGeomAttrs()
+        EventBus.$emit('removeStoryGeomFromMap', this.elementToDelete.geom_attr)
       }
     },
     cleanUnusedMediaFiles: function () {
       this.$store.dispatch('deleteUnusedMediaFiles')
     },
+    cleanUnusedGeomAttrs: function () {
+      this.$store.dispatch('deleteUnusedGeomAttrs')
+    },
     cancelAddMediaElement: function () {
       this.reset()
       this.cleanUnusedMediaFiles()
+    },
+    zoomToGeometry (element) {
+      EventBus.$emit('zoomToGeometry', element.geom_attr)
+    },
+    editGeometry (geomAttr) {
+      EventBus.$emit('editGeomAttr', geomAttr)
+    },
+    editGeometryStyle (geomAttr) {
+      EventBus.$emit('editGeometryStyle', geomAttr)
+    },
+    magnifyImage (element) {
+      this.magnifyImageElem = element
+      $('#magnifyImageModal').modal('show')
     }
   }
 };

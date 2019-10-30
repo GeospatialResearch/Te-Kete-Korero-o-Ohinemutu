@@ -49,6 +49,9 @@ show-migrations:
 migrate:
 	docker-compose $(DEV) exec api python3 manage.py migrate
 
+fake-migrate:
+	docker-compose $(DEV) exec api python3 manage.py migrate --fake app <migrationName>
+
 get-db:
 	docker-compose $(DEV) exec api python3 manage.py dbshell
 

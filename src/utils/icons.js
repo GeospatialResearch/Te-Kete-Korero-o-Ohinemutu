@@ -27,13 +27,21 @@ import { faCircle as farCircle } from '@fortawesome/free-regular-svg-icons/faCir
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes'
 import { faTimesCircle } from '@fortawesome/free-solid-svg-icons/faTimesCircle'
 import { faShareAlt } from '@fortawesome/free-solid-svg-icons/faShareAlt'
+import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit'
+import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons/faArrowsAlt'
+import { faMapMarkedAlt } from '@fortawesome/free-solid-svg-icons/faMapMarkedAlt'
+import { faBan } from '@fortawesome/free-solid-svg-icons/faBan'
+import { faPaintBrush } from '@fortawesome/free-solid-svg-icons/faPaintBrush'
+import { faDotCircle as farDotCircle } from '@fortawesome/free-regular-svg-icons/faDotCircle'
+import { faSearchPlus } from '@fortawesome/free-solid-svg-icons/faSearchPlus'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 library.add(
   faCoffee, faBars, faTachometerAlt, faCircle, faSearch, faMapPin, faCog,
   faPowerOff, faEllipsisH, faGlobe, faBook, faEnvelope, faExclamation, faExclamationTriangle, faCheck,
   faBell, faLayerGroup, faBookOpen, faFolderOpen, faInfo, faInfoCircle, faEllipsisV, faChevronDown, farCircle,
-  faTimes, faTimesCircle, faShareAlt
+  faTimes, faTimesCircle, faShareAlt, faEdit, faArrowsAlt, faMapMarkedAlt, faBan, faPaintBrush, farDotCircle,
+  faSearchPlus
 )
 
 export {

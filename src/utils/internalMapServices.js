@@ -21,7 +21,7 @@ var addGeoserverWMS = function (layername) {
 
   var layerWMS = new ImageLayer({
     name: layername,
-    zIndex: 10,
+    zIndex: 20,
     source: new ImageWMS({
       url: process.env.WEB_HOST + ':8080/geoserver/storyapp/wms',
       params: {'LAYERS': 'storyapp:' + layername },

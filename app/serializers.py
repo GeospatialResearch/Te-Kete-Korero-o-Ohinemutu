@@ -1,6 +1,9 @@
-from rest_framework.serializers import ModelSerializer,ListField,SerializerMethodField
+from rest_framework.serializers import ModelSerializer,ListField,SerializerMethodField, JSONField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Dataset, Story, StoryGeomAttrib, StoryPointGeom, StoryLineGeom, StoryPolygonGeom, StoryBodyElement, MediaFile
+from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile
+from django.contrib.gis.geos import GEOSGeometry
+
+# StoryPointGeom, StoryLineGeom, StoryPolygonGeom,
 
 class DatasetSerializer(ModelSerializer):
 
@@ -11,9 +14,7 @@ class DatasetSerializer(ModelSerializer):
 
 class StorySerializer(ModelSerializer):
     storyBodyElements_temp = ListField(write_only=True)
-    # storyGeomsAttrib_temp = ListField(write_only=True)
     storyBodyElements = SerializerMethodField()
-    storyGeomsAttrib = SerializerMethodField()
 
     class Meta:
         model = Story
@@ -22,11 +23,6 @@ class StorySerializer(ModelSerializer):
     def get_storyBodyElements(self, story):
         sb = StoryBodyElement.objects.filter(story=story)
         serializer = StoryBodyElementSerializer(instance=sb, many=True)
-        return serializer.data
-
-    def get_storyGeomsAttrib(self, story):
-        sg = StoryGeomAttrib.objects.filter(story=story)
-        serializer = StoryGeomAttribSerializer(instance=sg, many=True)
         return serializer.data
 
     def create(self, validated_data):
@@ -39,41 +35,53 @@ class StorySerializer(ModelSerializer):
                 if element['mediafile'] is not None:
                     mediafile = MediaFile.objects.get(id=element['mediafile'])
                     element['mediafile'] = mediafile
+            elif 'geom_attr' in element:
+                if element['geom_attr'] is not None:
+                    geomattr = StoryGeomAttrib.objects.get(id=element['geom_attr']['id'])
+                    element['geom_attr'] = geomattr
 
             StoryBodyElement.objects.create(story=story,**element)
         return story
 
     def update(self, instance, validated_data):
         storyBodyElements = validated_data.pop('storyBodyElements_temp')
-        # storyGeomsAttrib = validated_data.pop('storyGeomsAttrib_temp')
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         for element in storyBodyElements:
             if 'id' in element:
-                element.pop('mediafile')
-                element.pop('mediafile_name')
+                if element['element_type'] in ['IMG', 'VIDEO', 'AUDIO']:
+                    element.pop('mediafile')
+                    element.pop('mediafile_name')
+                elif element['element_type'] == 'GEOM':
+                    element.pop('geom_attr')
 
                 elem = StoryBodyElement.objects.get(id=element["id"])
                 for attr, value in element.items():
                     setattr(elem, attr, value)
                 elem.save()
             else:
-                if 'mediafile' in element:
+                if element['element_type'] in ['IMG', 'VIDEO', 'AUDIO']:
                     if element['mediafile'] is not None:
                         mediafile = MediaFile.objects.get(id=element['mediafile'])
                         element['mediafile'] = mediafile
+                elif element['element_type'] == 'GEOM':
+                    if element['geom_attr'] is not None:
+                        geomattr = StoryGeomAttrib.objects.get(id=element['geom_attr']['id'])
+                        element['geom_attr'] = geomattr
+
                 StoryBodyElement.objects.create(story=instance,**element)
 
         instance.save()
         return instance
-        
+
 
 class StoryBodyElementSerializer(ModelSerializer):
     class Meta:
         model = StoryBodyElement
         exclude = ('story',)
-        depth = 1
+        depth = 3
 
 
 class MediaFileSerializer(ModelSerializer):
@@ -85,7 +93,6 @@ class MediaFileSerializer(ModelSerializer):
     class Meta:
         model = MediaFile
         fields = ('id', 'file', 'size', 'name', 'filetype')
-        depth = 1
 
     def get_size(self, obj):
         file_size = ''
@@ -105,35 +112,49 @@ class MediaFileSerializer(ModelSerializer):
 
 
 class StoryGeomAttribSerializer(ModelSerializer):
+    geom_temp = JSONField(write_only=True)
 
     class Meta:
         model = StoryGeomAttrib
-        exclude = ('story',)
-        depth = 1
+        fields = '__all__'
+        depth = 3
+
+    def create(self, validated_data):
+        geom = validated_data.pop('geom_temp')['geometry']
+        print(geom)
+        if 'id' in geom:
+            pass # in case of reusing geometries
+        else:
+            GEOSgeom = GEOSGeometry(str(geom))
+            geometry = StoryGeometry.objects.create(geom=GEOSgeom)
+            validated_data['geometry'] = geometry
+            storyGeomAttrib = StoryGeomAttrib.objects.create(**validated_data)
+        return storyGeomAttrib
+
+    def update(self, instance, validated_data):
+        geom_id = validated_data['geom_temp']['id']
+
+        if 'geom' in validated_data['geom_temp']:
+            geom = validated_data.pop('geom_temp')['geom'] # When geometry is not edited
+        else:
+            geom = validated_data.pop('geom_temp')['geometry'] # When geometry is edited and a geojson is generated from OL feature
+
+        GEOSgeom = GEOSGeometry(str(geom))
+        geometry = StoryGeometry.objects.get(id=geom_id)
+        geometry.geom = GEOSgeom
+        geometry.save()
+        validated_data['geometry'] = geometry
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 
-class StoryPointGeomSerializer(GeoFeatureModelSerializer):
+class StoryGeometrySerializer(GeoFeatureModelSerializer):
 
     class Meta:
-        model = StoryPointGeom
+        model = StoryGeometry
         geo_field = 'geom'
         fields = '__all__'
-        depth = 1
-
-
-class StoryLineGeomSerializer(GeoFeatureModelSerializer):
-
-    class Meta:
-        model = StoryLineGeom
-        geo_field = 'geom'
-        fields = '__all__'
-        depth = 1
-
-
-class StoryPolygonGeomSerializer(GeoFeatureModelSerializer):
-
-    class Meta:
-        model = StoryPolygonGeom
-        geo_field = 'geom'
-        fields = '__all__'
-        depth = 1
