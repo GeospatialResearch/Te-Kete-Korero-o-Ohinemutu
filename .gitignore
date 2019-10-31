@@ -10,4 +10,3 @@ test/e2e/reports
 db.sqlite3
 __pycache__/
 yarn-error.log
-app/migrations/

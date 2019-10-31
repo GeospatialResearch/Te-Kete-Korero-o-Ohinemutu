@@ -135,21 +135,23 @@
             <span v-else>{{ drawnFeature.name }}</span>
           </div>
         </div>
-        <div class="form-group row mb-0">
+        <div class="form-group row">
           <label for="geomDesc" class="col-sm-2 col-form-label col-form-label-sm"><strong>Description</strong></label>
           <div class="col-sm-10 col-form-label col-form-label-sm">
-            <textarea v-if="isDrawMode" id="geomDesc" v-model="drawnFeature.description" required class="form-control form-control-sm" placeholder="Description of what the geographical feature represents" />
+            <textarea v-if="isDrawMode" id="geomDesc" v-model="drawnFeature.description" required rows="4" class="form-control form-control-sm mb-4" placeholder="Description of what the geographical feature represents" />
             <span v-else>{{ drawnFeature.description }}</span>
           </div>
         </div>
       </form>
-      <button v-if="isDrawMode" type="button" class="btn btn-danger geometry-cancel-btn" @click="stopDrawing()">
-        Cancel
-      </button>
-      <button v-if="isDrawMode" type="button" class="btn btn-success geometry-save-btn" @click="saveGeomAttrb()">
-        <span v-if="!drawnFeature.id">Add feature to story</span>
-        <span v-else>Update feature</span>
-      </button>
+      <div class="pt-3">
+        <button v-if="isDrawMode" type="button" class="btn btn-danger geometry-cancel-btn" @click="stopDrawing()">
+          Cancel
+        </button>
+        <button v-if="isDrawMode" type="button" class="btn btn-success geometry-save-btn" @click="saveGeomAttrb()">
+          <span v-if="!drawnFeature.id">Add feature to story</span>
+          <span v-else>Update feature</span>
+        </button>
+      </div>
     </div>
 
     <!-- Modals -->

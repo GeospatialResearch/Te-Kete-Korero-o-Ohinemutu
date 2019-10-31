@@ -9,6 +9,9 @@ logs-api:
 run:
 	docker-compose $(DEV) up
 
+stop:
+	docker-compose $(DEV) stop
+
 run-prod:
 	docker-compose $(PROD) up
 
