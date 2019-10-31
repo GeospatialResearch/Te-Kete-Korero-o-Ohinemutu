@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer,ListField,SerializerMethodField, JSONField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile
+from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryGeomAttribMedia, StoryBodyElement, MediaFile
 from django.contrib.gis.geos import GEOSGeometry
 
 # StoryPointGeom, StoryLineGeom, StoryPolygonGeom,
@@ -113,11 +113,17 @@ class MediaFileSerializer(ModelSerializer):
 
 class StoryGeomAttribSerializer(ModelSerializer):
     geom_temp = JSONField(write_only=True)
+    geomAttribMedia = SerializerMethodField()
 
     class Meta:
         model = StoryGeomAttrib
         fields = '__all__'
         depth = 3
+
+    def get_geomAttribMedia(self, geomAttr):
+        gm = StoryGeomAttribMedia.objects.filter(geom_attr=geomAttr)
+        serializer = StoryGeomAttribMediaSerializer(instance=gm, many=True)
+        return serializer.data
 
     def create(self, validated_data):
         geom = validated_data.pop('geom_temp')['geometry']
@@ -157,4 +163,11 @@ class StoryGeometrySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = StoryGeometry
         geo_field = 'geom'
+        fields = '__all__'
+
+
+class StoryGeomAttribMediaSerializer(ModelSerializer):
+
+    class Meta:
+        model = StoryGeomAttribMedia
         fields = '__all__'

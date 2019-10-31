@@ -6,9 +6,9 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import DatasetSerializer, StorySerializer, StoryGeometrySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer  #StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer,
+from .serializers import DatasetSerializer, StorySerializer, StoryGeometrySerializer, StoryGeomAttribSerializer, StoryGeomAttribMediaSerializer, StoryBodyElementSerializer, MediaFileSerializer  #StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer,
 from django.http import JsonResponse
-from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile
+from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryGeomAttribMedia, StoryBodyElement, MediaFile
 from tempfile import TemporaryDirectory
 import zipfile
 import os
@@ -419,6 +419,10 @@ class StoryGeomAttribViewSet(viewsets.ModelViewSet):
 class StoryGeometryViewSet(viewsets.ModelViewSet):
     serializer_class = StoryGeometrySerializer
     queryset = StoryGeometry.objects.all()
+
+class StoryGeomAttribMediaViewSet(viewsets.ModelViewSet):
+    serializer_class = StoryGeomAttribMediaSerializer
+    queryset = StoryGeomAttribMedia.objects.all()
 
 class MediaFileViewSet(viewsets.ModelViewSet):
     serializer_class = MediaFileSerializer

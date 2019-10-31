@@ -391,7 +391,7 @@ html, body {
   border-radius: 3px;
   position: absolute;
   width: auto;
-  height: 350px;
+  /* height: 350px; */
   left: 70px;
   right: 70px;
   bottom: 60px;

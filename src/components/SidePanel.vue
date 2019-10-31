@@ -20,7 +20,7 @@
         </div>
         <div class="align-center">
           <div v-if="element.element_type == 'IMG'">
-            <img :src="mediaRoot + element.mediafile_name" class="story-elem-img img-fluid" >
+            <img :src="mediaRoot + element.mediafile_name" class="story-elem-img img-fluid">
             <i><font-awesome-icon icon="search-plus" size="lg" class="positioner" @click="magnifyImage(element)" /></i>
           </div>
 
@@ -63,7 +63,7 @@
         </button>
         <div class="dropdown-menu">
           <a class="dropdown-item" href="#" @click="addEmptyVueEditor()">New Text field</a>
-          <a class="dropdown-item" href="#" @click="uploadFileClicked()">Upload Media file</a>
+          <a class="dropdown-item" href="#" @click="uploadFileClicked(isGeomMedia=false)">Upload Media file</a>
           <a class="dropdown-item" href="#" @click="drawGeometry()">Draw map geometry</a>
         </div>
       </div>
@@ -86,8 +86,11 @@
                   <button type="button" class="btn pr-0" title="Edit geometry" @click="editGeometry(element.geom_attr)">
                     <i><font-awesome-icon icon="edit" /></i>
                   </button>
-                  <button type="button" class="btn pl-0" title="Edit geometry style" @click="editGeometryStyle(element.geom_attr)">
+                  <button type="button" class="btn p-0" title="Edit geometry style" @click="editGeometryStyle(element.geom_attr)">
                     <i><font-awesome-icon icon="paint-brush" /></i>
+                  </button>
+                  <button type="button" class="btn pl-0" title="Add media about the geometry" @click="addMediaToGeomAttr(element.geom_attr)">
+                    <i><font-awesome-icon icon="images" /></i>
                   </button>
                 </div>
               </div>
@@ -153,8 +156,11 @@
                 <span v-if="!uploadError">Cancel</span>
                 <span v-else>Close</span>
               </button>
-              <button v-if="!uploadError" type="button" class="btn btn-primary" data-dismiss="modal" @click="addMediaElement()">
-                Add
+              <button v-if="!uploadError && !isGeomMedia" type="button" class="btn btn-primary" data-dismiss="modal" @click="addMediaElement()">
+                Add media to story
+              </button>
+              <button v-if="!uploadError && isGeomMedia" type="button" class="btn btn-primary" data-dismiss="modal" @click="addGeomAttrMedia()">
+                Add media to geometry
               </button>
             </div>
           </div>
@@ -293,7 +299,9 @@ export default {
       tempMediaDescription: null,
       uploadedFile: null,
       elementToDelete: null,
-      magnifyImageElem: null
+      magnifyImageElem: null,
+      isGeomMedia: false,
+      mediaForGeomAttr: null
     }
   },
   computed: {
@@ -369,6 +377,7 @@ export default {
       })
     },
     uploadFileClicked () {
+      console.log(this.isGeomMedia)
       this.reset()
       $('#uploadFileModal').modal('show')
     },
@@ -541,6 +550,22 @@ export default {
     magnifyImage (element) {
       this.magnifyImageElem = element
       $('#magnifyImageModal').modal('show')
+    },
+    addMediaToGeomAttr (geomAttr) {
+      this.mediaForGeomAttr = geomAttr
+      this.uploadFileClicked(this.isGeomMedia=true)
+    },
+    addGeomAttrMedia () {
+      $('#uploadFileModal').modal('hide')
+      // this.story.storyBodyElements.unshift({
+      //   element_type: imgFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'IMG' : videoFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'VIDEO' : audioFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'AUDIO' : null,
+      //   mediafile_name: this.uploadedFile.name,
+      //   mediafile: this.uploadedFile.id,
+      //   media_description: this.tempMediaDescription
+      // })
+      this.reset()
+
+
     }
   }
 };

@@ -257,7 +257,8 @@ const store = new Vuex.Store({
         .then((response) => {
           return response
         })
-    }
+    },
+    // updateGeometryAttrb (store, drawnfeature) {}
   }
 })
 

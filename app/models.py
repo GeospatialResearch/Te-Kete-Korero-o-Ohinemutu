@@ -58,24 +58,33 @@ class MediaFile(models.Model):
 
 
 class StoryGeometry(models.Model):
-    id = models.UUIDField(
-        default=uuid.uuid4, editable=False,
-        unique=True, primary_key=True
-    )
+    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
     created_date = models.DateTimeField(auto_now_add=True)
     geom = models.GeometryField()
 
 
 class StoryGeomAttrib(models.Model):
-    id = models.UUIDField(
-        default=uuid.uuid4, editable=False,
-        unique=True, primary_key=True
-    )
+    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
     created_date = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=30)
     description = models.TextField()
     style = JSONField(default=None, blank=True, null=True)
     geometry = models.ForeignKey(StoryGeometry, on_delete=models.CASCADE)
+
+
+class StoryGeomAttribMedia(models.Model):
+    MEDIA_TYPES = Choices(
+        ('IMG', 'IMG'),
+        ('AUDIO', 'AUDIO'),
+        ('VIDEO', 'VIDEO')
+    )
+    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    geom_attr = models.ForeignKey(StoryGeomAttrib, on_delete=models.CASCADE, blank=True, null=True)
+    media_type = models.CharField(max_length=20, default=MEDIA_TYPES.IMG, null=False, choices=MEDIA_TYPES)
+    mediafile_name = models.CharField(max_length=100, default=None, blank=True, null=True)
+    mediafile = models.ForeignKey(MediaFile, on_delete=models.CASCADE, blank=True, null=True)
+    media_description = models.TextField(max_length=400, default=None, blank=True, null=True)
 
 
 class StoryBodyElement(models.Model):

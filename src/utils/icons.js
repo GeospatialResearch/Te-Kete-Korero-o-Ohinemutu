@@ -34,6 +34,7 @@ import { faBan } from '@fortawesome/free-solid-svg-icons/faBan'
 import { faPaintBrush } from '@fortawesome/free-solid-svg-icons/faPaintBrush'
 import { faDotCircle as farDotCircle } from '@fortawesome/free-regular-svg-icons/faDotCircle'
 import { faSearchPlus } from '@fortawesome/free-solid-svg-icons/faSearchPlus'
+import { faImages } from '@fortawesome/free-solid-svg-icons/faImages'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 library.add(
@@ -41,7 +42,7 @@ library.add(
   faPowerOff, faEllipsisH, faGlobe, faBook, faEnvelope, faExclamation, faExclamationTriangle, faCheck,
   faBell, faLayerGroup, faBookOpen, faFolderOpen, faInfo, faInfoCircle, faEllipsisV, faChevronDown, farCircle,
   faTimes, faTimesCircle, faShareAlt, faEdit, faArrowsAlt, faMapMarkedAlt, faBan, faPaintBrush, farDotCircle,
-  faSearchPlus
+  faSearchPlus, faImages
 )
 
 export {
