@@ -9,9 +9,13 @@
             <a id="toggle-sidebar" class="btn-sm btn-dark mr-2" href="#" title="Toggle sidebar">
               <font-awesome-icon icon="bars" />
             </a>
-            <a id="pin-sidebar" class="btn-sm btn-dark" href="#" title="Pin sidebar">
+            <a id="pin-sidebar" class="btn-sm btn-dark mr-2" href="#" title="Pin sidebar">
               <font-awesome-icon icon="map-pin" />
             </a>
+            <select v-model="selectedValue" name="LeaveType" @change="onChange" class="btn btn-sm btn-secondary dropdown-toggle">
+               <option value="eng">English</option>
+               <option value="mao">Māori</option>
+            </select>
           </div>
         </div>
         <div class="row">
@@ -37,10 +41,21 @@
       ContentInfo,
       SidePanel
     },
+    data () {
+      return {
+        selectedValue: "eng"
+      }
+    },
     computed: {
       contentToShow () {
         return this.$store.state.contentToShow
       }
+    },
+    methods: {
+      onChange:function(){
+        // Update the store with the new language
+        this.$store.commit('SET_LANG', this.selectedValue)
+       }
     }
   }
 

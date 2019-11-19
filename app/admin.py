@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin, register
 from django.contrib.gis.admin import GeoModelAdmin
-from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia
+from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation
 
 # Register your models here.
 
@@ -41,6 +41,13 @@ class StoryGeometryAdmin(GeoModelAdmin):
         ('Geometry', {'fields': ['geom']})
     )
 
+
 @register(MediaFile)
 class MediaFileAdmin(ModelAdmin):
     list_display = ['file']
+
+
+@register(WebsiteTranslation)
+class WebsiteTranslationAdmin(ModelAdmin):
+    list_display = ['field_name']
+    readonly_fields = ["field_name"]

@@ -29,6 +29,7 @@ router.register(r'mediafiles', views.MediaFileViewSet)
 router.register(r'storybodyelements', views.StoryBodyElementViewSet)
 router.register(r'storygeomsattrib', views.StoryGeomAttribViewSet)
 router.register(r'storygeomsattribmedia', views.StoryGeomAttribMediaViewSet)
+router.register(r'websitetranslation', views.WebsiteTranslationViewSet)
 
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),

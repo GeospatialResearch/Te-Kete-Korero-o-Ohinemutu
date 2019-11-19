@@ -10,15 +10,13 @@ csv_exts = ['.csv']
 kml_exts = ['.kml']
 json_exts = ['.json', '.geojson']
 vec_exts = shp_exts + csv_exts + kml_exts + json_exts
-cov_exts = ['.tif', '.tiff', '.geotiff', '.geotif', '.asc', '.jpg', '.jpeg', '.png', '.vrt', '.grd']    
+cov_exts = ['.tif', '.tiff', '.geotiff', '.geotif', '.asc', '.jpg', '.jpeg', '.png', '.vrt', '.grd']
 
 
 def layer_type(filename):
     """Finds out if a filename is raster or a vector
     """
     base_name, extension = os.path.splitext(filename)
-
-    print(extension)
 
     if extension.lower() == '.zip':
         zf = ZipFile(filename)

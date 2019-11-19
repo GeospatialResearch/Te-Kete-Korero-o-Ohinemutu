@@ -532,7 +532,8 @@ export default {
     // Set internal layers and other stuff before creating the map
     Promise.all([
       this.$store.dispatch('getDatasets'),
-      this.$store.dispatch('getStories')
+      this.$store.dispatch('getStories'),
+      this.$store.dispatch('getWebsiteTranslation'),
       // this.$store.dispatch('deleteUnusedMediaFiles'),
       // this.$store.dispatch('deleteUnusedGeomAttrs')
     ]).then(() => {
@@ -926,9 +927,7 @@ export default {
 
 
     EventBus.$on('showStoryGeomInfo', (geomAttr) => {
-      console.log(geomAttr)
       this.drawnFeature = $.extend(true, {}, geomAttr) // clone object to avoid binding
-      console.log(this.drawnFeature)
     })
 
 
