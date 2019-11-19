@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer,ListField,SerializerMethodField, JSONField, UUIDField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia
+from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation
 from django.contrib.gis.geos import GEOSGeometry
 
 
@@ -136,7 +136,6 @@ class StoryGeomAttribSerializer(ModelSerializer):
 
     def create(self, validated_data):
         geom = validated_data.pop('geom_temp')['geometry']
-        print(geom)
         if 'id' in geom:
             pass # in case of reusing geometries
         else:
@@ -181,4 +180,11 @@ class StoryGeometrySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = StoryGeometry
         geo_field = 'geom'
+        fields = '__all__'
+
+
+class WebsiteTranslationSerializer(ModelSerializer):
+
+    class Meta:
+        model = WebsiteTranslation
         fields = '__all__'

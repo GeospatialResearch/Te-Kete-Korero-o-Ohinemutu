@@ -29,7 +29,9 @@ const store = new Vuex.Store({
     },
     drawMode: false,
     storyViewMode: true,
-    geomMediaMode: false
+    geomMediaMode: false,
+    websiteTranslObj: null,
+    lang: 'eng'
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -111,6 +113,12 @@ const store = new Vuex.Store({
           return true
         }
       })
+    },
+    SET_TRANSLATION (state, translObj) {
+      state.websiteTranslObj = translObj
+    },
+    SET_LANG (state, value) {
+      state.lang = value
     },
     // Generic fail handling
     API_FAIL (state, error) {
@@ -281,6 +289,17 @@ const store = new Vuex.Store({
     },
     deleteGeometryAttrbMedia (store, geomAttrMedia) {
       return api.delete(apiRoot + '/storygeomsattribmedia/' + geomAttrMedia.id + '/')
+    },
+    getWebsiteTranslation () {
+      return api.get(apiRoot + '/websitetranslation/')
+        .then((response) => {
+          var result = {}
+          response.body.forEach(function(item) {
+            result[item.field_name]=item
+          })
+          store.commit('SET_TRANSLATION', result)
+        })
+        // .catch((error) => store.commit('API_FAIL', error))
     },
   }
 })

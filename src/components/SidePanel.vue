@@ -69,7 +69,7 @@
       </div>
 
       <div class="row col-md-12 pl-5">
-        <draggable v-model="story.storyBodyElements" ghost-class="ghost" handle=".handle" @start="dragging = true" @end="dragging = false">
+        <draggable v-model="story.storyBodyElements" class="width-inherit" ghost-class="ghost" handle=".handle" @start="dragging = true" @end="dragging = false">
           <div v-for="element in story.storyBodyElements" :key="element.id" class="row mb-2">
             <div class="col-md-11 mt-3">
               <div class="text-center handle">
@@ -404,7 +404,6 @@ export default {
       $('#uploadFileModal').modal('show')
     },
     fileChange (fileList) {
-      console.log(fileList)
 
       var FileSize = fileList[0].size / 1024 / 1024; // in MB
         if (FileSize > 500) {

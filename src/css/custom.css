@@ -23,6 +23,10 @@ html, body {
   /* overflow-x: scroll; */
 }
 
+.width-inherit{
+  width: inherit;
+}
+
 .handle {
   cursor:grabbing;
 }
@@ -443,6 +447,10 @@ html, body {
 }
 
 .geometry-name {
+  font-size: 16px;
+}
+
+.app-title {
   font-size: 16px;
 }
 

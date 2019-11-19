@@ -6,9 +6,9 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import DatasetSerializer, StorySerializer, StoryGeometrySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer
+from .serializers import DatasetSerializer, StorySerializer, StoryGeometrySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia
+from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation
 from tempfile import TemporaryDirectory
 import zipfile
 import os
@@ -31,8 +31,6 @@ def get_layer_from_file(file_obj, directory):
         the_type = layer_type(local_filename)
     else:
         the_type = layer_type(str(file_obj))
-    print('----type----')
-    print(the_type)
 
     if the_type is None:
         raise ValidationError("Please, upload a valid dataset. The dataset is not a raster neither a vector.")
@@ -82,7 +80,6 @@ def get_layer_from_file(file_obj, directory):
         numberFeaturesLimit = 50000
         if layer.GetFeatureCount() > numberFeaturesLimit:
             raise ValidationError("The dataset "+ fname +" has " + str(format(layer.GetFeatureCount(), ',')) + " features. Please, upload a dataset with no more than " + str(format(numberFeaturesLimit, ',')) + " features.")
-        print(layer.GetSpatialRef())
         if not layer.GetSpatialRef():
             raise ValidationError("Could not determine the Spatial Reference of the dataset. Please, upload a zipped shapefile.")
 
@@ -93,7 +90,6 @@ def get_layer_from_file(file_obj, directory):
         except:
             raise ValidationError("Could not determine the geometries of the dataset. Please, upload a zipped shapefile.")
         geomtype = geom.GetGeometryName()
-        print(geomtype)
 
         return {'filename': fname, 'extension': file_extension, 'localfilename': local_filename, 'geomtype': geomtype}
 
@@ -183,7 +179,6 @@ def createGeoserverShpLayer(layer, dataset_id=None):
     local_filename = layer['localfilename']
     filename = layer['filename']
     file_extension = layer['extension']
-    print(file_extension)
 
     if file_extension != '.shp':
         raise ValidationError("Please, upload a zipped shapefile instead of a {} file".format(file_extension))
@@ -215,7 +210,6 @@ def createGeoserverCoverageLayer(layer):
     resource = cat.get_resource(layer['filename'])
 
     file_extension = layer['extension']
-    print(file_extension)
 
     if file_extension != '.tif':
         raise ValidationError("Please, upload a raster dataset with .tif instead of a {} file".format(file_extension))
@@ -433,6 +427,10 @@ class StoryGeomAttribMediaViewSet(viewsets.ModelViewSet):
 class MediaFileViewSet(viewsets.ModelViewSet):
     serializer_class = MediaFileSerializer
     queryset = MediaFile.objects.all()
+
+class WebsiteTranslationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = WebsiteTranslationSerializer
+    queryset = WebsiteTranslation.objects.all()
 
 
 def dataset_list(request):

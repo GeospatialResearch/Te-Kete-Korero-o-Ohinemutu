@@ -3,8 +3,8 @@
     <nav id="sidebar" class="sidebar-wrapper">
       <div class="sidebar-content">
         <!-- sidebar-brand  -->
-        <div class="sidebar-item sidebar-brand text-center">
-          <a href="#">Cultural narratives</a>
+        <div class="sidebar-item sidebar-brand text-center pb-0 mb-4">
+          <a href="#" class="app-title">{{ translationObj.culturalNarratives[lang] }}</a>
         </div>
         <!-- sidebar-header  -->
         <div class="sidebar-item sidebar-header d-flex flex-nowrap">
@@ -25,7 +25,7 @@
         <div class="sidebar-item sidebar-search">
           <div>
             <div class="input-group">
-              <input type="text" class="form-control search-menu" placeholder="Search...">
+              <input type="text" class="form-control search-menu" :placeholder="translationObj.search[lang]">
               <div class="input-group-append">
                 <span class="input-group-text">
                   <i aria-hidden="true"><font-awesome-icon icon="search" /></i>
@@ -46,7 +46,7 @@
               <a href="#">
                 <i class="fa fa-globe" />
                 <!-- <i><font-awesome-icon icon="globe" /></i> -->
-                <span class="menu-text">Map</span>
+                <span class="menu-text">{{ translationObj.map[lang] }}</span>
               </a>
             </li>
 
@@ -55,7 +55,7 @@
               <div>
                 <div class="input-group">
                   <div class="form-control search-menu text-center label-info" @click="uploadDatasetClicked">
-                    Upload dataset
+                    {{ translationObj.uploadDataset[lang] }}
                   </div>
                   <div class="input-group-append">
                     <span class="input-group-text">
@@ -69,7 +69,7 @@
               <a href="#">
                 <i class="fa fa-layer-group" />
                 <!-- <i><font-awesome-icon icon="layer-group" /></i> -->
-                <span class="menu-text">My Layers</span>
+                <span class="menu-text">{{ translationObj.myLayers[lang] }}</span>
               </a>
               <div class="sidebar-submenu">
                 <ul>
@@ -94,7 +94,7 @@
               <a href="#">
                 <i class="fa fa-layer-group" />
                 <!-- <i><font-awesome-icon icon="layer-group" /></i> -->
-                <span class="menu-text">External Layers</span>
+                <span class="menu-text">{{ translationObj.extLayers[lang] }}</span>
               </a>
               <div class="sidebar-submenu">
                 <ul>
@@ -116,7 +116,7 @@
               <div>
                 <div class="input-group">
                   <div class="form-control search-menu text-center label-info" @click="openPanel()">
-                    Add new narrative
+                    {{ translationObj.addNewNarrative[lang] }}
                   </div>
                 </div>
               </div>
@@ -125,7 +125,7 @@
               <a href="#">
                 <i class="fa fa-book-open" />
                 <!-- <i><font-awesome-icon icon="book-open" /></i> -->
-                <span class="menu-text">My Narratives</span>
+                <span class="menu-text">{{ translationObj.myNarratives[lang] }}</span>
                 <!-- <span class="badge badge-pill badge-warning">New</span> -->
               </a>
               <div v-if="!stories.length" class="sidebar-submenu">
@@ -460,6 +460,7 @@
 <script>
   import 'utils/sidebar'
   import { EventBus } from 'store/event-bus'
+  import { langObj } from 'utils/initialTranslObj'
 
   export default {
     data () {
@@ -490,6 +491,7 @@
         return this.$store.state.map
       },
       stories () {
+        // the popover needs to be re-initialized when reloading the divs
         $(function () {
           $('[data-toggle="popover"]').popover({
             boundary:'window',
@@ -497,6 +499,16 @@
           })
         })
         return this.$store.state.stories
+      },
+      lang () {
+        return this.$store.state.lang
+      },
+      translationObj () {
+        if (this.$store.state.websiteTranslObj) {
+          return this.$store.state.websiteTranslObj
+        } else {
+          return langObj
+        }
       }
     },
     mounted: function () {

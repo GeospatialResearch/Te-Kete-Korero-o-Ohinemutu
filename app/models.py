@@ -104,3 +104,10 @@ class StoryBodyElement(models.Model):
     media_description = models.TextField(max_length=400, default=None, blank=True, null=True)
     geom_attr = models.ForeignKey(StoryGeomAttrib, on_delete=models.CASCADE, blank=True, null=True)
     order_position = models.IntegerField(blank=True, null=True)
+
+
+class WebsiteTranslation(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    field_name = models.CharField(max_length=300,unique=True)
+    eng = models.CharField(max_length=300)
+    mao = models.CharField(max_length=300)
