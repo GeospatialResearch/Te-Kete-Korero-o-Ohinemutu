@@ -80,10 +80,10 @@ class StoryGeomAttribMedia(models.Model):
     )
     id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
     created_date = models.DateTimeField(auto_now_add=True)
-    geom_attr = models.ForeignKey(StoryGeomAttrib, on_delete=models.CASCADE, blank=True, null=True)
+    geom_attr = models.ForeignKey(StoryGeomAttrib, on_delete=models.CASCADE)
     media_type = models.CharField(max_length=20, default=MEDIA_TYPES.IMG, null=False, choices=MEDIA_TYPES)
     mediafile_name = models.CharField(max_length=100, default=None, blank=True, null=True)
-    mediafile = models.ForeignKey(MediaFile, on_delete=models.CASCADE, blank=True, null=True)
+    mediafile = models.ForeignKey(MediaFile, on_delete=models.CASCADE)
     media_description = models.TextField(max_length=400, default=None, blank=True, null=True)
 
 

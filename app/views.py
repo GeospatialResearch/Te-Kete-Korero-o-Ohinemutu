@@ -6,9 +6,9 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import DatasetSerializer, StorySerializer, StoryGeometrySerializer, StoryGeomAttribSerializer, StoryGeomAttribMediaSerializer, StoryBodyElementSerializer, MediaFileSerializer  #StoryPointGeomSerializer, StoryLineGeomSerializer, StoryPolygonGeomSerializer,
+from .serializers import DatasetSerializer, StorySerializer, StoryGeometrySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryGeomAttribMedia, StoryBodyElement, MediaFile
+from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia
 from tempfile import TemporaryDirectory
 import zipfile
 import os
@@ -341,11 +341,14 @@ class CleanMediaFilesView(APIView):
         used_mediafiles = StoryBodyElement.objects.values_list('mediafile_name', flat=True)
         used_mediafiles = list(used_mediafiles)
 
+        used_mediafiles_geomAttrMedia = StoryGeomAttribMedia.objects.values_list('mediafile_name', flat=True)
+        used_mediafiles_geomAttrMedia = list(used_mediafiles_geomAttrMedia)
+
         hours_threshold = 4
         seconds_threshold = hours_threshold * 60 * 60
 
         for mediafile in mediafiles:
-            if str(mediafile.file) not in used_mediafiles:
+            if str(mediafile.file) not in used_mediafiles and str(mediafile.file) not in used_mediafiles_geomAttrMedia:
                 delta = timezone.now() - mediafile.created_date
                 # Condition to avoid deleting mediafiles that are being assigned for the first time on story editing (concurrent execution)
                 if delta.total_seconds() > seconds_threshold:
@@ -423,6 +426,9 @@ class StoryGeometryViewSet(viewsets.ModelViewSet):
 class StoryGeomAttribMediaViewSet(viewsets.ModelViewSet):
     serializer_class = StoryGeomAttribMediaSerializer
     queryset = StoryGeomAttribMedia.objects.all()
+
+    def perform_create(self,serializer):
+        serializer.save()
 
 class MediaFileViewSet(viewsets.ModelViewSet):
     serializer_class = MediaFileSerializer

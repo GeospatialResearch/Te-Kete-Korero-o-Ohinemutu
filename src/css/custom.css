@@ -391,11 +391,17 @@ html, body {
   border-radius: 3px;
   position: absolute;
   width: auto;
-  /* height: 350px; */
-  left: 70px;
-  right: 70px;
+  max-height: 450px;
+  left: 100px;
+  right: 100px;
   bottom: 60px;
   z-index: 99;
+}
+
+.geometry-info-detail {
+  max-height: 100px;
+  overflow-y: scroll;
+  overflow-x:hidden;
 }
 
 .geometry-save-btn {
@@ -410,7 +416,7 @@ html, body {
   left: 10px;
 }
 
-.positioner {
+.positioner-magnify {
   cursor: pointer;
   top: 45%;
   left: 50%;
@@ -418,6 +424,29 @@ html, body {
   opacity: 0.5;
 }
 
+.positioner-delete {
+  cursor: pointer;
+  top: 40%;
+  left: 47%;
+  position: absolute;
+}
+
 .positioner:hover {
   opacity: 1;
+}
+
+.img-fluid {
+  max-width: 100%;
+  height: auto;
+  max-height: 250px;
+  width: auto;
+}
+
+.geometry-name {
+  font-size: 16px;
+}
+
+.geometry-media {
+  height: 200px;
+  max-width: 100%;
 }

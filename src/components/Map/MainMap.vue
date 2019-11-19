@@ -118,31 +118,87 @@
     <div v-if="drawnFeature.geometry" class="geometry-info">
       <div class="row pl-3 pr-3">
         <h6 class="col-md-11 p-2 mb-0">
-          Feature Info
+          <span v-if="isGeomMediaMode">Feature Media Manager</span>
+          <span v-else>Feature Info</span>
         </h6>
         <div class="col-md-1 mt-2">
-          <font-awesome-icon v-if="!isDrawMode" icon="times" class="float-right pointer" size="lg" @click="hideStoryGeomInfo()" />
+          <font-awesome-icon v-if="!isDrawMode && !isGeomMediaMode" icon="times" class="float-right pointer" size="lg" @click="hideStoryGeomInfo()" />
+          <font-awesome-icon v-if="!isDrawMode && isGeomMediaMode && drawnFeature.geomAttribMedia.length==0" icon="times" class="float-right pointer" size="lg" @click="$store.commit('SET_GEOM_MEDIA_MODE', false)" />
           <font-awesome-icon v-if="isDrawMode && !drawnFeature.id" icon="times" class="float-right pointer" size="lg" @click="deleteGeom()" />
         </div>
       </div>
       <hr class="mt-0" />
-      <form id="geomAttrForm" class="m-2">
-        <!-- :id="geom.id + '_geometryform'" -->
-        <div class="form-group row mb-0">
-          <label for="geomName" class="col-sm-2 col-form-label col-form-label-sm"><strong>Name</strong></label>
-          <div class="col-sm-10 col-form-label col-form-label-sm">
-            <input v-if="isDrawMode" id="geomName" v-model="drawnFeature.name" required type="text" class="form-control form-control-sm" placeholder="Name of the geographical feature">
-            <span v-else>{{ drawnFeature.name }}</span>
+      <form v-if="!isGeomMediaMode" id="geomAttrForm" class="m-2">
+        <div :class="{ 'geometry-info-detail': !isDrawMode }">
+          <div class="form-group row mb-0">
+            <label for="geomName" class="col-sm-2 col-form-label col-form-label-sm"><strong>Name</strong></label>
+            <div class="col-sm-10 col-form-label col-form-label-sm">
+              <input v-if="isDrawMode" id="geomName" v-model="drawnFeature.name" required type="text" class="form-control form-control-sm" placeholder="Name of the geographical feature">
+              <span v-else>{{ drawnFeature.name }}</span>
+            </div>
           </div>
-        </div>
-        <div class="form-group row">
-          <label for="geomDesc" class="col-sm-2 col-form-label col-form-label-sm"><strong>Description</strong></label>
-          <div class="col-sm-10 col-form-label col-form-label-sm">
-            <textarea v-if="isDrawMode" id="geomDesc" v-model="drawnFeature.description" required rows="4" class="form-control form-control-sm mb-4" placeholder="Description of what the geographical feature represents" />
-            <span v-else>{{ drawnFeature.description }}</span>
+          <div class="form-group row">
+            <label for="geomDesc" class="col-sm-2 col-form-label col-form-label-sm"><strong>Description</strong></label>
+            <div class="col-sm-10 col-form-label col-form-label-sm">
+              <textarea v-if="isDrawMode" id="geomDesc" v-model="drawnFeature.description" required rows="4" class="form-control form-control-sm mb-4" placeholder="Description of what the geographical feature represents" />
+              <span v-else>{{ drawnFeature.description }}</span>
+            </div>
           </div>
         </div>
       </form>
+      <div v-else class="mb-3 text-center">
+        <button type="button" class="btn btn-sm btn-primary" @click="addMediaFileToGeom()">
+          Add new media
+        </button>
+        <button v-if="drawnFeature.geomAttribMedia.length > 0" type="button" class="btn btn-sm btn-success" @click="saveCaptions()">
+          Save
+        </button>
+      </div>
+      <div v-if="!isDrawMode" id="carouselControls" class="carousel slide" data-interval="false" data-ride="carousel">
+        <div class="row m-0">
+          <div class="col-md-2 p-0 text-center">
+            <a class="carousel-control-prev ml-5" href="#carouselControls" role="button" data-slide="prev">
+              <font-awesome-icon v-if="drawnFeature.geomAttribMedia.length > 1" icon="chevron-circle-left" color="black" class="pointer" size="lg" />
+            </a>
+          </div>
+          <div class="col-md-8 p-0">
+            <p v-if="drawnFeature.geomAttribMedia.length > 1" class="media-caption text-center mb-1">
+              {{ drawnFeature.geomAttribMedia.length }} media files
+            </p>
+            <div class="carousel-inner text-center">
+              <div v-for="(media, idx) in drawnFeature.geomAttribMedia" :key="media.id" class="carousel-item" :class="{ active: idx==0 }">
+                <div v-if="media.media_type == 'IMG'">
+                  <img :src="mediaRoot + media.mediafile_name" alt="" class="geometry-media">
+                  <i v-if="isGeomMediaMode"><font-awesome-icon icon="trash-alt" size="lg" color="red" class="positioner-delete" title="Delete media" @click="deleteMediaFromGeom(media)" /></i>
+                </div>
+                <div v-if="media.media_type == 'VIDEO'">
+                  <video controls controlsList="nodownload" class="geometry-media">
+                    <source :src="mediaRoot + media.mediafile_name" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                  <i v-if="isGeomMediaMode"><font-awesome-icon icon="trash-alt" size="lg" color="red" class="positioner-delete" title="Delete media" @click="deleteMediaFromGeom(media)" /></i>
+                </div>
+                <div v-if="media.media_type == 'AUDIO'">
+                  <audio controls controlsList="nodownload">
+                    <source :src="mediaRoot + media.mediafile_name" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                  </audio>
+                  <i v-if="isGeomMediaMode"><font-awesome-icon icon="trash-alt" size="lg" color="red" class="positioner-delete" title="Delete media" @click="deleteMediaFromGeom(media)" /></i>
+                </div>
+                <textarea v-if="isGeomMediaMode" v-model="media.media_description" rows="1" class="form-control form-control-sm mt-2" placeholder="Media caption" />
+                <p v-else class="media-caption">
+                  {{ media.media_description }}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-2 p-0">
+            <a class="carousel-control-next mr-5" href="#carouselControls" role="button" data-slide="next">
+              <font-awesome-icon v-if="drawnFeature.geomAttribMedia.length > 1" icon="chevron-circle-right" color="black" class="pointer" size="lg" />
+            </a>
+          </div>
+        </div>
+      </div>
       <div class="pt-3">
         <button v-if="isDrawMode" type="button" class="btn btn-danger geometry-cancel-btn" @click="stopDrawing()">
           Cancel
@@ -316,6 +372,27 @@
         </div>
       </div>
     </div>
+
+    <div id="deleteGeomMediaModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content draw-info">
+          <div class="modal-header">
+            <h5>Attention</h5>
+          </div>
+          <div class="modal-body text-center">
+            <h6>Are you sure you want to delete this media from the geometry?</h6>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Cancel
+            </button>
+            <button class="btn btn-danger btn-ok" @click="deleteGeomMedia()">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -327,7 +404,7 @@ import { enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojs
   disableEventListenerSingleClick, enableEventListenerSingleClick, drawingStyle, defaultStoryGeomStyle, defaultStoryGeomLayerStyle } from 'utils/mapUtils'
 import { extLayersObj } from 'utils/objects'
 import { hexToRgba, hexToRgb } from 'utils/objectUtils'
-import { delay, each, isString } from 'underscore'
+import { delay, each, isString, some } from 'underscore'
 // Import everything from ol
 import Map from 'ol/Map'
 import View from 'ol/View'
@@ -389,10 +466,12 @@ export default {
          description: null
        },
        storyGeomStyle: {
-          color: '#1f6de0',
-          opacity: 0.5,
-          linewidth: 2
-        },
+         color: '#1f6de0',
+         opacity: 0.5,
+         linewidth: 2
+       },
+       mediaRoot: process.env.API_HOST + '/media/',
+       geomMediaToDelete: null
     }
   },
   computed: {
@@ -438,6 +517,12 @@ export default {
     },
     isDrawMode () {
       return this.$store.state.drawMode
+    },
+    isStoryViewMode () {
+      return this.$store.state.storyViewMode
+    },
+    isGeomMediaMode () {
+      return this.$store.state.geomMediaMode
     }
   },
   created: function () {
@@ -447,7 +532,7 @@ export default {
     // Set internal layers and other stuff before creating the map
     Promise.all([
       this.$store.dispatch('getDatasets'),
-      this.$store.dispatch('getStories'),
+      this.$store.dispatch('getStories')
       // this.$store.dispatch('deleteUnusedMediaFiles'),
       // this.$store.dispatch('deleteUnusedGeomAttrs')
     ]).then(() => {
@@ -841,7 +926,9 @@ export default {
 
 
     EventBus.$on('showStoryGeomInfo', (geomAttr) => {
+      console.log(geomAttr)
       this.drawnFeature = $.extend(true, {}, geomAttr) // clone object to avoid binding
+      console.log(this.drawnFeature)
     })
 
 
@@ -857,7 +944,8 @@ export default {
       features.forEach( (feature) => {
         if (feature.getProperties().name === geomAttr.geometry.id) {
           var extent = feature.getGeometry().getExtent()
-          this.map.getView().fit(extent, { duration: 2000, maxZoom:18 })
+          var extent_translated = [extent[0], extent[1]-100, extent[2], extent[3]-100]
+          this.map.getView().fit(extent_translated, { duration: 2000, maxZoom:18 })
         }
       })
     })
@@ -867,6 +955,7 @@ export default {
       EventBus.$emit('zoomToGeometry', geomAttr)
 
       this.$store.commit('SET_DRAW_MODE', true)
+      this.$store.commit('SET_GEOM_MEDIA_MODE', false)
       this.drawnFeature = $.extend(true, {}, geomAttr)
 
       disableEventListenerSingleClick()
@@ -939,6 +1028,8 @@ export default {
 
     EventBus.$on('editGeometryStyle', (geomAttr) => {
       EventBus.$emit('zoomToGeometry', geomAttr)
+      this.$store.commit('SET_GEOM_MEDIA_MODE', false)
+      this.$store.commit('SET_DRAW_MODE', false)
 
       this.map.getLayers().forEach( (layer) => {
         if (layer.get('name') === 'storyGeomsLayer') {
@@ -947,6 +1038,12 @@ export default {
             if (feature.getProperties().name === geomAttr.geometry.id) {
               if (geomAttr.style !== null) {
                 this.storyGeomStyle = geomAttr.style
+              } else {
+                this.storyGeomStyle = {
+                  'color': '#1f6de0',
+                  'opacity': 0.5,
+                  'linewidth': 2
+                }
               }
               this.storyGeomStyle.feature = feature
               this.storyGeomStyle.geomAttr = geomAttr
@@ -1086,6 +1183,7 @@ export default {
 
       this.map.removeInteraction(draw)
       this.map.removeInteraction(snap)
+      this.map.removeInteraction(modify)
 
       draw = new Draw({
         source: this.drawingSource,
@@ -1256,6 +1354,53 @@ export default {
         zIndex: 40
       })
       this.map.addLayer(drawingVector)
+    },
+    addMediaFileToGeom () {
+      $('.carousel').carousel(0) // reinitialise the carousel before adding new media
+      EventBus.$emit('addMediaToGeomAttr', this.drawnFeature)
+    },
+    saveCaptions () {
+      this.$store.commit('SET_GEOM_MEDIA_MODE', false)
+      this.$store.dispatch('updateGeometryAttrbMediaCaptions', this.drawnFeature.geomAttribMedia)
+
+      // Despite the geomAttribMedia are saved in the db, we need to update the geomAttribMedia of storyBodyElement geometry without
+      // requesting the updated story, otherwise the not saved changes of the elements order will be lost if we refresh the story before saving it.
+      each(this.$store.state.storyContent.storyBodyElements, (el) => {
+        if (el.geom_attr) {
+          if (el.geom_attr.id === this.drawnFeature.id) {
+            el.geom_attr.geomAttribMedia = this.drawnFeature.geomAttribMedia
+          }
+        }
+      })
+    },
+    deleteMediaFromGeom (media) {
+      $("#deleteGeomMediaModal").modal('show')
+      this.geomMediaToDelete = media
+    },
+    deleteGeomMedia () {
+      $("#deleteGeomMediaModal").modal('hide')
+      this.$store.dispatch('deleteGeometryAttrbMedia', this.geomMediaToDelete)
+
+      // Despite the geomAttribMedia are delete from the db, we need to update the geomAttribMedia of storyBodyElement geometry without
+      // requesting the updated story, otherwise the not saved changes of the elements order will be lost if we refresh the story before saving it.
+      each(this.$store.state.storyContent.storyBodyElements, (el) => {
+        if (el.geom_attr) {
+          if (el.geom_attr.id === this.drawnFeature.id) {
+            some(el.geom_attr.geomAttribMedia, (gAttMedia, i) => {
+              if (gAttMedia.id === this.geomMediaToDelete.id) {
+                el.geom_attr.geomAttribMedia.splice(i, 1)
+                // Update drawngeom info
+                $('.carousel').carousel(0) // reinitialise the carousel before update drawngeom info
+                EventBus.$emit('showStoryGeomInfo', el.geom_attr)
+                return true
+              }
+            })
+
+          }
+        }
+      })
+
+      this.$store.dispatch('deleteUnusedMediaFiles')
     }
   }
 }

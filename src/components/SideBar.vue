@@ -35,31 +35,6 @@
           </div>
         </div>
 
-        <!-- sidebar import dataset  -->
-        <div class="sidebar-item sidebar-search">
-          <div>
-            <div class="input-group">
-              <div class="form-control search-menu text-center label-info" @click="uploadDatasetClicked">
-                Upload dataset
-              </div>
-              <div class="input-group-append">
-                <span class="input-group-text">
-                  <i aria-hidden="true"><font-awesome-icon icon="folder-open" /></i>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- sidebar open panel  -->
-        <div class="sidebar-item sidebar-search">
-          <div>
-            <div class="input-group">
-              <div class="form-control search-menu text-center label-info" @click="openPanel()">
-                Add new story
-              </div>
-            </div>
-          </div>
-        </div>
 
         <!-- sidebar-menu  -->
         <div class=" sidebar-item sidebar-menu">
@@ -67,27 +42,6 @@
             <li class="header-menu">
               <span>General</span>
             </li>
-            <!-- <li class="sidebar-dropdown">
-              <a href="#">
-                <i class="fa fa-shopping-cart" />
-                <span class="menu-text">E-commerce</span>
-                <span class="badge badge-pill badge-danger">3</span>
-              </a>
-              <div class="sidebar-submenu">
-                <ul>
-                  <li>
-                    <a href="#">Products
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#">Orders</a>
-                  </li>
-                  <li>
-                    <a href="#">Credit cart</a>
-                  </li>
-                </ul>
-              </div>
-            </li> -->
             <li @click="$store.commit('TOGGLE_CONTENT', 'map')">
               <a href="#">
                 <i class="fa fa-globe" />
@@ -95,23 +49,30 @@
                 <span class="menu-text">Map</span>
               </a>
             </li>
+
+            <!-- sidebar import dataset  -->
+            <div class="sidebar-item sidebar-search pointer">
+              <div>
+                <div class="input-group">
+                  <div class="form-control search-menu text-center label-info" @click="uploadDatasetClicked">
+                    Upload dataset
+                  </div>
+                  <div class="input-group-append">
+                    <span class="input-group-text">
+                      <i aria-hidden="true"><font-awesome-icon icon="folder-open" /></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
             <li class="sidebar-dropdown">
               <a href="#">
                 <i class="fa fa-layer-group" />
                 <!-- <i><font-awesome-icon icon="layer-group" /></i> -->
-                <span class="menu-text">Layers</span>
+                <span class="menu-text">My Layers</span>
               </a>
               <div class="sidebar-submenu">
                 <ul>
-                  <li v-for="(layer, layerkey) in externalLayers" :key="layerkey">
-                    <a href="#" class="sidebar-line">
-                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_extServ(layer, layerkey)" />
-                      &emsp;{{ layer.layername }}
-                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="hover" title="Layer Information" :data-content="createPopoverInfo(layer)">
-                        <font-awesome-icon icon="info" class="layer-info" />
-                      </span>
-                    </a>
-                  </li>
                   <li v-for="(layer, layerkey) in internalLayers" :key="layerkey">
                     <a href="#" class="sidebar-line">
                       <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_intServ(layer, layerkey)" />
@@ -131,13 +92,46 @@
             </li>
             <li class="sidebar-dropdown">
               <a href="#">
+                <i class="fa fa-layer-group" />
+                <!-- <i><font-awesome-icon icon="layer-group" /></i> -->
+                <span class="menu-text">External Layers</span>
+              </a>
+              <div class="sidebar-submenu">
+                <ul>
+                  <li v-for="(layer, layerkey) in externalLayers" :key="layerkey">
+                    <a href="#" class="sidebar-line">
+                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_extServ(layer, layerkey)" />
+                      &emsp;{{ layer.layername }}
+                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="hover" title="Layer Information" :data-content="createPopoverInfo(layer)">
+                        <font-awesome-icon icon="info" class="layer-info" />
+                      </span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </li>
+
+            <!-- sidebar open panel  -->
+            <div class="sidebar-item sidebar-search pointer">
+              <div>
+                <div class="input-group">
+                  <div class="form-control search-menu text-center label-info" @click="openPanel()">
+                    Add new narrative
+                  </div>
+                </div>
+              </div>
+            </div>
+            <li class="sidebar-dropdown">
+              <a href="#">
                 <i class="fa fa-book-open" />
                 <!-- <i><font-awesome-icon icon="book-open" /></i> -->
-                <span class="menu-text">Stories/Narratives</span>
+                <span class="menu-text">My Narratives</span>
                 <!-- <span class="badge badge-pill badge-warning">New</span> -->
               </a>
               <div v-if="!stories.length" class="sidebar-submenu">
-                No stories available
+                <span>
+                  No stories available
+                </span>
               </div>
               <div v-else class="sidebar-submenu">
                 <ul>
@@ -178,17 +172,15 @@
                 </ul>
               </div>
             </li> -->
-            <li class="header-menu">
+            <!-- <li class="header-menu">
               <span>Extra</span>
             </li>
             <li>
               <a href="#">
                 <i class="fa fa-book" />
-                <!-- <i><font-awesome-icon icon="book" /></i> -->
                 <span class="menu-text">Documentation</span>
-                <!-- <span class="badge badge-pill badge-primary">Beta</span> -->
               </a>
-            </li>
+            </li> -->
             <!-- <li>
               <a href="#">
                 <i class="fa fa-calendar" />
@@ -205,6 +197,8 @@
         </div>
         <!-- sidebar-menu  -->
       </div>
+
+
       <!-- sidebar-footer  -->
       <div class="sidebar-footer">
         <!-- <div class="dropdown">
@@ -649,6 +643,7 @@
         })
         this.$store.commit('SET_PANEL_OPEN', false)
         EventBus.$emit('removeLayer', 'storyGeomsLayer')
+        EventBus.$emit('resetDrawnFeature')
       },
       createPopoverStoryOptions (story) {
         var storyOptions = `<div class="layer-options">

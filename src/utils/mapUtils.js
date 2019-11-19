@@ -117,12 +117,16 @@ var enableEventListeners = function () {
 
 var disableEventListenerSingleClick = function () {
   const map = store.state.map
-  map.un('singleclick', singleClickCallbackFunction)
+  if (map) {
+    map.un('singleclick', singleClickCallbackFunction)
+  }
 }
 
 var enableEventListenerSingleClick = function () {
   const map = store.state.map
-  map.on('singleclick', singleClickCallbackFunction)
+  if (map) {
+    map.on('singleclick', singleClickCallbackFunction)
+  }
 }
 
 var getCorrectExtent = function (geojsonObj) {

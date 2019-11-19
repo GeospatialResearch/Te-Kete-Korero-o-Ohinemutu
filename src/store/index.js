@@ -21,14 +21,15 @@ const store = new Vuex.Store({
     map_resolution: 0,
     map_zoom: 0,
     stories: [],
-    storyViewMode: true,
     storyContent: {
       title : '',
       summary : '',
       status: 'DRAFT',
       storyBodyElements: []
     },
-    drawMode: false
+    drawMode: false,
+    storyViewMode: true,
+    geomMediaMode: false
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -88,6 +89,12 @@ const store = new Vuex.Store({
     SET_STORY_VIEW_MODE (state, mode){
       state.storyViewMode = mode
     },
+    SET_DRAW_MODE (state, mode){
+      state.drawMode = mode
+    },
+    SET_GEOM_MEDIA_MODE (state, mode) {
+      state.geomMediaMode = mode
+    },
     RESET_STORY_FORM (state) {
       state.storyContent = {
         title : '',
@@ -104,9 +111,6 @@ const store = new Vuex.Store({
           return true
         }
       })
-    },
-    SET_DRAW_MODE (state, mode){
-      state.drawMode = mode
     },
     // Generic fail handling
     API_FAIL (state, error) {
@@ -190,7 +194,8 @@ const store = new Vuex.Store({
         .then((response) => {
           store.dispatch('getStories')
           store.commit('SET_STORY_CONTENT', response.body)
-          store.commit('SET_STORY_VIEW_MODE', true)
+          // store.commit('SET_STORY_VIEW_MODE', true)
+          // store.commit('SET_GEOM_MEDIA_MODE', false)
         })
     },
     addStory (store, story) {
@@ -200,7 +205,8 @@ const store = new Vuex.Store({
         .then((response) => {
           store.dispatch('getStories')
           store.commit('SET_STORY_CONTENT', response.body)
-          store.commit('SET_STORY_VIEW_MODE', true)
+          // store.commit('SET_STORY_VIEW_MODE', true)
+          // store.commit('SET_GEOM_MEDIA_MODE', false)
         })
     },
     addMedia (store, media) {
@@ -258,7 +264,24 @@ const store = new Vuex.Store({
           return response
         })
     },
-    // updateGeometryAttrb (store, drawnfeature) {}
+    addGeometryAttrbMedia (store, geomAttrMedia) {
+      geomAttrMedia.mediafile_temp = geomAttrMedia.mediafile
+      geomAttrMedia.geomattr_temp = geomAttrMedia.geom_attr
+      delete geomAttrMedia['mediafile']
+      delete geomAttrMedia['geom_attr']
+      return api.post(apiRoot + '/storygeomsattribmedia/', geomAttrMedia)
+        .then((response) => {
+          return response
+        })
+    },
+    updateGeometryAttrbMediaCaptions (store, geomAttrMediaFiles) {
+      each(geomAttrMediaFiles, geomAttrMedia => {
+        return api.patch(apiRoot + '/storygeomsattribmedia/' + geomAttrMedia.id + '/', geomAttrMedia)
+      })
+    },
+    deleteGeometryAttrbMedia (store, geomAttrMedia) {
+      return api.delete(apiRoot + '/storygeomsattribmedia/' + geomAttrMedia.id + '/')
+    },
   }
 })
 

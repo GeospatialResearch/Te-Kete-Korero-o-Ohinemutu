@@ -13,15 +13,15 @@
           <div class="ql-text" v-html="element.text" />
         </div>
         <div v-if="element.element_type == 'GEOM'">
-          <div class="text-center m-4">
-            <i><font-awesome-icon icon="map-marked-alt" size="lg" class="pointer" title="Zoom to geometry" @click="zoomToGeometry(element)" /></i>&nbsp; Geometry name:
+          <div :id="element.geom_attr.geometry.id" class="text-center m-4 geometry-name">
+            <i><font-awesome-icon icon="map-marked-alt" size="lg" class="pointer" title="Zoom to geometry" @click="zoomToGeometry(element)" /></i>&nbsp;
             <strong><span class="ql-text" v-html="element.geom_attr.name" /></strong>
           </div>
         </div>
         <div class="align-center">
           <div v-if="element.element_type == 'IMG'">
             <img :src="mediaRoot + element.mediafile_name" class="story-elem-img img-fluid">
-            <i><font-awesome-icon icon="search-plus" size="lg" class="positioner" @click="magnifyImage(element)" /></i>
+            <i><font-awesome-icon icon="search-plus" size="lg" class="positioner-magnify" @click="magnifyImage(element)" /></i>
           </div>
 
           <video v-if="element.element_type == 'VIDEO'" controls controlsList="nodownload" class="story-elem-video">
@@ -58,7 +58,7 @@
         Use the button below to add new elements to the story and reorder the elements dragging and dropping them.
       </p>
       <div class="btn-group dropright mb-4">
-        <button type="button" :disabled="isDrawMode" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button type="button" :disabled="isDrawMode || isGeomMediaMode" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           Add element to the story
         </button>
         <div class="dropdown-menu">
@@ -80,8 +80,11 @@
               </div>
               <div v-if="element.element_type == 'GEOM'">
                 <div class="story-elem-geom text-center">
-                  <span><strong>Geometry name:</strong>
-                    <i>{{ element.geom_attr.name }}</i>
+                  <button type="button" class="btn pr-0" title="Zoom to geometry" @click="zoomToGeometry(element)">
+                    <i><font-awesome-icon icon="map-marked-alt" class="pointer" />&nbsp;</i>
+                  </button>
+                  <span>
+                    <i><strong>{{ element.geom_attr.name }}</strong></i>
                   </span>
                   <button type="button" class="btn pr-0" title="Edit geometry" @click="editGeometry(element.geom_attr)">
                     <i><font-awesome-icon icon="edit" /></i>
@@ -89,7 +92,7 @@
                   <button type="button" class="btn p-0" title="Edit geometry style" @click="editGeometryStyle(element.geom_attr)">
                     <i><font-awesome-icon icon="paint-brush" /></i>
                   </button>
-                  <button type="button" class="btn pl-0" title="Add media about the geometry" @click="addMediaToGeomAttr(element.geom_attr)">
+                  <button type="button" class="btn pl-0" title="Manage media about the geometry" @click="manageGeomAttrMedia(element.geom_attr)">
                     <i><font-awesome-icon icon="images" /></i>
                   </button>
                 </div>
@@ -98,7 +101,7 @@
                 <vue-editor v-model="element.text" :editor-toolbar="customToolbar" class="custom-ql-editor" />
               </div>
               <div class="align-center">
-                <img v-if="element.element_type == 'IMG'" :src="mediaRoot + element.mediafile_name" class="story-elem-img">
+                <img v-if="element.element_type == 'IMG'" :src="mediaRoot + element.mediafile_name" class="story-elem-img img-fluid">
                 <video v-if="element.element_type == 'VIDEO'" controls controlsList="nodownload" class="story-elem-video">
                   <source :src="mediaRoot + element.mediafile_name" type="video/mp4">
                   Your browser does not support the video tag.
@@ -111,7 +114,7 @@
               <textarea v-if="!['TEXT','GEOM'].includes(element.element_type)" v-model="element.media_description" rows="1" class="form-control form-control-sm mt-1" title="Media description" placeholder="Media description (optional)" />
             </div>
             <div class="col-md-1 delete-element">
-              <font-awesome-icon disabled icon="times-circle" size="lg" color="grey" class="pointer" @click="deleteElementModal(element)" />
+              <font-awesome-icon disabled icon="times-circle" size="lg" color="grey" class="pointer" title="Delete element" @click="deleteElementModal(element)" />
             </div>
           </div>
         </draggable>
@@ -156,10 +159,10 @@
                 <span v-if="!uploadError">Cancel</span>
                 <span v-else>Close</span>
               </button>
-              <button v-if="!uploadError && !isGeomMedia" type="button" class="btn btn-primary" data-dismiss="modal" @click="addMediaElement()">
+              <button v-if="!uploadError && !isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary" data-dismiss="modal" @click="addMediaElement()">
                 Add media to story
               </button>
-              <button v-if="!uploadError && isGeomMedia" type="button" class="btn btn-primary" data-dismiss="modal" @click="addGeomAttrMedia()">
+              <button v-if="!uploadError && isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary" data-dismiss="modal" @click="addGeomAttrMedia()">
                 Add media to geometry
               </button>
             </div>
@@ -273,6 +276,7 @@ import { VueEditor } from "vue2-editor"
 import { imgFormats, videoFormats, audioFormats } from 'utils/objectUtils'
 import { some, each } from 'underscore'
 import { EventBus } from 'store/event-bus'
+import { disableEventListenerSingleClick, enableEventListenerSingleClick } from 'utils/mapUtils'
 
 export default {
   components: {
@@ -320,11 +324,23 @@ export default {
     },
     isDrawMode () {
       if (this.$store.state.drawMode) {
+        disableEventListenerSingleClick()
         $('#sidePanel :button').prop('disabled', true)
       }else {
+        enableEventListenerSingleClick()
         $('#sidePanel :button').prop('disabled', false)
       }
       return this.$store.state.drawMode
+    },
+    isGeomMediaMode () {
+      if (this.$store.state.geomMediaMode) {
+        disableEventListenerSingleClick()
+        $('#sidePanel :button').prop('disabled', true)
+      }else {
+        enableEventListenerSingleClick()
+        $('#sidePanel :button').prop('disabled', false)
+      }
+      return this.$store.state.geomMediaMode
     }
   },
   mounted: function () {
@@ -358,6 +374,13 @@ export default {
       })
       EventBus.$emit('showStoryGeomInfo', geomAttr)
     })
+
+
+    EventBus.$on('addMediaToGeomAttr', (geomAttr) => {
+      this.mediaForGeomAttr = geomAttr
+      this.uploadFileClicked(this.isGeomMedia=true)
+    })
+
   },
   methods: {
     closePanel() {
@@ -377,11 +400,11 @@ export default {
       })
     },
     uploadFileClicked () {
-      console.log(this.isGeomMedia)
       this.reset()
       $('#uploadFileModal').modal('show')
     },
     fileChange (fileList) {
+      console.log(fileList)
 
       var FileSize = fileList[0].size / 1024 / 1024; // in MB
         if (FileSize > 500) {
@@ -436,6 +459,8 @@ export default {
       EventBus.$emit('addDrawingLayer')
     },
     saveStory: function () {
+      EventBus.$emit('resetDrawnFeature')
+
       var storyform = document.getElementById(this.story.id + "_storyform")
 
       if (storyform.checkValidity()) {
@@ -459,6 +484,8 @@ export default {
         } else {
           this.$store.dispatch('addStory', this.story)
         }
+        this.$store.commit('SET_STORY_VIEW_MODE', true)
+        this.$store.commit('SET_GEOM_MEDIA_MODE', false)
 
         // Remove validated class
         storyform.classList.remove("was-validated")
@@ -480,6 +507,7 @@ export default {
 
       this.$store.commit('SET_STORY_VIEW_MODE', true)
       this.$store.commit('SET_DRAW_MODE', false)
+      this.$store.commit('SET_GEOM_MEDIA_MODE', false)
 
       if (this.story.hasOwnProperty('id')) {
         this.$store.dispatch('getStoryContent', this.story.id)
@@ -499,6 +527,7 @@ export default {
     },
     editStory: function () {
       this.$store.commit('SET_STORY_VIEW_MODE', false)
+      EventBus.$emit('resetDrawnFeature')
     },
     deleteElementModal: function (element) {
       if (!this.isDrawMode) {
@@ -551,21 +580,37 @@ export default {
       this.magnifyImageElem = element
       $('#magnifyImageModal').modal('show')
     },
-    addMediaToGeomAttr (geomAttr) {
-      this.mediaForGeomAttr = geomAttr
-      this.uploadFileClicked(this.isGeomMedia=true)
+    manageGeomAttrMedia (geomAttr) {
+      this.$store.commit('SET_GEOM_MEDIA_MODE', true)
+      this.$store.commit('SET_DRAW_MODE', false)
+      EventBus.$emit('zoomToGeometry', geomAttr)
     },
     addGeomAttrMedia () {
       $('#uploadFileModal').modal('hide')
-      // this.story.storyBodyElements.unshift({
-      //   element_type: imgFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'IMG' : videoFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'VIDEO' : audioFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'AUDIO' : null,
-      //   mediafile_name: this.uploadedFile.name,
-      //   mediafile: this.uploadedFile.id,
-      //   media_description: this.tempMediaDescription
-      // })
-      this.reset()
+      var geomAttrMedia = {
+        geom_attr: this.mediaForGeomAttr.id,
+        media_type: imgFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'IMG' : videoFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'VIDEO' : audioFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'AUDIO' : null,
+        mediafile_name: this.uploadedFile.name,
+        mediafile: this.uploadedFile.id,
+        media_description: this.tempMediaDescription
+      }
 
+      this.$store.dispatch('addGeometryAttrbMedia', geomAttrMedia)
+      .then((response) => {
 
+        this.reset()
+
+        this.story.storyBodyElements.forEach( (elem) => {
+          if (elem.element_type === 'GEOM') {
+            if (elem.geom_attr.id === this.mediaForGeomAttr.id) {
+              // Update this.story
+              elem.geom_attr.geomAttribMedia.unshift(response.body)
+              // Update drawngeom info
+              EventBus.$emit('showStoryGeomInfo', elem.geom_attr)
+            }
+          }
+        })
+      })
     }
   }
 };
