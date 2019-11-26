@@ -358,8 +358,8 @@ html, body {
   padding: 5px;
 }
 
-.draw-info {
-  margin-top: 5em;
+.modal-margin-top {
+  margin-top: 6em;
 }
 
 /* Quill style for DOM */
@@ -457,4 +457,8 @@ html, body {
 .geometry-media {
   height: 200px;
   max-width: 100%;
+}
+
+.geom-usage {
+  color:#343737;
 }

@@ -3,7 +3,7 @@
     <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closeStory()" />
 
     <div v-if="isStoryViewMode" class="mt-5 mb-5">
-      <span class="badge badge-warning mb-2" style="vertical-align: middle;">{{ story.status }}</span>
+      <span class="badge badge-warning mb-2 p-2" style="vertical-align: middle;">{{ story.status }}</span>
       <h4 v-html="story.length == 0 ? '' : story.title" />
       <p class="story-summary" v-html="story.length == 0 ? '' : story.summary" />
       <hr />
@@ -65,6 +65,7 @@
           <a class="dropdown-item" href="#" @click="addEmptyVueEditor()">New Text field</a>
           <a class="dropdown-item" href="#" @click="uploadFileClicked(isGeomMedia=false)">Upload Media file</a>
           <a class="dropdown-item" href="#" @click="drawGeometry()">Draw map geometry</a>
+          <a class="dropdown-item" href="#" @click="reuseGeometry()">Reuse map geometry</a>
         </div>
       </div>
 
@@ -119,80 +120,85 @@
           </div>
         </draggable>
       </div>
-
-      <div id="uploadFileModal" class="modal">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">
-                Upload file (video/audio/image)
-              </h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="modal-body">
-              <form v-if="!uploadError" enctype="multipart/form-data" novalidate>
-                <div class="dropbox">
-                  <input type="file" :name="uploadFieldName" class="input-file" @change="fileChange($event.target.files)">
-                  <p v-if="!uploadedFile">
-                    Click to browse or drop a media file here
-                  </p>
-                  <p v-else>
-                    {{ uploadedFile.name }}
-                  </p>
-                </div>
-                <h6 class="mb-1 mt-3">
-                  Media description (optional)
-                </h6>
-                <textarea v-model="tempMediaDescription" class="form-control form-control-sm" title="Media description" />
-              </form>
-              <div v-if="uploadError" class="alert alert-danger text-center">
-                <h5>Upload failed with error:</h5>
-                <code>{{ uploadError }}</code>
-                <hr>
-                <p>Please check that your data is valid and try again.</p>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="cancelAddMediaElement()">
-                <span v-if="!uploadError">Cancel</span>
-                <span v-else>Close</span>
-              </button>
-              <button v-if="!uploadError && !isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary" data-dismiss="modal" @click="addMediaElement()">
-                Add media to story
-              </button>
-              <button v-if="!uploadError && isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary" data-dismiss="modal" @click="addGeomAttrMedia()">
-                Add media to geometry
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
     <div class="clear" />
-    <div :class="[togglePanel ? 'visible': 'invisible', 'row sidepanel-footer']">
-      <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
-        Update story
-      </button>
-      <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
-        Save story
-      </button>
-      <button v-if="!isStoryViewMode" type="button" class="btn btn-danger ml-2" @click="showCancelStorySavingModal()">
-        Cancel
-      </button>
-      <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-primary" @click="editStory()">
-        Edit story
-      </button>
-      <div v-if="isStoryViewMode" class="btn-group dropup ml-3">
-        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <font-awesome-icon icon="share-alt" class="mr-2" />
+    <div :class="[togglePanel ? 'col-md-6 visible': 'invisible', 'row sidepanel-footer']">
+      <div class="col-md-10">
+        <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
+          Update story
         </button>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="#">Co-create story</a>
-          <a class="dropdown-item" href="#">Share story</a>
-          <a class="dropdown-item" href="#">Submit story</a>
-          <a class="dropdown-item" href="#">Publish story</a>
+        <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
+          Save story
+        </button>
+        <button v-if="!isStoryViewMode" type="button" class="btn btn-danger ml-2" @click="showCancelStorySavingModal()">
+          Cancel
+        </button>
+        <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-primary" @click="editStory()">
+          Edit story
+        </button>
+        <div v-if="isStoryViewMode" class="btn-group dropup ml-3">
+          <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <font-awesome-icon icon="share-alt" class="mr-2" />
+          </button>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href="#">Co-create story</a>
+            <a class="dropdown-item" href="#">Share story</a>
+            <a class="dropdown-item" href="#">Submit story</a>
+            <a class="dropdown-item" href="#">Publish story</a>
+          </div>
+        </div>
+        <button v-if="isStoryViewMode" type="button" class="btn btn-secondary float-right" @click="closeStory()">
+          Close story
+        </button>
+      </div>
+    </div>
+
+    <div id="uploadFileModal" class="modal">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              Upload file (video/audio/image)
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form v-if="!uploadError" enctype="multipart/form-data" novalidate>
+              <div class="dropbox">
+                <input type="file" :name="uploadFieldName" class="input-file" @change="fileChange($event.target.files)">
+                <p v-if="!uploadedFile">
+                  Click to browse or drop a media file here
+                </p>
+                <p v-else>
+                  {{ uploadedFile.name }}
+                </p>
+              </div>
+              <h6 class="mb-1 mt-3">
+                Media description (optional)
+              </h6>
+              <textarea v-model="tempMediaDescription" class="form-control form-control-sm" title="Media description" />
+            </form>
+            <div v-if="uploadError" class="alert alert-danger text-center">
+              <h5>Upload failed with error:</h5>
+              <code>{{ uploadError }}</code>
+              <hr>
+              <p>Please check that your data is valid and try again.</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="cancelAddMediaElement()">
+              <span v-if="!uploadError">Cancel</span>
+              <span v-else>Close</span>
+            </button>
+            <button v-if="!uploadError && !isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary" data-dismiss="modal" @click="addMediaElement()">
+              Add media to story
+            </button>
+            <button v-if="!uploadError && isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary" data-dismiss="modal" @click="addGeomAttrMedia()">
+              Add media to geometry
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -267,6 +273,48 @@
         </div>
       </div>
     </div>
+
+    <div id="geomsUsageModal" class="modal fade">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="mb-0">
+              Features in Cultural Narratives
+              <p class="mb-0 mt-2" style="font-size:18px;">
+                Check out the features you clicked on and the related cultural narratives
+              </p>
+            </h3>
+          </div>
+          <div class="modal-body pt-0 pb-0 ml-2">
+            <div v-for="usage in geomsUsage" :key="usage.geomAttr.id" class="mt-4">
+              <h6 title="Feature name">
+                <strong><i><font-awesome-icon icon="map-marked-alt" /></i>&nbsp;&nbsp;{{ usage.geomAttr.name }}</strong>
+              </h6>
+              <div class="row">
+                <div class="col-sm-9 geom-usage">
+                  <h6 title="Narrative title" class="text-muted">
+                    <i><font-awesome-icon icon="book-open" /></i>&nbsp;&nbsp;{{ usage.story.title }}
+                  </h6>
+                  <h6 title="Narrative summary" class="ml-4">
+                    <i>{{ usage.story.summary }}</i>
+                  </h6>
+                </div>
+                <div class="col-sm-3 text-center">
+                  <button type="button" class="btn btn-sm btn-primary" title="Open narrative" @click="openNarrative(usage.story.id, usage.geomAttr)">
+                    Open narrative
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer mt-3">
+            <div class="btn btn-secondary btn-ok" data-dismiss="modal">
+              Close
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -274,7 +322,7 @@
 import draggable from "vuedraggable"
 import { VueEditor } from "vue2-editor"
 import { imgFormats, videoFormats, audioFormats } from 'utils/objectUtils'
-import { some, each } from 'underscore'
+import { some, each, delay } from 'underscore'
 import { EventBus } from 'store/event-bus'
 import { disableEventListenerSingleClick, enableEventListenerSingleClick } from 'utils/mapUtils'
 
@@ -305,7 +353,8 @@ export default {
       elementToDelete: null,
       magnifyImageElem: null,
       isGeomMedia: false,
-      mediaForGeomAttr: null
+      mediaForGeomAttr: null,
+      geomsUsage: null
     }
   },
   computed: {
@@ -316,7 +365,6 @@ export default {
       return this.$store.state.isPanelOpen
     },
     story() {
-      console.log(this.$store.state.storyContent)
       return this.$store.state.storyContent
     },
     isStoryViewMode () {
@@ -381,12 +429,19 @@ export default {
       this.uploadFileClicked(this.isGeomMedia=true)
     })
 
+
+    EventBus.$on('showGeomsUsage', (geomsUsage) => {
+      this.geomsUsage = geomsUsage
+      $('#geomsUsageModal').modal('show')
+    })
+
   },
   methods: {
     closePanel() {
       this.$store.commit('SET_PANEL_OPEN', false)
       EventBus.$emit('removeLayer', 'storyGeomsLayer')
       EventBus.$emit('resetDrawnFeature')
+      this.$store.commit('RESTORE_ALL_USEDSTORIESGEOMETRIES')
     },
     reset () {
       this.uploadError = null
@@ -456,6 +511,9 @@ export default {
     drawGeometry: function () {
       this.$store.commit('SET_DRAW_MODE', true)
       EventBus.$emit('addDrawingLayer')
+    },
+    reuseGeometry: function () {
+      this.$store.commit('SET_REUSE_MODE', true)
     },
     saveStory: function () {
       EventBus.$emit('resetDrawnFeature')
@@ -610,6 +668,25 @@ export default {
           }
         })
       })
+    },
+    openNarrative (story_id, geomAttr) {
+      $('#geomsUsageModal').modal('hide')
+      if (!this.isStoryViewMode) {
+        EventBus.$emit('storyIsBeingEditedWarning')
+      } else {
+        this.$store.dispatch('getStoryContent', story_id)
+        .then((story) => {
+          this.$store.commit('SET_STORY_VIEW_MODE', true)
+          this.$store.commit('SET_PANEL_OPEN', true)
+          EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
+          delay(() => {
+            console.log(geomAttr)
+            // EventBus.$emit('zoomToGeometry', geomAttr)
+          }, 10)
+
+        })
+      }
+
     }
   }
 };

@@ -11,10 +11,16 @@ module.exports = {
   info: function (message) {
     $.notify({
       message: message,
-      icon: 'fa fa-info-circle'
+      // icon: 'fa fa-info-circle'
     }, {
       type: 'info',
-      z_index: 2000
+      z_index: 2000,
+      allow_dismiss: false,
+      delay: 0,
+      placement: {
+        from: "top",
+        align: "center"
+      }
     })
   },
   warning: function (message) {

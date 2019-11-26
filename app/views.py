@@ -404,9 +404,28 @@ class StoryBodyElementViewSet(viewsets.ModelViewSet):
     serializer_class = StoryBodyElementSerializer
     queryset = StoryBodyElement.objects.all()
 
+    def get_queryset(self):
+        # If required, filter for the geom
+        geomattr = self.request.query_params.get('geomattr', None)
+        if geomattr is not None:
+            queryset = self.queryset.filter(geom_attr=geomattr)
+            return queryset
+
+        return self.queryset
+
+
 class StoryGeomAttribViewSet(viewsets.ModelViewSet):
     serializer_class = StoryGeomAttribSerializer
     queryset = StoryGeomAttrib.objects.all()
+
+    def get_queryset(self):
+        # If required, filter for the geom
+        geom = self.request.query_params.get('geom', None)
+        if geom is not None:
+            queryset = self.queryset.filter(geometry=geom)
+            return queryset
+
+        return self.queryset
 
     def perform_create(self,serializer):
         serializer.save()

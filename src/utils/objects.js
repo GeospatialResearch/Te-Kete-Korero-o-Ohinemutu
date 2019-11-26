@@ -13,7 +13,7 @@ var extLayersObj = {
     layername: 'NZ Aerial Imagery',
     attribution_name: 'Land Information New Zealand',
     attribution: `<p><strong>Layer name:</strong> NZ Aerial Imagery</p>
-                  <i>Sourced from the <a href="https://data.linz.govt.nz/">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> licence.</i>`,
+                  <i>Sourced from the <a href="https://data.linz.govt.nz/" target="_blank">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a> licence.</i>`,
     visible: false,
     zindex: 1,
     functionToCall: function (obj) {
@@ -24,7 +24,7 @@ var extLayersObj = {
     layername: 'NZ Property Titles',
     attribution_name: 'Land Information New Zealand',
     attribution: `<p><strong>Layer name:</strong> NZ Property Titles</p>
-                  <i>Sourced from the <a href="https://data.linz.govt.nz/">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> licence.</i>`,
+                  <i>Sourced from the <a href="https://data.linz.govt.nz/" target="_blank">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a> licence.</i>`,
     layer_id: 'layer-50804',
     visible: false,
     zindex: 10,
@@ -40,7 +40,7 @@ var extLayersObj = {
     layername: 'Protected Areas',
     attribution_name: 'Land Information New Zealand',
     attribution: `<p><strong>Layer name:</strong> Protected Areas</p>
-                  <i>Sourced from the <a href="https://data.linz.govt.nz/">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> licence.</i>`,
+                  <i>Sourced from the <a href="https://data.linz.govt.nz/" target="_blank">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a> licence.</i>`,
     layer_id: 'layer-53564',
     visible: false,
     zindex: 10,
@@ -56,7 +56,7 @@ var extLayersObj = {
     layername: 'NZ Height Points',
     attribution_name: 'Land Information New Zealand',
     attribution: `<p><strong>Layer name:</strong> NZ Height Points (Topo, 1:50k)</p>
-                  <i>Sourced from the <a href="https://data.linz.govt.nz/">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> licence.</i>`,
+                  <i>Sourced from the <a href="https://data.linz.govt.nz/" target="_blank">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a> licence.</i>`,
     layer_id: 'layer-50284',
     visible: false,
     zindex: 10,
@@ -72,7 +72,7 @@ var extLayersObj = {
     layername: 'NZ River Centrelines',
     attribution_name: 'Land Information New Zealand',
     attribution: `<p><strong>Layer name:</strong> NZ River Centrelines (Topo, 1:250k)</p>
-                  <i>Sourced from the <a href="https://data.linz.govt.nz/">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> licence.</i>`,
+                  <i>Sourced from the <a href="https://data.linz.govt.nz/" target="_blank">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a> licence.</i>`,
     layer_id: 'layer-50182',
     visible: false,
     zindex: 10,
@@ -88,7 +88,7 @@ var extLayersObj = {
     layername: 'Sea-draining catchments',
     attribution_name: 'Ministry for the Environment',
     attribution: `<p><strong>Layer name:</strong> Sea-draining catchments</p>
-                  <i>Sourced from the <a href="https://data.mfe.govt.nz/">MfE Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> licence.</i>`,
+                  <i>Sourced from the <a href="https://data.mfe.govt.nz/" target="_blank">MfE Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a> licence.</i>`,
     layer_id: 'layer-99776',
     visible: false,
     zindex: 10,

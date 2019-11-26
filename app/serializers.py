@@ -47,6 +47,10 @@ class StorySerializer(ModelSerializer):
             setattr(instance, attr, value)
 
         for element in storyBodyElements:
+
+            if 'story' in element:
+                element.pop('story')
+
             if 'id' in element:
                 if element['element_type'] in ['IMG', 'VIDEO', 'AUDIO']:
                     element.pop('mediafile')
@@ -135,6 +139,7 @@ class StoryGeomAttribSerializer(ModelSerializer):
         return serializer.data
 
     def create(self, validated_data):
+
         geom = validated_data.pop('geom_temp')['geometry']
         if 'id' in geom:
             pass # in case of reusing geometries
@@ -171,7 +176,7 @@ class StoryBodyElementSerializer(ModelSerializer):
 
     class Meta:
         model = StoryBodyElement
-        exclude = ('story',)
+        fields = '__all__'
         depth = 3
 
 

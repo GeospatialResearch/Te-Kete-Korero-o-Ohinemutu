@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import api from './api.js'
 import { EventBus } from './event-bus'
 import { each, some } from 'underscore'
+import { info as notifyInfo, close as notifyClose } from 'utils/notify'
 
 Vue.use(Vuex)
 
@@ -30,8 +31,12 @@ const store = new Vuex.Store({
     drawMode: false,
     storyViewMode: true,
     geomMediaMode: false,
+    reuseMode: false,
+    featuresForReuse: [],
     websiteTranslObj: null,
-    lang: 'eng'
+    lang: 'eng',
+    allUsedStoriesGeometries: null,
+    allUsedStoriesGeometriesObj: null
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -94,6 +99,15 @@ const store = new Vuex.Store({
     SET_DRAW_MODE (state, mode){
       state.drawMode = mode
     },
+    SET_REUSE_MODE (state, mode){
+      state.featuresForReuse = []
+      state.reuseMode = mode
+      if (mode) {
+        notifyInfo("<div class='text-center'><i class='fa fa-info-circle' /><strong>&nbsp;&nbsp;Click in any geometry on the map to reuse it in the narrative.</strong></div>")
+      } else {
+        notifyClose()
+      }
+    },
     SET_GEOM_MEDIA_MODE (state, mode) {
       state.geomMediaMode = mode
     },
@@ -103,6 +117,13 @@ const store = new Vuex.Store({
         summary : '',
         status: 'DRAFT',
         storyBodyElements: []
+      }
+    },
+    ADD_FEATURES_FOR_REUSE (state, f) {
+      if (Array.isArray(f)) {
+        state.featuresForReuse = state.featuresForReuse.concat(f)
+      } else {
+        state.featuresForReuse.push(f)
       }
     },
     DELETE_ELEMENT (state, element) {
@@ -119,6 +140,14 @@ const store = new Vuex.Store({
     },
     SET_LANG (state, value) {
       state.lang = value
+    },
+    SET_ALL_USEDSTORIESGEOMETRIES (state, payload) {
+      state.allUsedStoriesGeometriesObj = payload.allusedgeomsObj
+      state.allUsedStoriesGeometries = payload.allusedgeoms
+      EventBus.$emit('createLayer', state.allUsedStoriesGeometries, 'allstoriesgeoms')
+    },
+    RESTORE_ALL_USEDSTORIESGEOMETRIES (state) {
+      EventBus.$emit('createLayer', state.allUsedStoriesGeometries, 'allstoriesgeoms')
     },
     // Generic fail handling
     API_FAIL (state, error) {
@@ -183,7 +212,10 @@ const store = new Vuex.Store({
     getStories () {
       // To be filtered in the future based on the stories that the public/user has access
       return api.get(apiRoot + '/stories')
-        .then((response) => store.commit('SET_STORIES', response))
+      .then((response) => {
+        store.commit('SET_STORIES', response)
+        store.dispatch('getAllUsedStoriesGeometries')
+      })
         // .catch((error) => store.commit('API_FAIL', error))
     },
     getStoryContent (store, storyid) {
@@ -202,8 +234,6 @@ const store = new Vuex.Store({
         .then((response) => {
           store.dispatch('getStories')
           store.commit('SET_STORY_CONTENT', response.body)
-          // store.commit('SET_STORY_VIEW_MODE', true)
-          // store.commit('SET_GEOM_MEDIA_MODE', false)
         })
     },
     addStory (store, story) {
@@ -213,8 +243,6 @@ const store = new Vuex.Store({
         .then((response) => {
           store.dispatch('getStories')
           store.commit('SET_STORY_CONTENT', response.body)
-          // store.commit('SET_STORY_VIEW_MODE', true)
-          // store.commit('SET_GEOM_MEDIA_MODE', false)
         })
     },
     addMedia (store, media) {
@@ -301,6 +329,56 @@ const store = new Vuex.Store({
         })
         // .catch((error) => store.commit('API_FAIL', error))
     },
+    getAllUsedStoriesGeometries (store) {
+      api.get(apiRoot + '/storygeometries')
+        .then((response) => {
+          var allUsedGeoms = []
+          var allUsedGeomsObj = {}
+          var count = 0
+          var totalGeoms = response.body.features
+          totalGeoms.forEach((geom) => {
+            store.dispatch('getGeometryUsage', geom.id)
+            .then((response) => {
+              count++
+              if (response) {
+                geom['usage'] = response
+                allUsedGeoms.push(geom)
+                allUsedGeomsObj[geom.id] = response // geomAttr and story
+              }
+              if (count === totalGeoms.length) {
+                store.commit('SET_ALL_USEDSTORIESGEOMETRIES', {'allusedgeoms': allUsedGeoms, 'allusedgeomsObj': allUsedGeomsObj})
+                return
+              }
+            })
+          })
+        })
+        // .catch((error) => store.commit('API_FAIL', error))
+    },
+    getGeometryUsage (store, geomId) {
+      var geomUsage = {
+        'geomAttr': null,
+        'story': null
+      }
+      return api.get(apiRoot + '/storygeomsattrib/?geom=' + geomId)
+      .then((response) => {
+        // forEach storygeomattr
+        geomUsage['geomAttr'] = response.body[0]
+        return api.get(apiRoot + '/storybodyelements/?geomattr=' + response.body[0].id)
+        .then((response) => {
+          if (response.body[0]) {
+            geomUsage['story'] = {
+              'id': response.body[0].story.id,
+              'title': response.body[0].story.title,
+              'summary': response.body[0].story.summary
+            }
+            return geomUsage
+          } else {
+            return null
+          }
+
+        })
+      })
+    }
   }
 })
 

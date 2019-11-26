@@ -3,7 +3,7 @@
     <nav id="sidebar" class="sidebar-wrapper">
       <div class="sidebar-content">
         <!-- sidebar-brand  -->
-        <div class="sidebar-item sidebar-brand text-center pb-0 mb-4">
+        <div class="sidebar-item sidebar-brand text-center pb-0 mb-3">
           <a href="#" class="app-title">{{ translationObj.culturalNarratives[lang] }}</a>
         </div>
         <!-- sidebar-header  -->
@@ -66,7 +66,7 @@
               </div>
             </div>
             <li class="sidebar-dropdown">
-              <a href="#">
+              <a href="#" title="Data uploaded by you">
                 <i class="fa fa-layer-group" />
                 <!-- <i><font-awesome-icon icon="layer-group" /></i> -->
                 <span class="menu-text">{{ translationObj.myLayers[lang] }}</span>
@@ -91,7 +91,7 @@
               </div>
             </li>
             <li class="sidebar-dropdown">
-              <a href="#">
+              <a href="#" title="Data from External Data Services">
                 <i class="fa fa-layer-group" />
                 <!-- <i><font-awesome-icon icon="layer-group" /></i> -->
                 <span class="menu-text">{{ translationObj.extLayers[lang] }}</span>
@@ -102,11 +102,31 @@
                     <a href="#" class="sidebar-line">
                       <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_extServ(layer, layerkey)" />
                       &emsp;{{ layer.layername }}
-                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="hover" title="Layer Information" :data-content="createPopoverInfo(layer)">
+                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Information" :data-content="createPopoverInfo(layer)">
                         <font-awesome-icon icon="info" class="layer-info" />
                       </span>
                     </a>
                   </li>
+                </ul>
+              </div>
+            </li>
+            <li class="sidebar-dropdown">
+              <a href="#" title="Data uploaded and managed by admin">
+                <i class="fa fa-layer-group" />
+                <!-- <i><font-awesome-icon icon="layer-group" /></i> -->
+                <span class="menu-text">Default layers</span>
+              </a>
+              <div class="sidebar-submenu">
+                <ul>
+                  <!-- <li v-for="(layer, layerkey) in externalLayers" :key="layerkey">
+                    <a href="#" class="sidebar-line">
+                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_extServ(layer, layerkey)" />
+                      &emsp;{{ layer.layername }}
+                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Information" :data-content="createPopoverInfo(layer)">
+                        <font-awesome-icon icon="info" class="layer-info" />
+                      </span>
+                    </a>
+                  </li> -->
                 </ul>
               </div>
             </li>
@@ -129,9 +149,9 @@
                 <!-- <span class="badge badge-pill badge-warning">New</span> -->
               </a>
               <div v-if="!stories.length" class="sidebar-submenu">
-                <span>
-                  No stories available
-                </span>
+                <div class="text-center">
+                  <span>No stories available</span>
+                </div>
               </div>
               <div v-else class="sidebar-submenu">
                 <ul>
@@ -141,12 +161,26 @@
                       <span class="inline-text">
                         <span class="ml-2 ellipsis-text"> {{ story.title }}</span>
                       </span>
-                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Story Options" :data-content="createPopoverStoryOptions(story)">
+                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Narrative Options" :data-content="createPopoverStoryOptions(story)">
                         <font-awesome-icon icon="ellipsis-v" />
                       </span>
                     </a>
                   </li>
                 </ul>
+              </div>
+            </li>
+
+            <li class="sidebar-dropdown">
+              <a href="#">
+                <i class="fa fa-book-open" />
+                <!-- <i><font-awesome-icon icon="book-open" /></i> -->
+                <span class="menu-text">{{ translationObj.publicNarratives[lang] }}</span>
+                <!-- <span class="badge badge-pill badge-warning">New</span> -->
+              </a>
+              <div class="sidebar-submenu">
+                <div class="text-center">
+                  <span>No stories available</span>
+                </div>
               </div>
             </li>
             <!-- <li class="sidebar-dropdown">
@@ -659,10 +693,10 @@
       },
       createPopoverStoryOptions (story) {
         var storyOptions = `<div class="layer-options">
-                              <a class="dropdown-item" id="` + story.id + `_view" href="#">View story</a>
-                              <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit story</a>
+                              <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
+                              <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit narrative</a>
                               <div class="dropdown-divider"></div>
-                              <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">Delete story</a>
+                              <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">Delete narrative</a>
                             </div>`
 
         return storyOptions

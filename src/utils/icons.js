@@ -38,6 +38,7 @@ import { faImages } from '@fortawesome/free-solid-svg-icons/faImages'
 import { faChevronCircleRight } from '@fortawesome/free-solid-svg-icons/faChevronCircleRight'
 import { faChevronCircleLeft } from '@fortawesome/free-solid-svg-icons/faChevronCircleLeft'
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt'
+import { faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons/faMapMarkerAlt'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 library.add(
@@ -45,7 +46,7 @@ library.add(
   faPowerOff, faEllipsisH, faGlobe, faBook, faEnvelope, faExclamation, faExclamationTriangle, faCheck,
   faBell, faLayerGroup, faBookOpen, faFolderOpen, faInfo, faInfoCircle, faEllipsisV, faChevronDown, farCircle,
   faTimes, faTimesCircle, faShareAlt, faEdit, faArrowsAlt, faMapMarkedAlt, faBan, faPaintBrush, farDotCircle,
-  faSearchPlus, faImages, faChevronCircleRight, faChevronCircleLeft, faTrashAlt
+  faSearchPlus, faImages, faChevronCircleRight, faChevronCircleLeft, faTrashAlt, faMapMarkerAlt
 )
 
 export {

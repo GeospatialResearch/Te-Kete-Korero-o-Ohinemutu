@@ -12,9 +12,13 @@
             <a id="pin-sidebar" class="btn-sm btn-dark mr-2" href="#" title="Pin sidebar">
               <font-awesome-icon icon="map-pin" />
             </a>
-            <select v-model="selectedValue" name="LeaveType" @change="onChange" class="btn btn-sm btn-secondary dropdown-toggle">
-               <option value="eng">English</option>
-               <option value="mao">Māori</option>
+            <select v-model="selectedValue" class="btn btn-sm btn-secondary dropdown-toggle" name="LeaveType" @change="onChange">
+              <option value="eng">
+                English
+              </option>
+              <option value="mao">
+                Māori
+              </option>
             </select>
           </div>
         </div>

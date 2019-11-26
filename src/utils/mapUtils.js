@@ -6,6 +6,12 @@ const Stroke = require('ol/style/Stroke').default
 const CircleStyle = require('ol/style/Circle').default
 const Text = require('ol/style/Text').default
 const Projection = require('ol/proj/Projection').default
+const Feature = require('ol/Feature').default
+const Point = require('ol/geom/Point').default
+const LineString = require('ol/geom/LineString').default
+const MultiLineString = require('ol/geom/MultiLineString').default
+const Polygon = require('ol/geom/Polygon').default
+const MultiPolygon = require('ol/geom/MultiPolygon').default
 var createXYZ = require('ol/tilegrid').createXYZ
 var geojsonvt = require('geojson-vt').default
 const VectorSource = require('ol/source/Vector').default
@@ -36,50 +42,76 @@ var singleClickCallbackFunction = function (evt) {
     }
   })
   map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
-    if (layer.get('name') !== 'storyGeomsLayer') {
+    if (layer.get('name') !== 'storyGeomsLayer' && layer.get('name') !== 'allStoriesGeomsLayer') {
       nExpectedCount++
     }
   })
   EventBus.$emit('defineExpectedCount', nExpectedCount)
 
-  // External vector layers
-  map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
-    if (extLayersObj[layer.get('name')]) {  // if the extLayersObj has this layer name (in order to exclude the name storyGeomsLayer)
-      EventBus.$emit('showLayersFeaturesPopup', {
-        'features': [feature],
-        'coordinate': evt.coordinate,
-        'layername': extLayersObj[layer.get('name')].layername
-      })
-    }
-  })
 
-  // Internal geoserser wms layers
-  layers.forEach( (layer) => {
-    var layername = layer.get('name')
-    if (layer.getVisible() && !['Basemap', 'drawingLayer', 'storyGeomsLayer'].includes(layername) && !Object.keys(store.state.externalLayers).includes(layername)) {
-      $.ajax({
-        url: layer.getSource().getGetFeatureInfoUrl(evt.coordinate, viewResolution, projection,  // creates the WMS getFeatureInfo request for us
-          { 'INFO_FORMAT': 'text/javascript',
-            'format_options': 'callback:' + layername,
-          }
-        ),
-        dataType: 'jsonp',
-        jsonpCallback: layername // instead of a static name like 'getJson' to avoid the classic race issue
-      }).done(function (response) {
-        if (response.features.length > 0) {
-          EventBus.$emit('showLayersFeaturesPopup', {
-            'features': response.features,
-            'coordinate': evt.coordinate,
-            'layername': layername
-          })
-        } else {
-          EventBus.$emit('showLayersFeaturesPopup', {
-            'coordinate': evt.coordinate,
-          })
-        }
-      })
-    }
+  // Show allStoriesGeomsLayer features usage
+  var features = map.getFeaturesAtPixel(evt.pixel, {
+      layerFilter: function(layer) {
+          return layer.get('name') === 'allStoriesGeomsLayer'
+      }
   })
+  var geomsUsage = []
+  if (features) {
+    if (store.state.reuseMode) {
+      store.commit('ADD_FEATURES_FOR_REUSE', features)
+      if (nExpectedCount == 0) {
+        EventBus.$emit('showFeaturesReuse')
+      }
+    } else {
+      features.forEach((feature) => {
+        geomsUsage.push(store.state.allUsedStoriesGeometriesObj[feature.getProperties().id])
+      })
+      EventBus.$emit('showGeomsUsage', geomsUsage)
+    }
+  }
+
+  if (nExpectedCount != 0) {
+
+    // External vector layers
+    map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
+      if (extLayersObj[layer.get('name')]) {  // if the extLayersObj has this layer name (in order to exclude the name storyGeomsLayer)
+        EventBus.$emit('showLayersFeaturesPopup', {
+          'features': [feature],
+          'coordinate': evt.coordinate,
+          'layername': extLayersObj[layer.get('name')].layername
+        })
+      }
+    })
+
+    // Internal geoserser wms layers
+    layers.forEach( (layer) => {
+      var layername = layer.get('name')
+      if (layer.getVisible() && !['Basemap', 'drawingLayer', 'storyGeomsLayer', 'allStoriesGeomsLayer'].includes(layername) && !Object.keys(store.state.externalLayers).includes(layername)) {
+        $.ajax({
+          url: layer.getSource().getGetFeatureInfoUrl(evt.coordinate, viewResolution, projection,  // creates the WMS getFeatureInfo request for us
+            { 'INFO_FORMAT': 'text/javascript',
+              'format_options': 'callback:' + layername,
+            }
+          ),
+          dataType: 'jsonp',
+          jsonpCallback: layername // instead of a static name like 'getJson' to avoid the classic race issue
+        }).done(function (response) {
+          if (response.features.length > 0) {
+            EventBus.$emit('showLayersFeaturesPopup', {
+              'features': response.features,
+              'coordinate': evt.coordinate,
+              'layername': layername
+            })
+          } else {
+            EventBus.$emit('showLayersFeaturesPopup', {
+              'coordinate': evt.coordinate,
+            })
+          }
+        })
+      }
+    })
+  } // end if nExpectedCount != 0
+
 
   // Show storyGeomsLayer features info
   map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
@@ -255,6 +287,7 @@ var createGeojsonVTlayer = function (geojson) {
   map.addLayer(vectorLayer)
 }
 
+
 var isLayerDisplayed = function (layer) {
   const map = store.state.map
   var viewResolution = map.getView().getResolution()
@@ -266,6 +299,116 @@ var isLayerDisplayed = function (layer) {
 }
 
 
+var addAllStoriesGeomsLayer = function (geoms) {
+  const map = store.state.map
+
+  EventBus.$emit('removeLayer', 'allStoriesGeomsLayer')
+  EventBus.$emit('resetDrawnFeature')
+
+  // Create an empty allStoriesGeomsLayer layer
+  var allStoriesGeomsSource = new VectorSource({
+    format: new GeoJSON()
+  })
+  var allstoriesGeomsVector = new VectorLayer({
+    source: allStoriesGeomsSource,
+    name: 'allStoriesGeomsLayer',
+    style: allStoriesGeomsStyle,
+    zIndex: 30
+  })
+  map.addLayer(allstoriesGeomsVector)
+
+  var featuresToAdd = []
+  var ol_geom
+  _.each(geoms, (geom) => {
+
+    ol_geom = olFeatureFromGeojson(geom)
+
+    featuresToAdd.push(new Feature({
+        geometry: ol_geom,
+        id: geom.id,
+        label: geom.usage.geomAttr.name
+    }))
+
+  })
+  allStoriesGeomsSource.addFeatures(featuresToAdd)
+
+  // var extent = allstoriesGeomsVector.getSource().getExtent()
+  // map.getView().fit(extent, { duration: 2000 })
+
+  EventBus.$emit('setallStoriesGeomsLayerLegend', allStoriesGeomsStyle)
+
+  removeStoryGeomsFromStoriesGeomsLayer()
+
+}
+
+
+var removeStoryGeomsFromStoriesGeomsLayer = function () {
+  const map = store.state.map
+  var storyfeaturesId = []
+
+  map.getLayers().forEach( (layer) => {
+    if (layer.get('name') === 'storyGeomsLayer') {
+      var storyfeatures = layer.getSource().getFeatures()
+      _.each(storyfeatures, (feature) => {
+        storyfeaturesId.push(feature.getProperties().name)
+      })
+    }
+  })
+
+  if (storyfeaturesId) {
+    map.getLayers().forEach( (layer) => {
+      if (layer.get('name') === 'allStoriesGeomsLayer') {
+        var features = layer.getSource().getFeatures()
+        if (features.length != store.state.allUsedStoriesGeometries.length) {
+          store.commit('RESTORE_ALL_USEDSTORIESGEOMETRIES')
+          return
+        }
+        features.forEach((feature) => {
+          if (storyfeaturesId.includes(feature.getProperties().id)) {
+            layer.getSource().removeFeature(feature)
+          }
+        })
+      }
+    })
+  }
+}
+
+
+var olFeatureFromGeojson = function (geom) {
+  var ol_geom
+  if (geom.geometry.type == 'Polygon') {
+    ol_geom = new Polygon(geom.geometry.coordinates)
+  } else if (geom.geometry.type == 'MultiPolygon') {
+    ol_geom = new MultiPolygon(geom.geometry.coordinates)
+  } else if (geom.geometry.type == 'LineString') {
+    ol_geom = new LineString(geom.geometry.coordinates)
+  } else if (geom.geometry.type == 'MultiLineString') {
+    ol_geom = new MultiLineString(geom.geometry.coordinates)
+  } else {
+    ol_geom = new Point(geom.geometry.coordinates)
+  }
+
+  return ol_geom
+}
+
+var olFeatureFromGeomAttr = function (geomAttr) {
+  var ol_geom
+  if (geomAttr.geometry.geom.type == 'Polygon') {
+    ol_geom = new Polygon(geomAttr.geometry.geom.coordinates)
+  } else if (geomAttr.geometry.geom.type == 'MultiPolygon') {
+    ol_geom = new MultiPolygon(geomAttr.geometry.geom.coordinates)
+  } else if (geomAttr.geometry.geom.type == 'LineString') {
+    ol_geom = new LineString(geomAttr.geometry.geom.coordinates)
+  } else if (geomAttr.geometry.geom.type == 'MultiLineString') {
+    ol_geom = new MultiLineString(geomAttr.geometry.geom.coordinates)
+  } else {
+    ol_geom = new Point(geomAttr.geometry.geom.coordinates)
+  }
+
+  return ol_geom
+}
+
+
 // Styles
 var drawingStyle = new Style({
                     fill: new Fill({
@@ -273,7 +416,7 @@ var drawingStyle = new Style({
                     }),
                     stroke: new Stroke({
                       color: 'rgba(255, 204, 51, 1)',
-                      width: 2
+                      width: 3
                     }),
                     image: new CircleStyle({
                       radius: 5,
@@ -282,10 +425,32 @@ var drawingStyle = new Style({
                       }),
                       stroke: new Stroke({
                         color: 'rgba(255, 204, 51, 1)',
+                        width: 3
+                      })
+                    })
+                  })
+
+
+var allStoriesGeomsStyle = new Style({
+                    fill: new Fill({
+                      color: 'rgba(214, 29, 29, 0.6)'
+                    }),
+                    stroke: new Stroke({
+                      color: 'rgba(214, 29, 29, 1)',
+                      width: 2
+                    }),
+                    image: new CircleStyle({
+                      radius: 3,
+                      fill: new Fill({
+                        color: 'rgba(214, 29, 29, 0.6)'
+                      }),
+                      stroke: new Stroke({
+                        color: 'rgba(214, 29, 29, 1)',
                         width: 2
                       })
                     })
                   })
+
 
 var defaultStoryGeomStyle = function (feature) {
   return new Style({
@@ -342,4 +507,5 @@ $('body').on('click', function (e) {
 
 module.exports = {enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer,
                 isLayerDisplayed, disableEventListenerSingleClick, enableEventListenerSingleClick,
-                drawingStyle, defaultStoryGeomStyle, defaultStoryGeomLayerStyle}
+                drawingStyle, defaultStoryGeomStyle, defaultStoryGeomLayerStyle, addAllStoriesGeomsLayer,
+                removeStoryGeomsFromStoriesGeomsLayer, olFeatureFromGeojson, olFeatureFromGeomAttr}
