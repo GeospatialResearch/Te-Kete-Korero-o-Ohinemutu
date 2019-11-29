@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer,ListField,SerializerMethodField, JSONField, UUIDField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation
+from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation
 from django.contrib.gis.geos import GEOSGeometry
 
 
@@ -125,7 +125,6 @@ class StoryGeomAttribMediaSerializer(ModelSerializer):
 
 
 class StoryGeomAttribSerializer(ModelSerializer):
-    geom_temp = JSONField(write_only=True)
     geomAttribMedia = SerializerMethodField()
 
     class Meta:
@@ -139,30 +138,14 @@ class StoryGeomAttribSerializer(ModelSerializer):
         return serializer.data
 
     def create(self, validated_data):
-
-        geom = validated_data.pop('geom_temp')['geometry']
-        if 'id' in geom:
-            pass # in case of reusing geometries
-        else:
-            GEOSgeom = GEOSGeometry(str(geom))
-            geometry = StoryGeometry.objects.create(geom=GEOSgeom)
-            validated_data['geometry'] = geometry
-            storyGeomAttrib = StoryGeomAttrib.objects.create(**validated_data)
+        GEOSgeom = GEOSGeometry(str(validated_data['geometry']))
+        validated_data['geometry'] = GEOSgeom
+        storyGeomAttrib = StoryGeomAttrib.objects.create(**validated_data)
         return storyGeomAttrib
 
     def update(self, instance, validated_data):
-        geom_id = validated_data['geom_temp']['id']
-
-        if 'geom' in validated_data['geom_temp']:
-            geom = validated_data.pop('geom_temp')['geom'] # When geometry is not edited
-        else:
-            geom = validated_data.pop('geom_temp')['geometry'] # When geometry is edited and a geojson is generated from OL feature
-
-        GEOSgeom = GEOSGeometry(str(geom))
-        geometry = StoryGeometry.objects.get(id=geom_id)
-        geometry.geom = GEOSgeom
-        geometry.save()
-        validated_data['geometry'] = geometry
+        GEOSgeom = GEOSGeometry(str(validated_data['geometry']))
+        validated_data['geometry'] = GEOSgeom
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -178,14 +161,6 @@ class StoryBodyElementSerializer(ModelSerializer):
         model = StoryBodyElement
         fields = '__all__'
         depth = 3
-
-
-class StoryGeometrySerializer(GeoFeatureModelSerializer):
-
-    class Meta:
-        model = StoryGeometry
-        geo_field = 'geom'
-        fields = '__all__'
 
 
 class WebsiteTranslationSerializer(ModelSerializer):

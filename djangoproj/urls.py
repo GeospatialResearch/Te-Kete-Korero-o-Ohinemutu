@@ -30,7 +30,7 @@ router.register(r'storybodyelements', views.StoryBodyElementViewSet)
 router.register(r'storygeomsattrib', views.StoryGeomAttribViewSet)
 router.register(r'storygeomsattribmedia', views.StoryGeomAttribMediaViewSet)
 router.register(r'websitetranslation', views.WebsiteTranslationViewSet)
-router.register(r'storygeometries', views.StoryGeometryViewSet)
+# router.register(r'storygeometries', views.StoryGeometryViewSet)
 
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),

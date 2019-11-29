@@ -1,5 +1,5 @@
 <template>
-  <div id="sidePanel" :class="{'col-md-6':togglePanel, 'col-md-0':!togglePanel}">
+  <div id="sidePanel" :class="{'col-md-5':togglePanel, 'col-md-0':!togglePanel}">
     <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closeStory()" />
 
     <div v-if="isStoryViewMode" class="mt-5 mb-5">
@@ -7,13 +7,12 @@
       <h4 v-html="story.length == 0 ? '' : story.title" />
       <p class="story-summary" v-html="story.length == 0 ? '' : story.summary" />
       <hr />
-
       <div v-for="element in story.storyBodyElements" :key="element.id" class="col-md-12">
         <div v-if="element.element_type == 'TEXT'">
           <div class="ql-text" v-html="element.text" />
         </div>
         <div v-if="element.element_type == 'GEOM'">
-          <div :id="element.geom_attr.geometry.id" class="text-center m-4 geometry-name">
+          <div :id="element.geom_attr.id" class="text-center m-4 geometry-name">
             <i><font-awesome-icon icon="map-marked-alt" size="lg" class="pointer" title="Zoom to geometry" @click="zoomToGeometry(element)" /></i>&nbsp;
             <strong><span class="ql-text" v-html="element.geom_attr.name" /></strong>
           </div>
@@ -58,7 +57,7 @@
         Use the button below to add new elements to the story and reorder the elements dragging and dropping them.
       </p>
       <div class="btn-group dropright mb-4">
-        <button type="button" :disabled="isDrawMode || isGeomMediaMode" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button type="button" :disabled="isDrawMode || isGeomMediaMode || isReuseMode" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           Add element to the story
         </button>
         <div class="dropdown-menu">
@@ -188,10 +187,10 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="cancelAddMediaElement()">
+            <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="cancelAddMediaElement()">
               <span v-if="!uploadError">Cancel</span>
               <span v-else>Close</span>
-            </button>
+            </button> -->
             <button v-if="!uploadError && !isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary" data-dismiss="modal" @click="addMediaElement()">
               Add media to story
             </button>
@@ -383,13 +382,21 @@ export default {
     isGeomMediaMode () {
       if (this.$store.state.geomMediaMode) {
         disableEventListenerSingleClick()
-        $('#sidePanel :button').prop('disabled', true)
+        $('#sidePanel button:not("#uploadFileModalCancel")').prop('disabled', true)
       }else {
         enableEventListenerSingleClick()
         $('#sidePanel :button').prop('disabled', false)
       }
       return this.$store.state.geomMediaMode
-    }
+    },
+    isReuseMode () {
+      if (this.$store.state.reuseMode) {
+        $('#sidePanel :button').prop('disabled', true)
+      }else {
+        $('#sidePanel :button').prop('disabled', false)
+      }
+      return this.$store.state.reuseMode
+    },
   },
   mounted: function () {
     EventBus.$on('addGeometryElement', (geomAttr) => {
@@ -415,7 +422,7 @@ export default {
       var geomAttr
       this.story.storyBodyElements.forEach( (elem) => {
         if (elem.element_type === 'GEOM') {
-          if (elem.geom_attr.geometry.id == feature.getProperties().name) {
+          if (elem.geom_attr.id == feature.getProperties().name) {
             geomAttr = elem.geom_attr
           }
         }
@@ -511,9 +518,11 @@ export default {
     drawGeometry: function () {
       this.$store.commit('SET_DRAW_MODE', true)
       EventBus.$emit('addDrawingLayer')
+      EventBus.$emit('resetSelectedFeatures')
     },
     reuseGeometry: function () {
       this.$store.commit('SET_REUSE_MODE', true)
+      EventBus.$emit('resetSelectedFeatures')
     },
     saveStory: function () {
       EventBus.$emit('resetDrawnFeature')
@@ -565,6 +574,7 @@ export default {
       this.$store.commit('SET_STORY_VIEW_MODE', true)
       this.$store.commit('SET_DRAW_MODE', false)
       this.$store.commit('SET_GEOM_MEDIA_MODE', false)
+      this.$store.commit('SET_REUSE_MODE', false)
 
       if (this.story.hasOwnProperty('id')) {
         this.$store.dispatch('getStoryContent', this.story.id)

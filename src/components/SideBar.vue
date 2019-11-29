@@ -44,8 +44,8 @@
             </li>
             <li @click="$store.commit('TOGGLE_CONTENT', 'map')">
               <a href="#">
-                <i class="fa fa-globe" />
-                <!-- <i><font-awesome-icon icon="globe" /></i> -->
+                <!-- <i class="fa fa-globe" /> using this one the icons shakes when hovering over the icon-->
+                <i><font-awesome-icon icon="globe" /></i>
                 <span class="menu-text">{{ translationObj.map[lang] }}</span>
               </a>
             </li>
@@ -67,22 +67,26 @@
             </div>
             <li class="sidebar-dropdown">
               <a href="#" title="Data uploaded by you">
-                <i class="fa fa-layer-group" />
-                <!-- <i><font-awesome-icon icon="layer-group" /></i> -->
+                <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
+                <i><font-awesome-icon icon="layer-group" /></i>
                 <span class="menu-text">{{ translationObj.myLayers[lang] }}</span>
               </a>
               <div class="sidebar-submenu">
                 <ul>
                   <li v-for="(layer, layerkey) in internalLayers" :key="layerkey">
                     <a href="#" class="sidebar-line">
-                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_intServ(layer, layerkey)" />
+                      <span @click="changeLayerVisibility_intServ(layer, layerkey)">
+                        <!-- :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" -->
+                        <span v-if="layer.visible"><font-awesome-icon icon="check-square" /></span>
+                        <span v-else><font-awesome-icon icon="square" /></span>
+                      </span>
                       <span v-if="layer.assigned_name">
                         &emsp;{{ layer.assigned_name }}
                       </span>
                       <span v-else>
                         &emsp;{{ layer.name }}
                       </span>
-                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(layer, 'internal')">
+                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(layer)">
                         <font-awesome-icon icon="ellipsis-v" />
                       </span>
                     </a>
@@ -92,15 +96,18 @@
             </li>
             <li class="sidebar-dropdown">
               <a href="#" title="Data from External Data Services">
-                <i class="fa fa-layer-group" />
-                <!-- <i><font-awesome-icon icon="layer-group" /></i> -->
+                <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
+                <i><font-awesome-icon icon="layer-group" /></i>
                 <span class="menu-text">{{ translationObj.extLayers[lang] }}</span>
               </a>
               <div class="sidebar-submenu">
                 <ul>
                   <li v-for="(layer, layerkey) in externalLayers" :key="layerkey">
                     <a href="#" class="sidebar-line">
-                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_extServ(layer, layerkey)" />
+                      <span @click="changeLayerVisibility_extServ(layer, layerkey)">
+                        <span v-if="layer.visible"><font-awesome-icon icon="check-square" /></span>
+                        <span v-else><font-awesome-icon icon="square" /></span>
+                      </span>
                       &emsp;{{ layer.layername }}
                       <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Information" :data-content="createPopoverInfo(layer)">
                         <font-awesome-icon icon="info" class="layer-info" />
@@ -111,22 +118,25 @@
               </div>
             </li>
             <li class="sidebar-dropdown">
-              <a href="#" title="Data uploaded and managed by admin">
-                <i class="fa fa-layer-group" />
-                <!-- <i><font-awesome-icon icon="layer-group" /></i> -->
+              <a href="#" title="Data uploaded and managed by admin" @click="reinitialisePopups()">
+                <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
+                <i><font-awesome-icon icon="layer-group" /></i>
                 <span class="menu-text">Default layers</span>
               </a>
               <div class="sidebar-submenu">
                 <ul>
-                  <!-- <li v-for="(layer, layerkey) in externalLayers" :key="layerkey">
+                  <li v-if="allStoriesGeomsLayer && allStoriesGeomsLayer.allUsedStoriesGeometries">
                     <a href="#" class="sidebar-line">
-                      <span :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" @click="changeLayerVisibility_extServ(layer, layerkey)" />
-                      &emsp;{{ layer.layername }}
-                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Information" :data-content="createPopoverInfo(layer)">
-                        <font-awesome-icon icon="info" class="layer-info" />
+                      <span @click="changeLayerVisibility_allStoriesGeomsLayer()">
+                        <span v-if="allStoriesGeomsLayer.visible"><font-awesome-icon icon="check-square" /></span>
+                        <span v-else><font-awesome-icon icon="square" /></span>
+                      </span>
+                      &emsp;{{ allStoriesGeomsLayer.layername }}
+                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(allStoriesGeomsLayer)">
+                        <font-awesome-icon icon="ellipsis-v" />
                       </span>
                     </a>
-                  </li> -->
+                  </li>
                 </ul>
               </div>
             </li>
@@ -138,13 +148,18 @@
                   <div class="form-control search-menu text-center label-info" @click="openPanel()">
                     {{ translationObj.addNewNarrative[lang] }}
                   </div>
+                  <div class="input-group-append">
+                    <span class="input-group-text">
+                      <i aria-hidden="true"><font-awesome-icon :icon="['far', 'newspaper']" /></i>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
             <li class="sidebar-dropdown">
               <a href="#">
-                <i class="fa fa-book-open" />
-                <!-- <i><font-awesome-icon icon="book-open" /></i> -->
+                <!-- <i class="fa fa-book-open" /> using this one the icons shakes when hovering over the icon-->
+                <i><font-awesome-icon icon="book-open" /></i>
                 <span class="menu-text">{{ translationObj.myNarratives[lang] }}</span>
                 <!-- <span class="badge badge-pill badge-warning">New</span> -->
               </a>
@@ -172,8 +187,8 @@
 
             <li class="sidebar-dropdown">
               <a href="#">
-                <i class="fa fa-book-open" />
-                <!-- <i><font-awesome-icon icon="book-open" /></i> -->
+                <!-- <i class="fa fa-book-open" /> using this one the icons shakes when hovering over the icon-->
+                <i><font-awesome-icon icon="book-open" /></i>
                 <span class="menu-text">{{ translationObj.publicNarratives[lang] }}</span>
                 <!-- <span class="badge badge-pill badge-warning">New</span> -->
               </a>
@@ -477,7 +492,7 @@
             <h5>Attention</h5>
           </div>
           <div class="modal-body text-center">
-            <h6>A story is being edited, be sure you save the changes before opening another story.</h6>
+            <h6>A story is being edited, be sure you save the changes before opening another story or doing other operations.</h6>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -513,12 +528,7 @@
       },
       internalLayers () {
         // the popover needs to be re-initialized when reloading the divs
-        $(function () {
-          $('[data-toggle="popover"]').popover({
-            boundary:'window',
-            html: true
-          })
-        })
+        this.reinitialisePopups()
         return this.$store.state.internalLayers
       },
       map () {
@@ -526,12 +536,7 @@
       },
       stories () {
         // the popover needs to be re-initialized when reloading the divs
-        $(function () {
-          $('[data-toggle="popover"]').popover({
-            boundary:'window',
-            html: true
-          })
-        })
+        this.reinitialisePopups()
         return this.$store.state.stories
       },
       lang () {
@@ -543,6 +548,9 @@
         } else {
           return langObj
         }
+      },
+      allStoriesGeomsLayer () {
+        return this.$store.state.allStoriesGeomsLayer
       }
     },
     mounted: function () {
@@ -652,6 +660,14 @@
           EventBus.$emit('removeLayer', layerkey)
         }
       },
+      changeLayerVisibility_allStoriesGeomsLayer () {
+        this.$store.state.allStoriesGeomsLayer.visible = !this.$store.state.allStoriesGeomsLayer.visible
+        if (this.$store.state.allStoriesGeomsLayer.visible) {
+          this.$store.commit('RESTORE_ALL_USEDSTORIESGEOMETRIES', false)
+        } else {
+          EventBus.$emit('removeLayer', 'allStoriesGeomsLayer')
+        }
+      },
       createPopoverInfo (layer) {
         var htmlInfo = layer.attribution
         if (layer.hasOwnProperty('maxresolution')) {
@@ -662,13 +678,20 @@
       },
       createPopoverLayerOptions (layer) {
         var disabled = layer.visible ? ' ' : ' disabled'
-        var layerOptions = `<div class="layer-options">
-                              <a class="dropdown-item` + disabled +`" id="` + layer.name + `_zoomto" href="#">Zoom to layer</a>
-                              <a class="dropdown-item` + disabled +`" id="` + layer.name + `_rename" href="#">Rename layer</a>
-                              <a class="dropdown-item` + disabled +`" id="` + layer.name + `_restyle" href="#">Edit style</a>
-                              <div class="dropdown-divider"></div>
-                              <a class="dropdown-item` + disabled +`" id="` + layer.name + `_deleteLayer" href="#">Delete layer</a>
-                            </div>`
+        var layerOptions
+        if (layer.layername === this.allStoriesGeomsLayer.layername) {
+          layerOptions = `<div class="layer-options">
+                                <a class="dropdown-item` + disabled +`" id="` + this.allStoriesGeomsLayer.name + `_zoomto" href="#">Zoom to layer</a>
+                              </div>`
+        } else {
+          layerOptions = `<div class="layer-options">
+                                <a class="dropdown-item` + disabled +`" id="` + layer.name + `_zoomto" href="#">Zoom to layer</a>
+                                <a class="dropdown-item` + disabled +`" id="` + layer.name + `_rename" href="#">Rename layer</a>
+                                <a class="dropdown-item` + disabled +`" id="` + layer.name + `_restyle" href="#">Edit style</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item` + disabled +`" id="` + layer.name + `_deleteLayer" href="#">Delete layer</a>
+                              </div>`
+        }
 
         return layerOptions
       },
@@ -700,6 +723,14 @@
                             </div>`
 
         return storyOptions
+      },
+      reinitialisePopups () {
+        $(function () {
+          $('[data-toggle="popover"]').popover({
+            boundary:'window',
+            html: true
+          })
+        })
       }
     }
   }

@@ -18,6 +18,7 @@ const VectorLayer = require('ol/layer/Vector').default
 
 var addGeoserverWMS = function (layername) {
   const map = store.state.map
+  store.commit('SET_LOADING', true)
 
   var layerWMS = new ImageLayer({
     name: layername,
@@ -32,11 +33,12 @@ var addGeoserverWMS = function (layername) {
   map.addLayer(layerWMS)
 
   EventBus.$emit('refreshLayer', (layername))
+  store.commit('SET_LOADING', false)
 }
 
 var zoomToGeoserverVectorLayer = function (layername) {
   const map = store.state.map
-  store.state.isLoading = true
+  store.commit('SET_LOADING', true)
 
   $.ajax( process.env.WEB_HOST + ':8080/geoserver/wfs', {
     type: 'GET',
@@ -57,13 +59,13 @@ var zoomToGeoserverVectorLayer = function (layername) {
   }).done(function (response) {
     var vectorExtent = getCorrectExtent(response)
     map.getView().fit(vectorExtent, { duration: 2000 })
-    store.state.isLoading = false
+    store.commit('SET_LOADING', false)
   })
 }
 
 var zoomToGeoserverLayerBbox = function (layername) {
   const map = store.state.map
-  store.state.isLoading = true
+  store.commit('SET_LOADING', true)
 
   store.dispatch('getInternalRasterLayerBbox', layername)
   .then((response) => {
@@ -107,7 +109,7 @@ var zoomToGeoserverLayerBbox = function (layername) {
     })
 
     map.getView().fit(tempLayer.getSource().getExtent(), { duration: 2000 })
-    store.state.isLoading = false
+    store.commit('SET_LOADING', false)
   })
 
 

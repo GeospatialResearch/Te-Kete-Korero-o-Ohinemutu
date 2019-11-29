@@ -57,19 +57,13 @@ class MediaFile(models.Model):
         return self.file.name
 
 
-class StoryGeometry(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
-    created_date = models.DateTimeField(auto_now_add=True)
-    geom = models.GeometryField()
-
-
 class StoryGeomAttrib(models.Model):
     id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
     created_date = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=30)
     description = models.TextField()
     style = JSONField(default=None, blank=True, null=True)
-    geometry = models.ForeignKey(StoryGeometry, on_delete=models.CASCADE)
+    geometry = models.GeometryField()
 
 
 class StoryGeomAttribMedia(models.Model):

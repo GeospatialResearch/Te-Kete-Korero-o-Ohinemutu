@@ -19,6 +19,14 @@ const store = new Vuex.Store({
     contentToShow: 'map',
     externalLayers: null,
     internalLayers: {},
+    allStoriesGeomsLayer: {
+      visible: true,
+      name: 'allStoriesGeomsLayer',
+      layername: 'Geometries of Narratives',
+      style: null,
+      allUsedStoriesGeometries: null,
+      allUsedStoriesGeometriesObj: null
+    },
     map_resolution: 0,
     map_zoom: 0,
     stories: [],
@@ -34,9 +42,7 @@ const store = new Vuex.Store({
     reuseMode: false,
     featuresForReuse: [],
     websiteTranslObj: null,
-    lang: 'eng',
-    allUsedStoriesGeometries: null,
-    allUsedStoriesGeometriesObj: null
+    lang: 'eng'
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -45,6 +51,9 @@ const store = new Vuex.Store({
     // Map related functions
     SET_MAP (state, map) {
       state.map = map
+    },
+    SET_LOADING (state, value) {
+      state.isLoading = value
     },
     TOGGLE_CONTENT (state, content) {
       state.contentToShow = content
@@ -142,12 +151,12 @@ const store = new Vuex.Store({
       state.lang = value
     },
     SET_ALL_USEDSTORIESGEOMETRIES (state, payload) {
-      state.allUsedStoriesGeometriesObj = payload.allusedgeomsObj
-      state.allUsedStoriesGeometries = payload.allusedgeoms
-      EventBus.$emit('createLayer', state.allUsedStoriesGeometries, 'allstoriesgeoms')
+      state.allStoriesGeomsLayer.allUsedStoriesGeometriesObj = payload.allusedgeomsObj
+      state.allStoriesGeomsLayer.allUsedStoriesGeometries = payload.allusedgeoms
+      EventBus.$emit('createLayer', state.allStoriesGeomsLayer.allUsedStoriesGeometries, 'allstoriesgeoms')
     },
     RESTORE_ALL_USEDSTORIESGEOMETRIES (state) {
-      EventBus.$emit('createLayer', state.allUsedStoriesGeometries, 'allstoriesgeoms')
+      EventBus.$emit('createLayer', state.allStoriesGeomsLayer.allUsedStoriesGeometries, 'allstoriesgeoms')
     },
     // Generic fail handling
     API_FAIL (state, error) {
@@ -285,16 +294,16 @@ const store = new Vuex.Store({
       })
     },
     addGeometryAttrb (store, drawnfeature) {
-      drawnfeature.geom_temp = drawnfeature.geometry
-      delete drawnfeature['geometry']
+      drawnfeature.geometry = drawnfeature.geometry.geometry
       return api.post(apiRoot + '/storygeomsattrib/', drawnfeature)
         .then((response) => {
           return response
         })
     },
     updateGeometryAttrb (store, drawnfeature) {
-      drawnfeature.geom_temp = drawnfeature.geometry
-      delete drawnfeature['geometry']
+      if (drawnfeature.geometry.geometry) {
+        drawnfeature.geometry = drawnfeature.geometry.geometry
+      }
       return api.patch(apiRoot + '/storygeomsattrib/' + drawnfeature.id + '/', drawnfeature)
         .then((response) => {
           return response
@@ -329,23 +338,23 @@ const store = new Vuex.Store({
         })
         // .catch((error) => store.commit('API_FAIL', error))
     },
-    getAllUsedStoriesGeometries (store) {
-      api.get(apiRoot + '/storygeometries')
+    getAllUsedStoriesGeometries () {
+      api.get(apiRoot + '/storygeomsattrib')
         .then((response) => {
           var allUsedGeoms = []
           var allUsedGeomsObj = {}
           var count = 0
-          var totalGeoms = response.body.features
-          totalGeoms.forEach((geom) => {
-            store.dispatch('getGeometryUsage', geom.id)
+          var totalGeomAttrs = response.body
+          totalGeomAttrs.forEach((geomAttr) => {
+            store.dispatch('getGeometryUsage', geomAttr)
             .then((response) => {
               count++
               if (response) {
-                geom['usage'] = response
-                allUsedGeoms.push(geom)
-                allUsedGeomsObj[geom.id] = response // geomAttr and story
+                // geomAttr['usage'] = {'geomAttr': geomAttr, 'story': response}
+                allUsedGeoms.push(geomAttr)
+                allUsedGeomsObj[geomAttr.id] = {'geomAttr': geomAttr, 'story': response}
               }
-              if (count === totalGeoms.length) {
+              if (count === totalGeomAttrs.length) {
                 store.commit('SET_ALL_USEDSTORIESGEOMETRIES', {'allusedgeoms': allUsedGeoms, 'allusedgeomsObj': allUsedGeomsObj})
                 return
               }
@@ -354,29 +363,21 @@ const store = new Vuex.Store({
         })
         // .catch((error) => store.commit('API_FAIL', error))
     },
-    getGeometryUsage (store, geomId) {
-      var geomUsage = {
-        'geomAttr': null,
-        'story': null
-      }
-      return api.get(apiRoot + '/storygeomsattrib/?geom=' + geomId)
+    getGeometryUsage (store, geomAttr) {
+      var storyDetail
+      return api.get(apiRoot + '/storybodyelements/?geomattr=' + geomAttr.id)
       .then((response) => {
-        // forEach storygeomattr
-        geomUsage['geomAttr'] = response.body[0]
-        return api.get(apiRoot + '/storybodyelements/?geomattr=' + response.body[0].id)
-        .then((response) => {
-          if (response.body[0]) {
-            geomUsage['story'] = {
-              'id': response.body[0].story.id,
-              'title': response.body[0].story.title,
-              'summary': response.body[0].story.summary
-            }
-            return geomUsage
-          } else {
-            return null
+        if (response.body[0]) {
+          storyDetail = {
+            'id': response.body[0].story.id,
+            'title': response.body[0].story.title,
+            'summary': response.body[0].story.summary
           }
+          return storyDetail
+        } else {
+          return null
+        }
 
-        })
       })
     }
   }

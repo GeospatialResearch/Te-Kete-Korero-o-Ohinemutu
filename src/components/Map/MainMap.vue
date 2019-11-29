@@ -1,5 +1,5 @@
 <template>
-  <div id="map" :class="[togglePanel ? 'col-md-6': 'col-md-12', 'map']">
+  <div id="map" :class="[togglePanel ? 'col-md-7': 'col-md-12', 'map']">
     <div :class="[togglePanel ? 'col-sm-4': 'col-sm-2', 'card ol-control ol-custom']">
       <h6 id="legend" class="card-header">
         <div data-toggle="collapse" href="#collapse-legend" aria-expanded="true" aria-controls="collapse-legend">
@@ -68,11 +68,11 @@
                 <span v-else>{{ layerkey }}</span>
               </p>
             </small>
-            <small>
-              <div v-if="allStoriesGeomsLayerStyle">
+            <small v-if="allStoriesGeomsLayer">
+              <div v-if="allStoriesGeomsLayer.style && allStoriesGeomsLayer.visible">
                 <p class="mb-1">
                   <svg class="svg">
-                    <rect x="1" y="1" width="12" height="12" rx="1" :fill="allStoriesGeomsLayerStyle.getImage().getFill().getColor()" :stroke="allStoriesGeomsLayerStyle.getImage().getStroke().getColor()" :stroke-width="allStoriesGeomsLayerStyle.getImage().getStroke().getWidth()" />
+                    <rect x="1" y="1" width="12" height="12" rx="1" :fill="allStoriesGeomsLayer.style.getImage().getFill().getColor()" :stroke="allStoriesGeomsLayer.style.getImage().getStroke().getColor()" :stroke-width="allStoriesGeomsLayer.style.getImage().getStroke().getWidth()" />
                   </svg>
                   Geometries of Narratives
                 </p>
@@ -93,10 +93,16 @@
       <button v-if="!drawnFeature.geometry" type="button" title="Draw polygon" @click="drawGeom('Polygon')">
         <img src="static/img/drawPolygon.png" class="draw-img" />
       </button>
-      <button v-if="drawnFeature.geometry && !drawnFeature.geometry.id" type="button" title="Remove feature" @click="deleteGeom()">
+      <button v-if="drawnFeature.geometry && !drawnFeature.id" type="button" title="Remove geometry" @click="deleteGeom()">
         <img src="static/img/trash.png" class="draw-img" />
       </button>
-      <button type="button" style="background-color: #a21515;" title="Stop drawing" @click="stopDrawing()">
+      <button type="button" style="background-color: #a21515;" title="Stop drawing geometry" @click="stopDrawing()">
+        <i><font-awesome-icon icon="ban" color="white" /></i>
+      </button>
+    </div>
+
+    <div v-if="isReuseMode" class="ol-control draw-buttons">
+      <button type="button" style="background-color: #a21515;" title="Stop reusing geometry" @click="stopReuse()">
         <i><font-awesome-icon icon="ban" color="white" /></i>
       </button>
     </div>
@@ -129,7 +135,7 @@
       <div class="row pl-3 pr-3">
         <h6 class="col-md-11 p-2 mb-0">
           <span v-if="isGeomMediaMode">Feature Media Manager</span>
-          <span v-else>Feature Info</span>
+          <span v-else>Story Feature Info</span>
         </h6>
         <div class="col-md-1 mt-2">
           <font-awesome-icon v-if="!isDrawMode && !isGeomMediaMode" icon="times" class="float-right pointer" size="lg" @click="hideStoryGeomInfo()" />
@@ -404,7 +410,7 @@
       </div>
     </div>
 
-    <div id="geomsReuseModal" class="modal fade" data-backdrop='static' data-keyboard='false'>
+    <div id="geomsReuseModal" class="modal fade" data-backdrop="static" data-keyboard="false">
       <div class="modal-dialog modal-lg">
         <div class="modal-content modal-margin-top">
           <div class="modal-header">
@@ -454,9 +460,9 @@
 
 import { EventBus } from 'store/event-bus'
 import { addGeoserverWMS, zoomToGeoserverVectorLayer, zoomToGeoserverLayerBbox, setSLDstyle } from 'utils/internalMapServices'
-import { enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer,
-  disableEventListenerSingleClick, enableEventListenerSingleClick, drawingStyle, defaultStoryGeomStyle, defaultStoryGeomLayerStyle,
-  addAllStoriesGeomsLayer, removeStoryGeomsFromStoriesGeomsLayer, olFeatureFromGeojson, olFeatureFromGeomAttr } from 'utils/mapUtils'
+import { enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer, disableEventListenerSingleClick, enableEventListenerSingleClick,
+  drawingStyle, defaultStoryGeomStyle, defaultStoryGeomLayerStyle, addAllStoriesGeomsLayer, removeStoryGeomsFromStoriesGeomsLayer, olFeatureFromJsonGeom,
+  addSelectedFeaturesLayer } from 'utils/mapUtils'
 import { extLayersObj } from 'utils/objects'
 import { hexToRgba, hexToRgb } from 'utils/objectUtils'
 import { delay, each, isString, some } from 'underscore'
@@ -527,7 +533,7 @@ export default {
        },
        mediaRoot: process.env.API_HOST + '/media/',
        geomMediaToDelete: null,
-       allStoriesGeomsLayerStyle: null
+       selectedFeatures: []
     }
   },
   computed: {
@@ -543,7 +549,9 @@ export default {
     },
     mapPopup () {
       var popup = new Overlay({
-        element: $("#feature_popup")[0] // the same as document.getElementById('feature_popup')
+        element: $("#feature_popup")[0], // the same as document.getElementById('feature_popup')
+        stopEvent: false,
+        dragging: false
       })
       return popup
     },
@@ -580,7 +588,7 @@ export default {
     isGeomMediaMode () {
       return this.$store.state.geomMediaMode
     },
-    reuseMode () {
+    isReuseMode () {
       return this.$store.state.reuseMode
     },
     geomsForReuse () {
@@ -599,6 +607,9 @@ export default {
         }
       })
       return features
+    },
+    allStoriesGeomsLayer () {
+      return this.$store.state.allStoriesGeomsLayer
     }
   },
   created: function () {
@@ -644,6 +655,9 @@ export default {
       } else if (servType === 'allstoriesgeoms') {
         var geoms = layer
         addAllStoriesGeomsLayer(geoms)
+      } else if (servType === 'selectedfeatures') {
+        var features = layer
+        addSelectedFeaturesLayer(features)
       }
     })
 
@@ -698,27 +712,32 @@ export default {
 
     EventBus.$on('defineExpectedCount', (count) => {
       this.nExpectedCount = count
+      if (this.nExpectedCount !== 0) {
+        this.$store.commit('SET_LOADING', true)
+      }
     })
 
     EventBus.$on('showLayersFeaturesPopup', (obj) => {
       var element = this.mapPopup.getElement()
-      var coordinate = obj.coordinate
+      // var coordinate = obj.coordinate // in case we want to show the popover in the clicked coordinate
 
       if (obj.hasOwnProperty('features')) {
         var features = obj.features
         var layername = obj.layername
         var assignedname = this.$store.state.internalLayers[layername] ? this.$store.state.internalLayers[layername].assigned_name : ''
 
+        this.selectedFeatures = this.selectedFeatures.concat(features)
+
         if (this.features_info !== '') {
           this.features_info = this.features_info + '<hr />'
         }
 
-        if (this.reuseMode) {
+        if (this.isReuseMode) {
           this.$store.commit('ADD_FEATURES_FOR_REUSE', features)
         }
 
         var feature_properties
-        each(features, (f) => {
+        each(features, (f, index) => {
           try {
             feature_properties = f.getProperties()
           } catch (e) {
@@ -729,7 +748,12 @@ export default {
             }
           }
           var layertitle = assignedname ? assignedname : layername
-          this.features_info = this.features_info + '<p class="text-center mb-2">Layer: ' + layertitle + '</p>'
+
+          if (index === 0) {
+            this.features_info = this.features_info + '<p class="text-center mb-2">Layer: ' + layertitle + '</p>'
+          } else {
+            this.features_info = this.features_info + '<br />'
+          }
 
           each(feature_properties, (value, key) => {
             if (key.toLowerCase() != "geometry" && key.toLowerCase() != "bbox" && key.toLowerCase() != "id" && value != null && value != "" && value != "NULL") {
@@ -740,24 +764,37 @@ export default {
               }
             }
           })
+
+          // this.features_info = this.features_info + '<hr />'
         })
       }
 
       this.layersFeaturesPopupCount++
 
       if (this.layersFeaturesPopupCount === this.nExpectedCount) {
-        if (this.reuseMode && this.geomsForReuse.length != 0) {
+        if (this.isReuseMode && this.geomsForReuse.length != 0) {
           EventBus.$emit('showFeaturesReuse')
         } else {
+
+          EventBus.$emit('createLayer', this.selectedFeatures, 'selectedfeatures')
           $(element).popover('dispose')
+
           if (this.features_info != "") {
-            this.mapPopup.setPosition(coordinate)
+            // // show the popover on the clicked coordinate
+            // var coordinate = obj.coordinate
+            // this.mapPopup.setPosition(coordinate)
+
+            // show the popover in the left side of the map
+            var mapextent = this.map.getView().calculateExtent(this.map.getSize())
+            var meanlat = (mapextent[3]-mapextent[1])/2.0
+            this.mapPopup.setPosition([mapextent[0], mapextent[3]-meanlat])
             $(element).popover({
-              placement: 'top',
               animation: false,
               html: true,
-              title: 'Feature Info <a href="#" class="close" data-dismiss="alert">&times;</a>',
-              template:	'<div class="popover feature-popup" role="tooltip"><div class="arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>',
+              title: 'Layers Feature Info <a href="#" class="close" data-dismiss="alert">&times;</a>',
+              // placement: 'top',
+              // template:	'<div class="popover feature-popup" role="tooltip"><div class="arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>',
+              template:	'<div class="popover feature-popup" role="tooltip"><h3 class="popover-header"></h3><div class="popover-body"></div></div>',
               content: this.features_info
             })
             $(element).popover('show')
@@ -765,6 +802,7 @@ export default {
         }
         this.layersFeaturesPopupCount = 0
         this.features_info = ''
+        this.$store.commit('SET_LOADING', false)
       }
     })
 
@@ -824,6 +862,13 @@ export default {
         } else {
           zoomToGeoserverLayerBbox(payload.layerName)
         }
+      } else if (payload.layerType === 'allstoriesgeoms') {
+        this.map.getLayers().forEach( (layer) => {
+          if (layer.get('name') === 'allStoriesGeomsLayer') {
+            var extent = layer.getSource().getExtent()
+            this.map.getView().fit(extent, { duration: 2000 })
+          }
+        })
       }
     })
 
@@ -933,15 +978,14 @@ export default {
         var ol_geom
         each(geoms, (geomElem) => {
 
-          ol_geom = olFeatureFromGeomAttr(geomElem.geom_attr)
-
+          ol_geom = olFeatureFromJsonGeom(geomElem.geom_attr)
           featuresToAdd.push(new Feature({
               geometry: ol_geom,
-              name: geomElem.geom_attr.geometry.id,
+              name: geomElem.geom_attr.id,
               label: geomElem.geom_attr.name
           }))
 
-          geomAttrStyles[geomElem.geom_attr.geometry.id] = geomElem.geom_attr.style
+          geomAttrStyles[geomElem.geom_attr.id] = geomElem.geom_attr.style
         })
         storyGeomsSource.addFeatures(featuresToAdd)
 
@@ -977,13 +1021,13 @@ export default {
 
 
     EventBus.$on('addNewStoryGeomToMap', (geomAttr) => {
-      var ol_geom = olFeatureFromGeomAttr(geomAttr)
+      var ol_geom = olFeatureFromJsonGeom(geomAttr)
 
       this.map.getLayers().forEach( (layer) => {
         if (layer.get('name') === 'storyGeomsLayer') {
           var feature = new Feature({
               geometry: ol_geom,
-              name: geomAttr.geometry.id,
+              name: geomAttr.id,
               label: geomAttr.name
           })
           layer.getSource().addFeatures([feature])
@@ -998,7 +1042,7 @@ export default {
         if (layer.get('name') === 'storyGeomsLayer') {
           var features = layer.getSource().getFeatures()
           features.forEach((feature) => {
-            if (feature.getProperties().name === geomAttr.geometry.id) {
+            if (feature.getProperties().name === geomAttr.id) {
               layer.getSource().removeFeature(feature)
             }
           })
@@ -1023,7 +1067,7 @@ export default {
       })
       if (features) {
         features.forEach( (feature) => {
-          if (feature.getProperties().name === geomAttr.geometry.id) {
+          if (feature.getProperties().name === geomAttr.id) {
             var extent = feature.getGeometry().getExtent()
             var extent_translated = [extent[0], extent[1]-100, extent[2], extent[3]-100]
             this.map.getView().fit(extent_translated, { duration: 2000, maxZoom:18 })
@@ -1046,13 +1090,13 @@ export default {
       this.createDrawingLayer()
 
       // Add editing geometry to drawing layer
-      var ol_geom = olFeatureFromGeomAttr(geomAttr)
+      var ol_geom = olFeatureFromJsonGeom(geomAttr)
 
       this.map.getLayers().forEach( (layer) => {
         if (layer.get('name') === 'drawingLayer') {
           var feature = new Feature({
               geometry: ol_geom,
-              name: geomAttr.geometry.id
+              name: geomAttr.id
           })
           layer.getSource().addFeatures([feature])
         }
@@ -1068,9 +1112,7 @@ export default {
         // Get GeoJSON
         var writer = new GeoJSON()
         var geojsonStr = JSON.parse(writer.writeFeatures([e.features.getArray()[0]]))
-
         this.drawnFeature.geometry = geojsonStr.features[0]
-        this.drawnFeature.geometry.id = geomAttr.geometry.id // Assign the geometry id to the generated geojson
       }) //modifyend event
     })
 
@@ -1078,13 +1120,13 @@ export default {
     EventBus.$on('replaceStoryGeomToMap', (geomAttr) => {
       EventBus.$emit('resetDrawnFeature')
 
-      var ol_geom = olFeatureFromGeomAttr(geomAttr)
+      var ol_geom = olFeatureFromJsonGeom(geomAttr)
 
       this.map.getLayers().forEach( (layer) => {
         if (layer.get('name') === 'storyGeomsLayer') {
           var features = layer.getSource().getFeatures()
           features.forEach((feature) => {
-            if (feature.getProperties().name === geomAttr.geometry.id) {
+            if (feature.getProperties().name === geomAttr.id) {
               feature.setGeometry(ol_geom)
               var geomAttrStyle = this.createOLStyle({ 'label': geomAttr.name, 'styleObj': geomAttr.style })
               feature.setStyle(geomAttrStyle)
@@ -1104,7 +1146,7 @@ export default {
         if (layer.get('name') === 'storyGeomsLayer') {
           var features = layer.getSource().getFeatures()
           features.forEach((feature) => {
-            if (feature.getProperties().name === geomAttr.geometry.id) {
+            if (feature.getProperties().name === geomAttr.id) {
               if (geomAttr.style !== null) {
                 this.storyGeomStyle = geomAttr.style
               } else {
@@ -1140,7 +1182,12 @@ export default {
 
 
     EventBus.$on('setallStoriesGeomsLayerLegend', (style) => {
-      this.allStoriesGeomsLayerStyle = style
+      this.allStoriesGeomsLayer.style = style
+    })
+
+    EventBus.$on('resetSelectedFeatures', () => {
+      EventBus.$emit('removeLayer', 'selectedFeaturesLayer')
+      this.selectedFeatures = []
     })
 
   },
@@ -1371,6 +1418,9 @@ export default {
       this.map.removeInteraction(modify)
       this.map.removeInteraction(snap)
     },
+    stopReuse () {
+      this.$store.commit('SET_REUSE_MODE', false)
+    },
     hideStoryGeomInfo () {
       EventBus.$emit('resetDrawnFeature')
     },
@@ -1500,7 +1550,7 @@ export default {
       this.createDrawingLayer()
 
       // Add editing geometry to drawing layer
-      var ol_geom = olFeatureFromGeojson(geom)
+      var ol_geom = olFeatureFromJsonGeom(geom)
 
       this.map.getLayers().forEach( (layer) => {
         if (layer.get('name') === 'drawingLayer') {

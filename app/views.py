@@ -6,9 +6,9 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import DatasetSerializer, StorySerializer, StoryGeometrySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer
+from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, StoryGeometry, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation
+from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation
 from tempfile import TemporaryDirectory
 import zipfile
 import os
@@ -356,7 +356,6 @@ class CleanGeomsView(APIView):
 
     def post(self, request):
         geomAttrs = StoryGeomAttrib.objects.all()
-        geoms = StoryGeometry.objects.all()
 
         used_geomattrs = StoryBodyElement.objects.values_list('geom_attr', flat=True)
         used_geomattrs = list(used_geomattrs)
@@ -370,16 +369,6 @@ class CleanGeomsView(APIView):
                 # Condition to avoid deleting geomattrs that are being assigned for the first time on story editing (concurrent execution)
                 if delta.total_seconds() > seconds_threshold:
                     geomattr.delete()
-
-        used_geoms = StoryGeomAttrib.objects.values_list('geometry', flat=True)
-        used_geoms = list(used_geoms)
-
-        for geom in geoms:
-            if geom.id not in used_geoms:
-                delta = timezone.now() - geom.created_date
-                # Condition to avoid deleting geomattrs that are being assigned for the first time on story editing (concurrent execution)
-                if delta.total_seconds() > seconds_threshold:
-                    geom.delete()
 
         return Response({'result': None})
 
@@ -418,23 +407,12 @@ class StoryGeomAttribViewSet(viewsets.ModelViewSet):
     serializer_class = StoryGeomAttribSerializer
     queryset = StoryGeomAttrib.objects.all()
 
-    def get_queryset(self):
-        # If required, filter for the geom
-        geom = self.request.query_params.get('geom', None)
-        if geom is not None:
-            queryset = self.queryset.filter(geometry=geom)
-            return queryset
-
-        return self.queryset
-
     def perform_create(self,serializer):
+        print("&&&&&&&&&&&&&&&&&&&&&&")
         serializer.save()
     def perform_update(self,serializer):
         serializer.save()
 
-class StoryGeometryViewSet(viewsets.ModelViewSet):
-    serializer_class = StoryGeometrySerializer
-    queryset = StoryGeometry.objects.all()
 
 class StoryGeomAttribMediaViewSet(viewsets.ModelViewSet):
     serializer_class = StoryGeomAttribMediaSerializer

@@ -28,6 +28,7 @@ var _ = require('underscore')
 var singleClickCallbackFunction = function (evt) {
   const map = store.state.map
   EventBus.$emit('closeMapPopup')
+  EventBus.$emit('resetSelectedFeatures')
 
   // Attempt to find a marker from the map layers
   var layers = map.getLayers()
@@ -42,12 +43,11 @@ var singleClickCallbackFunction = function (evt) {
     }
   })
   map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
-    if (layer.get('name') !== 'storyGeomsLayer' && layer.get('name') !== 'allStoriesGeomsLayer') {
+    if (layer.get('name') !== 'storyGeomsLayer' && layer.get('name') !== 'allStoriesGeomsLayer' && layer.get('name') !== 'selectedFeaturesLayer') {
       nExpectedCount++
     }
   })
   EventBus.$emit('defineExpectedCount', nExpectedCount)
-
 
   // Show allStoriesGeomsLayer features usage
   var features = map.getFeaturesAtPixel(evt.pixel, {
@@ -64,7 +64,7 @@ var singleClickCallbackFunction = function (evt) {
       }
     } else {
       features.forEach((feature) => {
-        geomsUsage.push(store.state.allUsedStoriesGeometriesObj[feature.getProperties().id])
+        geomsUsage.push(store.state.allStoriesGeomsLayer.allUsedStoriesGeometriesObj[feature.getProperties().id])
       })
       EventBus.$emit('showGeomsUsage', geomsUsage)
     }
@@ -86,11 +86,12 @@ var singleClickCallbackFunction = function (evt) {
     // Internal geoserser wms layers
     layers.forEach( (layer) => {
       var layername = layer.get('name')
-      if (layer.getVisible() && !['Basemap', 'drawingLayer', 'storyGeomsLayer', 'allStoriesGeomsLayer'].includes(layername) && !Object.keys(store.state.externalLayers).includes(layername)) {
+      if (layer.getVisible() && !['Basemap', 'drawingLayer', 'storyGeomsLayer', 'allStoriesGeomsLayer', 'selectedFeaturesLayer'].includes(layername) && !Object.keys(store.state.externalLayers).includes(layername)) {
         $.ajax({
           url: layer.getSource().getGetFeatureInfoUrl(evt.coordinate, viewResolution, projection,  // creates the WMS getFeatureInfo request for us
             { 'INFO_FORMAT': 'text/javascript',
               'format_options': 'callback:' + layername,
+              'FEATURE_COUNT': '50' // It needs to specify a number, otherwise only returns the first it gets
             }
           ),
           dataType: 'jsonp',
@@ -321,12 +322,12 @@ var addAllStoriesGeomsLayer = function (geoms) {
   var ol_geom
   _.each(geoms, (geom) => {
 
-    ol_geom = olFeatureFromGeojson(geom)
+    ol_geom = olFeatureFromJsonGeom(geom)
 
     featuresToAdd.push(new Feature({
         geometry: ol_geom,
         id: geom.id,
-        label: geom.usage.geomAttr.name
+        label: geom.name
     }))
 
   })
@@ -359,7 +360,7 @@ var removeStoryGeomsFromStoriesGeomsLayer = function () {
     map.getLayers().forEach( (layer) => {
       if (layer.get('name') === 'allStoriesGeomsLayer') {
         var features = layer.getSource().getFeatures()
-        if (features.length != store.state.allUsedStoriesGeometries.length) {
+        if (features.length != store.state.allStoriesGeomsLayer.allUsedStoriesGeometries.length) {
           store.commit('RESTORE_ALL_USEDSTORIESGEOMETRIES')
           return
         }
@@ -374,7 +375,40 @@ var removeStoryGeomsFromStoriesGeomsLayer = function () {
 }
 
 
-var olFeatureFromGeojson = function (geom) {
+var addSelectedFeaturesLayer = function (features) {
+  const map = store.state.map
+
+  var featuresToAdd = []
+  _.each(features, (feature) => {
+    try {
+      feature.getProperties()
+      featuresToAdd.push(feature) // external services (OL feature from forEachFeatureAtPixel)
+    } catch (e) {
+      var ol_geom = olFeatureFromJsonGeom(feature) // internal services (json geometry from getGetFeatureInfoUrl)
+      featuresToAdd.push(new Feature({
+          geometry: ol_geom,
+          // id: geom.id,
+          // label: geom.name
+      }))
+    }
+  })
+
+  // Create an empty allStoriesGeomsLayer layer
+  var selectedFeaturesSource = new VectorSource({
+    format: new GeoJSON()
+  })
+  var selectedFeaturesVector = new VectorLayer({
+    source: selectedFeaturesSource,
+    name: 'selectedFeaturesLayer',
+    style: selectedFeaturesStyle,
+    zIndex: 60
+  })
+  map.addLayer(selectedFeaturesVector)
+  selectedFeaturesSource.addFeatures(featuresToAdd)
+}
+
+
+var olFeatureFromJsonGeom = function (geom) {
   var ol_geom
   if (geom.geometry.type == 'Polygon') {
     ol_geom = new Polygon(geom.geometry.coordinates)
@@ -386,23 +420,6 @@ var olFeatureFromGeojson = function (geom) {
     ol_geom = new MultiLineString(geom.geometry.coordinates)
   } else {
     ol_geom = new Point(geom.geometry.coordinates)
-  }
-
-  return ol_geom
-}
-
-var olFeatureFromGeomAttr = function (geomAttr) {
-  var ol_geom
-  if (geomAttr.geometry.geom.type == 'Polygon') {
-    ol_geom = new Polygon(geomAttr.geometry.geom.coordinates)
-  } else if (geomAttr.geometry.geom.type == 'MultiPolygon') {
-    ol_geom = new MultiPolygon(geomAttr.geometry.geom.coordinates)
-  } else if (geomAttr.geometry.geom.type == 'LineString') {
-    ol_geom = new LineString(geomAttr.geometry.geom.coordinates)
-  } else if (geomAttr.geometry.geom.type == 'MultiLineString') {
-    ol_geom = new MultiLineString(geomAttr.geometry.geom.coordinates)
-  } else {
-    ol_geom = new Point(geomAttr.geometry.geom.coordinates)
   }
 
   return ol_geom
@@ -485,6 +502,27 @@ var defaultStoryGeomStyle = function (feature) {
 }
 
 
+var selectedFeaturesStyle = new Style({
+                    fill: new Fill({
+                      color: 'rgba(29, 214, 192, 0)'
+                    }),
+                    stroke: new Stroke({
+                      color: 'rgba(29, 226, 226, 1)',
+                      width: 3
+                    }),
+                    image: new CircleStyle({
+                      radius: 6,
+                      fill: new Fill({
+                        color: 'rgba(29, 214, 192, 0)'
+                      }),
+                      stroke: new Stroke({
+                        color: 'rgba(29, 226, 226, 1)',
+                        width: 3
+                      })
+                    })
+                  })
+
+
 var defaultStoryGeomLayerStyle = function (feature) {
   return [defaultStoryGeomStyle(feature)]
 }
@@ -508,4 +546,4 @@ $('body').on('click', function (e) {
 module.exports = {enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojsonVTlayer,
                 isLayerDisplayed, disableEventListenerSingleClick, enableEventListenerSingleClick,
                 drawingStyle, defaultStoryGeomStyle, defaultStoryGeomLayerStyle, addAllStoriesGeomsLayer,
-                removeStoryGeomsFromStoriesGeomsLayer, olFeatureFromGeojson, olFeatureFromGeomAttr}
+                removeStoryGeomsFromStoriesGeomsLayer, olFeatureFromJsonGeom, addSelectedFeaturesLayer}

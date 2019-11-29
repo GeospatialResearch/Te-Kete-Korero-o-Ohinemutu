@@ -106,20 +106,24 @@ $(function () {
 
   // Send EventBus on internal layer click option
   $(document.body).on('click', "[id*='_zoomto']" ,function(){
-    var layername = $(this).attr('id').replace("_zoomto", "")
-    EventBus.$emit('zoomToLayer', {layerName:layername, layerType:'internal'})
+    var layer_name = $(this).attr('id').replace("_zoomto", "")
+    if (layer_name === 'allStoriesGeomsLayer') {
+      EventBus.$emit('zoomToLayer', {layerName:layer_name, layerType:'allstoriesgeoms'})
+    } else {
+      EventBus.$emit('zoomToLayer', {layerName:layer_name, layerType:'internal'})
+    }
   })
   $(document.body).on('click', "[id*='_restyle']" ,function(){
-    var layername = $(this).attr('id').replace("_restyle", "")
-    EventBus.$emit('restyleLayer', {layerName:layername, layerType:'internal'})
+    var layer_name = $(this).attr('id').replace("_restyle", "")
+    EventBus.$emit('restyleLayer', {layerName:layer_name, layerType:'internal'})
   })
   $(document.body).on('click', "[id*='_deleteLayer']" ,function(){
-    var layername = $(this).attr('id').replace("_deleteLayer", "")
-    EventBus.$emit('deleteLayerModalOpen', layername)
+    var layer_name = $(this).attr('id').replace("_deleteLayer", "")
+    EventBus.$emit('deleteLayerModalOpen', layer_name)
   })
   $(document.body).on('click', "[id*='_rename']" ,function(){
-    var layername = $(this).attr('id').replace("_rename", "")
-    EventBus.$emit('assignLayerNameModalOpen', layername)
+    var layer_name = $(this).attr('id').replace("_rename", "")
+    EventBus.$emit('assignLayerNameModalOpen', layer_name)
   })
 
   // Send EventBus on story click option
