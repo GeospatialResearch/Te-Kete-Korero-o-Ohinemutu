@@ -4,8 +4,22 @@
 
     <div v-if="isStoryViewMode" class="mt-5 mb-5">
       <span class="badge badge-warning mb-2 p-2" style="vertical-align: middle;">{{ story.status }}</span>
+      <span class="badge badge-success mb-2" style="vertical-align: middle;" v-html="story.story_type ? story.story_type.type : ''" />
+      <div v-if="story.approx_time">
+        <span class="badge mb-2" style="vertical-align: middle;" v-html="story.approx_time.start_time" />
+        <span class="badge mb-2" style="vertical-align: middle;" v-html="story.approx_time.end_time != '' ? '-' : ''" />
+        <span class="badge mb-2" style="vertical-align: middle;" v-html="story.approx_time.end_time != '' ? story.approx_time.end_time : ''" />
+      </div>
       <h4 v-html="story.length == 0 ? '' : story.title" />
       <p class="story-summary" v-html="story.length == 0 ? '' : story.summary" />
+      <h6 v-html="story.atua == '' ? '' : 'Atua'" />
+      <div v-if="story.atua">
+        <ul v-for="atua in allAtuas" :key="atua.id">
+          <li v-if="story.atua.includes(atua.id)" :key="atua.id">
+            {{ atua.name }}
+          </li>
+        </ul>
+      </div>
       <hr />
       <div v-for="element in story.storyBodyElements" :key="element.id" class="col-md-12">
         <div v-if="element.element_type == 'TEXT'">
@@ -47,7 +61,50 @@
           <h5 class="mb-0">
             Summary
           </h5>
-          <textarea v-model="story.summary" required class="form-control form-control-sm" title="Story summary" />
+          <textarea v-model="story.summary" required class="form-control form-control-sm mb-3" title="Story summary" />
+          <h5 v-if="story.atua" class="mb-0">
+            Atua
+          </h5>
+          <select v-model="story.atua" required class="form-control form-control-sm mb-3" multiple>
+            <option v-for="item in allAtuas" :key="item.id" :value="item.id">
+              {{ item.name }}
+            </option>
+          </select>
+          <h5 class="mb-0">
+            Story Type
+          </h5>
+          <select v-model="story.story_type_id" required class="form-control form-control-sm mb-3">
+            <option key="SELECT" value="" selected disabled>
+              Select story type
+            </option>
+            <option v-for="item in allStoryTypes" :key="item.id" :value="item.id">
+              {{ item.type }}
+            </option>
+          </select>
+          <h5 class="mb-0">
+            Date
+          </h5>
+          <select v-model="story.approx_time_type" required class="form-control form-control-sm" @change="onChange">
+            <option key="SELECT" value="" selected disabled>
+              Select date type
+            </option>
+            <option key="PRECISE_DATE" value="PRECISE_DATE">
+              PRECISE DATE
+            </option>
+            <option key="DATE_RANGE" value="DATE_RANGE">
+              DATE RANGE
+            </option>
+          </select>
+          <div v-if="selectedDateType === 'PRECISE_DATE'">
+            <!-- <input v-model="story.start_time" type="text" class="form-control form-control-sm mb-3" title="start time"> -->
+            <input v-model="story.start_time" required type="date" class="form-control form-control-sm" title="Date">
+          </div>
+
+          <div v-if="selectedDateType === 'DATE_RANGE'">
+            <!-- max is hardcoded as 2020 for now, later will change the max to current year -->
+            <input v-model="story.start_time" required min="1" max="2019" type="number" class="form-control form-control-sm" title="Start date" placeholder="Start">
+            <input v-model="story.end_time" required min="1" max="2019" type="number" class="form-control form-control-sm" title="End date" placeholder="End">
+          </div>
         </div>
       </form>
 
@@ -73,10 +130,10 @@
           <div v-for="element in story.storyBodyElements" :key="element.id" class="row mb-2">
             <div class="col-md-11 mt-3">
               <div class="text-center handle">
-                <button class="btn btn-sm btn-secondary drag-element handle">
+                <span class="btn btn-sm btn-secondary drag-element handle">
                   Drag me&nbsp;
                   <i><font-awesome-icon icon="arrows-alt" /></i>
-                </button>
+                </span>
               </div>
               <div v-if="element.element_type == 'GEOM'">
                 <div class="story-elem-geom text-center">
@@ -114,7 +171,8 @@
               <textarea v-if="!['TEXT','GEOM'].includes(element.element_type)" v-model="element.media_description" rows="1" class="form-control form-control-sm mt-1" title="Media description" placeholder="Media description (optional)" />
             </div>
             <div class="col-md-1 delete-element">
-              <font-awesome-icon disabled icon="times-circle" size="lg" color="grey" class="pointer" title="Delete element" @click="deleteElementModal(element)" />
+              <font-awesome-icon disabled icon="cog" size="lg" color="grey" class="pointer" title="Settings" @click="settingsElementModal(element)" />
+              <font-awesome-icon disabled icon="times-circle" size="lg" color="grey" class="pointer ml-2" title="Delete element" @click="deleteElementModal(element)" />
             </div>
           </div>
         </draggable>
@@ -187,15 +245,48 @@
             </div>
           </div>
           <div class="modal-footer">
-            <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="cancelAddMediaElement()">
+            <span class="btn btn-secondary" data-dismiss="modal" @click="cancelAddMediaElement()">
               <span v-if="!uploadError">Cancel</span>
               <span v-else>Close</span>
-            </button> -->
+            </span>
             <button v-if="!uploadError && !isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary" data-dismiss="modal" @click="addMediaElement()">
               Add media to story
             </button>
             <button v-if="!uploadError && isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary" data-dismiss="modal" @click="addGeomAttrMedia()">
               Add media to geometry
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="settingsElementModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Content Type</h5>
+          </div>
+          <div class="modal-body">
+            <!-- <div v-if="story.length > 0"> -->
+            <h5 v-if="allElementContentTypes" class="mb-0">
+              Content Type
+            </h5>
+            <select v-model="elementContentType" class="form-control form-control-sm">
+              <option key="SELECT" value="" selected disabled>
+                Select story type
+              </option>
+              <option v-for="item in allElementContentTypes" :key="item.id" :value="item.id">
+                {{ item.type }}
+              </option>
+            </select>
+            <!-- </div> -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Cancel
+            </button>
+            <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="setElementContentType()">
+              Done
             </button>
           </div>
         </div>
@@ -349,11 +440,13 @@ export default {
       ],
       tempMediaDescription: null,
       uploadedFile: null,
-      elementToDelete: null,
+      // elementToDelete: null,
+      selectedElement: null,
       magnifyImageElem: null,
       isGeomMedia: false,
       mediaForGeomAttr: null,
-      geomsUsage: null
+      geomsUsage: null,
+      elementContentType: null
     }
   },
   computed: {
@@ -396,6 +489,19 @@ export default {
         $('#sidePanel :button').prop('disabled', false)
       }
       return this.$store.state.reuseMode
+    },
+    allAtuas()
+    {
+      return this.$store.state.allAtuas
+    },
+    allStoryTypes(){
+      return this.$store.state.allStoryTypes
+    },
+    selectedDateType(){
+      return this.$store.state.date_type_temp
+    },
+    allElementContentTypes(){
+      return this.$store.state.allElementContentTypes
     },
   },
   mounted: function () {
@@ -444,6 +550,10 @@ export default {
 
   },
   methods: {
+    onChange(e){
+      console.log("ON CHANGE.....")
+      this.$store.commit('SET_DATE_TYPE',e.target.value )
+    },
     closePanel() {
       this.$store.commit('SET_PANEL_OPEN', false)
       EventBus.$emit('removeLayer', 'storyGeomsLayer')
@@ -593,23 +703,48 @@ export default {
       }
     },
     editStory: function () {
+      if (this.story.story_type) {
+        this.story.story_type_id = this.story.story_type.id
+      }
+      if (this.story.approx_time) {
+        this.story.approx_time_type = this.story.approx_time.type,
+        this.story.start_time = this.story.approx_time.start_time,
+        this.story.end_time = this.story.approx_time.end_time
+      }
       this.$store.commit('SET_STORY_VIEW_MODE', false)
       EventBus.$emit('resetDrawnFeature')
     },
+    settingsElementModal: function (element) {
+      if (!this.isDrawMode) {
+        this.selectedElement = element
+
+        if (element && element.hasOwnProperty('content_type') && element.content_type.hasOwnProperty('id')) {
+          this.elementContentType = element.content_type.id
+        } else if  (element && element.hasOwnProperty('content_type')) {
+          this.elementContentType = element.content_type
+        } else{
+          this.elementContentType = ''
+        }
+        $('#settingsElementModal').modal('show')
+      }
+    },
+    setElementContentType: function () {
+      this.selectedElement.content_type = this.elementContentType
+    },
     deleteElementModal: function (element) {
       if (!this.isDrawMode) {
-        this.elementToDelete = element
+        this.selectedElement = element
         $('#deleteElementModal').modal('show')
       }
     },
     deleteElement: function () {
-      if (this.elementToDelete.hasOwnProperty('id')) {
-        this.$store.dispatch('deleteStoryBodyElement', this.elementToDelete)
+      if (this.selectedElement.hasOwnProperty('id')) {
+        this.$store.dispatch('deleteStoryBodyElement', this.selectedElement)
         .then(() => {
           this.clean()
         })
       } else {
-        var index = this.story.storyBodyElements.indexOf(this.elementToDelete)
+        var index = this.story.storyBodyElements.indexOf(this.selectedElement)
         if (index > -1) {
             this.story.storyBodyElements.splice(index, 1)
         }
@@ -617,11 +752,11 @@ export default {
       }
     },
     clean: function () {
-      if (['IMG', 'VIDEO', 'AUDIO'].includes(this.elementToDelete.element_type)) {
+      if (['IMG', 'VIDEO', 'AUDIO'].includes(this.selectedElement.element_type)) {
         this.cleanUnusedMediaFiles()
-      } else if (this.elementToDelete.element_type === 'GEOM') {
+      } else if (this.selectedElement.element_type === 'GEOM') {
         this.cleanUnusedGeomAttrs()
-        EventBus.$emit('removeStoryGeomFromMap', this.elementToDelete.geom_attr)
+        EventBus.$emit('removeStoryGeomFromMap', this.selectedElement.geom_attr)
       }
     },
     cleanUnusedMediaFiles: function () {

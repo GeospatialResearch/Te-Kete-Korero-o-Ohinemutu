@@ -620,6 +620,9 @@ export default {
     Promise.all([
       this.$store.dispatch('getDatasets'),
       this.$store.dispatch('getStories'),
+      this.$store.dispatch('getAtuas'),
+      this.$store.dispatch('getStoryTypes'),
+      this.$store.dispatch('getElementContentTypes'),
       this.$store.dispatch('getWebsiteTranslation')
     ]).then(() => {
       // Create the map
