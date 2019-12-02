@@ -3,9 +3,9 @@
     <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closeStory()" />
 
     <div v-if="isStoryViewMode" class="mt-5 mb-5">
-      <span class="badge badge-warning mb-2 p-2">{{ story.status }}</span>
-      <span v-if="story.story_type" class="badge badge-success mb-2 p-2 float-right">{{ story.story_type.type }}</span>
-      <div>
+      <span class="badge badge-warning mb-2 p-2" title="Story status">{{ story.status }}</span>
+      <span v-if="story.story_type" class="badge badge-success mb-2 p-2 float-right" title="Story type">{{ story.story_type.type }}</span>
+      <div title="Story Date">
         <p v-if="story.approx_time.type === 'PRECISE_DATE'" class="badge badge-light mb-2 p-2 float-right">
           {{ story.approx_time.date }}
         </p>
@@ -19,8 +19,8 @@
         </div>
       </div>
       <div class="mt-5">
-        <h4>{{ story.title }}</h4>
-        <p class="story-summary">
+        <h4 title="Story title">{{ story.title }}</h4>
+        <p class="story-summary" title="Story summary">
           {{ story.summary }}
         </p>
         <div v-if="story.atua" class="float-right" style="font-size:13px;">

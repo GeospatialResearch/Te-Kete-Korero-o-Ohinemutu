@@ -649,6 +649,7 @@
           EventBus.$emit('createLayer', layer, 'external') // we need to send the configurations of the layer
         } else {
           EventBus.$emit('removeLayer', layerkey)
+          EventBus.$emit('resetSelectedFeatures')
         }
         // check if there are active layers and show resolution notification if needed
         EventBus.$emit('resolutionNotification')
@@ -659,6 +660,7 @@
           EventBus.$emit('createLayer', layerkey, 'internal') // the layerkey is enough to request the geoserver layer
         } else {
           EventBus.$emit('removeLayer', layerkey)
+          EventBus.$emit('resetSelectedFeatures')
         }
       },
       changeLayerVisibility_allStoriesGeomsLayer () {
@@ -667,6 +669,7 @@
           this.$store.commit('RESTORE_ALL_USEDSTORIESGEOMETRIES', false)
         } else {
           EventBus.$emit('removeLayer', 'allStoriesGeomsLayer')
+          EventBus.$emit('resetSelectedFeatures')
         }
       },
       createPopoverInfo (layer) {

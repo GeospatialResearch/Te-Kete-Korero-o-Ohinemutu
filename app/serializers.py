@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, ListField, SerializerMethodField, JSONField, UUIDField, PrimaryKeyRelatedField
+from rest_framework.serializers import ModelSerializer, ListField, SerializerMethodField, JSONField, PrimaryKeyRelatedField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType
 from django.contrib.gis.geos import GEOSGeometry
@@ -159,8 +159,8 @@ class MediaFileSerializer(ModelSerializer):
 
 
 class StoryGeomAttribMediaSerializer(ModelSerializer):
-    mediafile_temp = UUIDField(write_only=True)
-    geomattr_temp = UUIDField(write_only=True)
+    mediafile_temp = PrimaryKeyRelatedField(write_only=True, queryset=MediaFile.objects.all())
+    geomattr_temp = PrimaryKeyRelatedField(write_only=True, queryset=StoryGeomAttrib.objects.all())
 
     class Meta:
         model = StoryGeomAttribMedia
@@ -168,12 +168,10 @@ class StoryGeomAttribMediaSerializer(ModelSerializer):
         depth = 1
 
     def create(self, validated_data):
-        mediafile = MediaFile.objects.get(id = validated_data.pop('mediafile_temp'))
-        geom_attr = StoryGeomAttrib.objects.get(id = validated_data.pop('geomattr_temp'))
-        validated_data['mediafile'] = mediafile
-        validated_data['geom_attr'] = geom_attr
+        mediafile = validated_data.pop('mediafile_temp')
+        geom_attr = validated_data.pop('geomattr_temp')
 
-        storyGeomAttribMedia = StoryGeomAttribMedia.objects.create(**validated_data)
+        storyGeomAttribMedia = StoryGeomAttribMedia.objects.create(**validated_data, mediafile=mediafile, geom_attr=geom_attr)
         return storyGeomAttribMedia
 
 
