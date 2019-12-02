@@ -37,8 +37,12 @@ const store = new Vuex.Store({
       storyBodyElements: [],
       atua: [],
       story_type_id: '',
-      approx_time_type: '',
-      end_time: ''
+      approx_time: {
+        type: '',
+        date: null,
+        start_time: null,
+        end_time: null
+      }
     },
     drawMode: false,
     storyViewMode: true,
@@ -49,8 +53,7 @@ const store = new Vuex.Store({
     lang: 'eng',
     allAtuas: [],
     allStoryTypes: [],
-    allElementContentTypes: [],
-    date_type_temp:''
+    allElementContentTypes: []
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -145,9 +148,12 @@ const store = new Vuex.Store({
         storyBodyElements: [],
         atua: [],
         story_type_id: '',
-        approx_time_type: '',
-        start_time: '',
-        end_time: ''
+        approx_time: {
+          type: '',
+          date: null,
+          start_time: null,
+          end_time: null
+        }
       }
     },
     ADD_FEATURES_FOR_REUSE (state, f) {
@@ -171,11 +177,6 @@ const store = new Vuex.Store({
     },
     SET_LANG (state, value) {
       state.lang = value
-    },
-    SET_DATE_TYPE (state, value) {
-      console.log("setting...check next value below ",value)
-      state.date_type_temp = value
-      console.log(state.date_type_temp)
     },
     SET_ALL_USEDSTORIESGEOMETRIES (state, payload) {
       state.allStoriesGeomsLayer.allUsedStoriesGeometriesObj = payload.allusedgeomsObj
@@ -285,11 +286,6 @@ const store = new Vuex.Store({
           if (response.body.story_type) {
             response.body.story_type_id = response.body.story_type.id
           }
-          if (response.body.approx_time) {
-          response.body.approx_time_type = response.body.approx_time.type,
-          response.body.start_time = response.body.approx_time.start_time,
-          response.body.end_time = response.body.approx_time.end_time
-          }
           store.commit('SET_STORY_CONTENT', response.body)
           return response.body
           })
@@ -300,15 +296,6 @@ const store = new Vuex.Store({
       delete story['storyBodyElements']
       story.atua_temp = story.atua
       delete story['atua']
-      var end_time = story.end_time
-      if (story.approx_time_type === "PRECISE_DATE") {
-        end_time = ''
-      }
-      story.approx_time = {
-        "type" : story.approx_time_type,
-        "start_time": story.start_time,
-        "end_time" : end_time
-      }
       return api.patch(apiRoot + '/stories/' + story.id + '/', story)
         .then((response) => {
           store.dispatch('getStories')
@@ -320,15 +307,6 @@ const store = new Vuex.Store({
       delete story['storyBodyElements']
       story.atua_temp = story.atua
       delete story['atua']
-      var end_time = story.end_time
-      if (story.approx_time_type === "PRECISE_DATE") {
-        end_time = ''
-      }
-      story.approx_time = {
-        "type" : story.approx_time_type,
-        "start_time": story.start_time,
-        "end_time" : end_time
-      }
       return api.post(apiRoot + '/stories/', story)
         .then((response) => {
           store.dispatch('getStories')

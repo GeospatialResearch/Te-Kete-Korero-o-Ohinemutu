@@ -29,18 +29,20 @@ class ContentTypeSerializer(ModelSerializer):
     class Meta:
         model = ContentType
         fields = '__all__'
-        
+
 
 class StorySerializer(ModelSerializer):
     storyBodyElements_temp = ListField(write_only=True)
-    storyBodyElements = SerializerMethodField()
     atua_temp = PrimaryKeyRelatedField(write_only=True,many=True,queryset=Atua.objects.all())
-    story_type = StoryTypeSerializer(read_only=True)
     story_type_id = PrimaryKeyRelatedField(source="StoryType",queryset=StoryType.objects.all(),required=False)
+
+    storyBodyElements = SerializerMethodField()
+    story_type = StoryTypeSerializer(read_only=True)
 
     class Meta:
         model = Story
         fields = '__all__'
+        read_only_fields = ('atua',)
 
     def get_storyBodyElements(self, story):
         sb = StoryBodyElement.objects.filter(story=story)
@@ -51,6 +53,7 @@ class StorySerializer(ModelSerializer):
         elements = validated_data.pop('storyBodyElements_temp')
         atuas = validated_data.pop('atua_temp')
         story_type_data =  validated_data.pop('StoryType')
+
         story = Story.objects.create(**validated_data,story_type=story_type_data)
 
         for atua in atuas:
@@ -75,9 +78,8 @@ class StorySerializer(ModelSerializer):
     def update(self, instance, validated_data):
         storyBodyElements = validated_data.pop('storyBodyElements_temp')
         atuas = validated_data.pop('atua_temp')
-        story_type_data =  validated_data.pop('StoryType')
+        instance.story_type = validated_data.pop('StoryType')
         instance.atua.clear()
-        instance.story_type=story_type_data
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

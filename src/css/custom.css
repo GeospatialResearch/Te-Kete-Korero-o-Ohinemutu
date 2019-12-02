@@ -99,10 +99,10 @@ html, body {
   z-index: 1000;
 }
 
-.loader-upload {
+.loader-loading {
   position:fixed;
   top: 50%;
-  left: 58%;
+  /* left: 58%; */
   z-index: 1001;
   border: 8px solid #878282; /* Light grey */
   border-top: 8px solid #ecf1f4; /* Blue */
@@ -121,7 +121,7 @@ html, body {
 .loading-info {
   position: fixed;
   top: 58%;
-  left: 54%;
+  /* left: 54%; */
   z-index: 1102;
   color: white;
 }
@@ -403,6 +403,10 @@ html, body {
 }
 .ql-text a {
   color: #06c !important;
+}
+
+.ql-text p {
+  margin-bottom: 0;
 }
 /* Quill style for DOM */
 

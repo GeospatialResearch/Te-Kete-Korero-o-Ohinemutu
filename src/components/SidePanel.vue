@@ -3,51 +3,69 @@
     <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closeStory()" />
 
     <div v-if="isStoryViewMode" class="mt-5 mb-5">
-      <span class="badge badge-warning mb-2 p-2" style="vertical-align: middle;">{{ story.status }}</span>
-      <span class="badge badge-success mb-2" style="vertical-align: middle;" v-html="story.story_type ? story.story_type.type : ''" />
-      <div v-if="story.approx_time">
-        <span class="badge mb-2" style="vertical-align: middle;" v-html="story.approx_time.start_time" />
-        <span class="badge mb-2" style="vertical-align: middle;" v-html="story.approx_time.end_time != '' ? '-' : ''" />
-        <span class="badge mb-2" style="vertical-align: middle;" v-html="story.approx_time.end_time != '' ? story.approx_time.end_time : ''" />
-      </div>
-      <h4 v-html="story.length == 0 ? '' : story.title" />
-      <p class="story-summary" v-html="story.length == 0 ? '' : story.summary" />
-      <h6 v-html="story.atua == '' ? '' : 'Atua'" />
-      <div v-if="story.atua">
-        <ul v-for="atua in allAtuas" :key="atua.id">
-          <li v-if="story.atua.includes(atua.id)" :key="atua.id">
-            {{ atua.name }}
-          </li>
-        </ul>
-      </div>
-      <hr />
-      <div v-for="element in story.storyBodyElements" :key="element.id" class="col-md-12">
-        <div v-if="element.element_type == 'TEXT'">
-          <div class="ql-text" v-html="element.text" />
-        </div>
-        <div v-if="element.element_type == 'GEOM'">
-          <div :id="element.geom_attr.id" class="text-center m-4 geometry-name">
-            <i><font-awesome-icon icon="map-marked-alt" size="lg" class="pointer" title="Zoom to geometry" @click="zoomToGeometry(element)" /></i>&nbsp;
-            <strong><span class="ql-text" v-html="element.geom_attr.name" /></strong>
-          </div>
-        </div>
-        <div class="align-center">
-          <div v-if="element.element_type == 'IMG'">
-            <img :src="mediaRoot + element.mediafile_name" class="story-elem-img img-fluid">
-            <i><font-awesome-icon icon="search-plus" size="lg" class="positioner-magnify" @click="magnifyImage(element)" /></i>
-          </div>
-
-          <video v-if="element.element_type == 'VIDEO'" controls controlsList="nodownload" class="story-elem-video">
-            <source :src="mediaRoot + element.mediafile_name" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-          <audio v-if="element.element_type == 'AUDIO'" controls controlsList="nodownload">
-            <source :src="mediaRoot + element.mediafile_name" type="audio/mpeg">
-            Your browser does not support the audio element.
-          </audio>
-          <p v-if="element.element_type != 'TEXT'" class="media-caption">
-            {{ element.media_description }}
+      <span class="badge badge-warning mb-2 p-2">{{ story.status }}</span>
+      <span v-if="story.story_type" class="badge badge-success mb-2 p-2 float-right">{{ story.story_type.type }}</span>
+      <div>
+        <p v-if="story.approx_time.type === 'PRECISE_DATE'" class="badge badge-light mb-2 p-2 float-right">
+          {{ story.approx_time.date }}
+        </p>
+        <div v-else>
+          <p v-if="story.approx_time.end_time" class="badge badge-light mb-2 p-2 float-right">
+            {{ story.approx_time.start_time }} - {{ story.approx_time.end_time }}
           </p>
+          <p v-else class="badge badge-light mb-2 p-2 float-right">
+            {{ story.approx_time.start_time }} - present
+          </p>
+        </div>
+      </div>
+      <div class="mt-5">
+        <h4>{{ story.title }}</h4>
+        <p class="story-summary">
+          {{ story.summary }}
+        </p>
+        <div v-if="story.atua" class="float-right" style="font-size:13px;">
+          Atua:
+          <i v-for="atua in allAtuas" :key="atua.id">
+            <strong v-if="story.atua.includes(atua.id)" :key="atua.id">
+              {{ atua.name }}&nbsp;
+            </strong>
+          </i>
+        </div>
+
+        <hr class="mt-5" />
+      </div>
+
+
+      <div v-for="element in story.storyBodyElements" :key="element.id" class="col-md-12">
+        <font-awesome-icon v-if="element.content_type" disabled icon="info-circle" color="grey" class="pointer float-right" :title="element.content_type.type" />
+        <div :class="element.content_type?'mr-4':''">
+          <div v-if="element.element_type == 'TEXT'">
+            <div class="ql-text mb-4" v-html="element.text" />
+          </div>
+          <div v-if="element.element_type == 'GEOM'">
+            <div :id="element.geom_attr.id" class="text-center m-4 geometry-name">
+              <i><font-awesome-icon icon="map-marked-alt" size="lg" class="pointer" title="Zoom to geometry" @click="zoomToGeometry(element)" /></i>&nbsp;
+              <strong>{{ element.geom_attr.name }}</strong>
+            </div>
+          </div>
+          <div class="align-center">
+            <div v-if="element.element_type == 'IMG'">
+              <img :src="mediaRoot + element.mediafile_name" class="story-elem-img img-fluid">
+              <i><font-awesome-icon icon="search-plus" size="lg" class="positioner-magnify" @click="magnifyImage(element)" /></i>
+            </div>
+
+            <video v-if="element.element_type == 'VIDEO'" controls controlsList="nodownload" class="story-elem-video">
+              <source :src="mediaRoot + element.mediafile_name" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <audio v-if="element.element_type == 'AUDIO'" controls controlsList="nodownload">
+              <source :src="mediaRoot + element.mediafile_name" type="audio/mpeg">
+              Your browser does not support the audio element.
+            </audio>
+            <p v-if="element.element_type != 'TEXT'" class="media-caption">
+              {{ element.media_description }}
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -65,7 +83,7 @@
           <h5 v-if="story.atua" class="mb-0">
             Atua
           </h5>
-          <select v-model="story.atua" required class="form-control form-control-sm mb-3" multiple>
+          <select v-model="story.atua" required class="form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Atua">
             <option v-for="item in allAtuas" :key="item.id" :value="item.id">
               {{ item.name }}
             </option>
@@ -84,7 +102,7 @@
           <h5 class="mb-0">
             Date
           </h5>
-          <select v-model="story.approx_time_type" required class="form-control form-control-sm" @change="onChange">
+          <select v-model="story.approx_time.type" required class="form-control form-control-sm mb-2" @change="onChange">
             <option key="SELECT" value="" selected disabled>
               Select date type
             </option>
@@ -95,15 +113,28 @@
               DATE RANGE
             </option>
           </select>
-          <div v-if="selectedDateType === 'PRECISE_DATE'">
-            <!-- <input v-model="story.start_time" type="text" class="form-control form-control-sm mb-3" title="start time"> -->
-            <input v-model="story.start_time" required type="date" class="form-control form-control-sm" title="Date">
+          <div v-if="story.approx_time.type === 'PRECISE_DATE'" class="container">
+            <div class="row col-md-12 text-center">
+              <div class="col-md-3" />
+              <div class="form-group col-md-6">
+                <input v-model="story.approx_time.date" required type="date" class="form-control form-control-sm" title="Date">
+              </div>
+              <div class="col-md-3" />
+            </div>
           </div>
 
-          <div v-if="selectedDateType === 'DATE_RANGE'">
-            <!-- max is hardcoded as 2020 for now, later will change the max to current year -->
-            <input v-model="story.start_time" required min="1" max="2019" type="number" class="form-control form-control-sm" title="Start date" placeholder="Start">
-            <input v-model="story.end_time" required min="1" max="2019" type="number" class="form-control form-control-sm" title="End date" placeholder="End">
+          <div v-if="story.approx_time.type === 'DATE_RANGE'" class="container">
+            <div class="row col-md-12">
+              <div class="form-group col-md-6">
+                <input v-model="story.approx_time.start_time" required min="1" max="2019" type="number" class="form-control form-control-sm" title="Start date" placeholder="Start (year)">
+              </div>
+              <div class="form-group col-md-6">
+                <input v-model="story.approx_time.end_time" :disabled="!story.approx_time.start_time" :min="story.approx_time.start_time" max="2019" type="number" class="form-control form-control-sm" title="End date" placeholder="End (year)">
+                <div class="invalid-feedback">
+                  The end date must be equal or greater than the start date.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </form>
@@ -179,7 +210,7 @@
       </div>
     </div>
     <div class="clear" />
-    <div :class="[togglePanel ? 'col-md-6 visible': 'invisible', 'row sidepanel-footer']">
+    <div :class="[togglePanel ? 'col-md-5 visible': 'col-md-0 invisible', 'row sidepanel-footer']">
       <div class="col-md-10">
         <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
           Update story
@@ -272,7 +303,7 @@
               Content Type
             </h5>
             <select v-model="elementContentType" class="form-control form-control-sm">
-              <option key="SELECT" value="" selected disabled>
+              <option key="SELECT" value="" selected>
                 Select story type
               </option>
               <option v-for="item in allElementContentTypes" :key="item.id" :value="item.id">
@@ -440,7 +471,6 @@ export default {
       ],
       tempMediaDescription: null,
       uploadedFile: null,
-      // elementToDelete: null,
       selectedElement: null,
       magnifyImageElem: null,
       isGeomMedia: false,
@@ -497,9 +527,9 @@ export default {
     allStoryTypes(){
       return this.$store.state.allStoryTypes
     },
-    selectedDateType(){
-      return this.$store.state.date_type_temp
-    },
+    // selectedDateType(){
+    //   return this.$store.state.date_type_temp
+    // },
     allElementContentTypes(){
       return this.$store.state.allElementContentTypes
     },
@@ -550,11 +580,15 @@ export default {
 
   },
   methods: {
-    onChange(e){
-      console.log("ON CHANGE.....")
-      this.$store.commit('SET_DATE_TYPE',e.target.value )
+    onChange (e) {
+      this.story.approx_time = {
+        type: e.target.value,
+        date: null,
+        start_time: null,
+        end_time: null
+      }
     },
-    closePanel() {
+    closePanel () {
       this.$store.commit('SET_PANEL_OPEN', false)
       EventBus.$emit('removeLayer', 'storyGeomsLayer')
       EventBus.$emit('resetDrawnFeature')
@@ -640,12 +674,16 @@ export default {
       var storyform = document.getElementById(this.story.id + "_storyform")
 
       if (storyform.checkValidity()) {
-        // Remove empty text elements from storyBodyElements array
         const elements = this.story.storyBodyElements
         some(this.story.storyBodyElements, function (el, i) {
+          // Remove empty text elements from storyBodyElements array
           if (el.element_type === 'TEXT' && (el.text === undefined || el.text === null || el.text === "")) {
             elements.splice(i, 1)
             return true
+          }
+          // Replace empty string by null
+          if (el.content_type === "") {
+            el.content_type = null
           }
         })
 
@@ -706,11 +744,6 @@ export default {
       if (this.story.story_type) {
         this.story.story_type_id = this.story.story_type.id
       }
-      if (this.story.approx_time) {
-        this.story.approx_time_type = this.story.approx_time.type,
-        this.story.start_time = this.story.approx_time.start_time,
-        this.story.end_time = this.story.approx_time.end_time
-      }
       this.$store.commit('SET_STORY_VIEW_MODE', false)
       EventBus.$emit('resetDrawnFeature')
     },
@@ -718,13 +751,16 @@ export default {
       if (!this.isDrawMode) {
         this.selectedElement = element
 
-        if (element && element.hasOwnProperty('content_type') && element.content_type.hasOwnProperty('id')) {
-          this.elementContentType = element.content_type.id
-        } else if  (element && element.hasOwnProperty('content_type')) {
-          this.elementContentType = element.content_type
-        } else{
-          this.elementContentType = ''
+        if (element) {
+          if (element.hasOwnProperty('content_type')) {
+            if (element.content_type && element.content_type.hasOwnProperty('id')) {
+              this.elementContentType = element.content_type.id
+            } else {
+              this.elementContentType = ''
+            }
+          }
         }
+
         $('#settingsElementModal').modal('show')
       }
     },

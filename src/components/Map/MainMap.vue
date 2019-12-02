@@ -108,9 +108,9 @@
     </div>
 
     <div v-if="isUploadingData || isLoading" class="loading-background" />
-    <div v-if="isUploadingData || isLoading" class="loader-upload" />
+    <div v-if="isUploadingData || isLoading" class="loader-loading" :style="togglePanel?'left: 38%;':'left: 55%;'" />
     <div v-if="isUploadingData">
-      <p class="loading-info text-center">
+      <p class="loading-info text-center" :style="togglePanel?'left: 35%;':'left: 54%;'">
         Uploading data... <br>
         This may take several minutes
       </p>

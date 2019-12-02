@@ -577,7 +577,7 @@
     methods: {
       openPanel (){
         if (!this.$store.state.storyViewMode) {
-          this.$store.state.date_type_temp = ''
+          // this.$store.state.date_type_temp = ''
           $('#storyIsBeingEditedWarningModal').modal('show')
         } else {
           this.$store.commit('RESET_STORY_FORM')
