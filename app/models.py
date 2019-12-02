@@ -30,12 +30,31 @@ class Dataset(models.Model):
     assigned_name = models.CharField(max_length=200, default=None, blank=True, null=True)
 
 
+class StoryType(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    type = models.CharField(max_length=100)
+    description = models.TextField(max_length=200,blank=True, null=True)
+
+
+class Atua(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ['name']
+
+
 class Story(models.Model):
     STATUS = Choices(
         ('DRAFT', 'DRAFT'),
         ('SUBMITTED', 'SUBMITTED'),
         ('ACCEPTED', 'ACCEPTED'),
         ('PUBLISHED', 'PUBLISHED')
+    )
+
+    DATE_TYPE = Choices(
+        ('PRECISE_DATE', 'PRECISE DATE'),
+        ('DATE_RANGE', 'DATE RANGE')
     )
 
     id = models.UUIDField(
@@ -47,6 +66,9 @@ class Story(models.Model):
     title = models.CharField(max_length=50)
     summary = models.TextField(max_length=1000)
     status = models.CharField(max_length=20, default=STATUS.DRAFT, null=False, choices=STATUS)
+    approx_time = JSONField(default=None, blank=True, null=True)
+    atua =  models.ManyToManyField("Atua")
+    story_type = models.ForeignKey(StoryType,blank=True, null=True,on_delete=models.CASCADE)
 
 
 class MediaFile(models.Model):
@@ -81,6 +103,11 @@ class StoryGeomAttribMedia(models.Model):
     media_description = models.TextField(max_length=400, default=None, blank=True, null=True)
 
 
+class ContentType(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    type = models.CharField(max_length=100)
+
+
 class StoryBodyElement(models.Model):
     ELEMENT_TYPES = Choices(
         ('TEXT', 'TEXT'),
@@ -98,6 +125,7 @@ class StoryBodyElement(models.Model):
     media_description = models.TextField(max_length=400, default=None, blank=True, null=True)
     geom_attr = models.ForeignKey(StoryGeomAttrib, on_delete=models.CASCADE, blank=True, null=True)
     order_position = models.IntegerField(blank=True, null=True)
+    content_type = models.ForeignKey(ContentType,blank=True, null=True,on_delete=models.CASCADE)
 
 
 class WebsiteTranslation(models.Model):

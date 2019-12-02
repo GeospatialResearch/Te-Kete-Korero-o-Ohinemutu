@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin, register
 from django.contrib.gis.admin import GeoModelAdmin
-from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation
+from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType
 
 # Register your models here.
 
@@ -40,9 +40,20 @@ class MediaFileAdmin(ModelAdmin):
 @register(WebsiteTranslation)
 class WebsiteTranslationAdmin(ModelAdmin):
     list_display = ['field_name', 'eng', 'mao']
-    readonly_fields = ["field_name"]
+    readonly_fields = ["field_name"] # since the variables in the website code depend on the field_name
 
+    # disable add and delete records since the field_name must be used in the website code
     def has_add_permission(self, request, obj=None):
         return False
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@register(Atua)
+class AtuaAdmin(ModelAdmin):
+    list_display = ['name']
+
+
+@register(StoryType)
+class StoryTypeAdmin(ModelAdmin):
+    list_display = ['type']

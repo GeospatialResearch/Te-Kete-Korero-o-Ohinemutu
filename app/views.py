@@ -6,9 +6,9 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer
+from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation
+from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType
 from tempfile import TemporaryDirectory
 import zipfile
 import os
@@ -379,6 +379,7 @@ class CleanGeomsView(APIView):
 class DatasetViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DatasetSerializer
     queryset = Dataset.objects.all()
+    
 
 class StoryViewSet(viewsets.ModelViewSet):
     serializer_class = StorySerializer
@@ -388,6 +389,7 @@ class StoryViewSet(viewsets.ModelViewSet):
         serializer.save()
     def perform_update(self,serializer):
         serializer.save()
+
 
 class StoryBodyElementViewSet(viewsets.ModelViewSet):
     serializer_class = StoryBodyElementSerializer
@@ -401,6 +403,21 @@ class StoryBodyElementViewSet(viewsets.ModelViewSet):
             return queryset
 
         return self.queryset
+
+
+class AtuaViewSet(viewsets.ModelViewSet):
+    serializer_class = AtuaSerializer
+    queryset = Atua.objects.all()
+
+
+class StoryTypeViewSet(viewsets.ModelViewSet):
+    serializer_class = StoryTypeSerializer
+    queryset = StoryType.objects.all()
+
+
+class ContentTypeViewSet(viewsets.ModelViewSet):
+    serializer_class = ContentTypeSerializer
+    queryset = ContentType.objects.all()
 
 
 class StoryGeomAttribViewSet(viewsets.ModelViewSet):

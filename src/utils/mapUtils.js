@@ -356,7 +356,7 @@ var removeStoryGeomsFromStoriesGeomsLayer = function () {
     }
   })
 
-  if (storyfeaturesId) {
+  if (storyfeaturesId.length > 0) {
     map.getLayers().forEach( (layer) => {
       if (layer.get('name') === 'allStoriesGeomsLayer') {
         var features = layer.getSource().getFeatures()

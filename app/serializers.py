@@ -1,6 +1,6 @@
-from rest_framework.serializers import ModelSerializer,ListField,SerializerMethodField, JSONField, UUIDField
+from rest_framework.serializers import ModelSerializer, ListField, SerializerMethodField, JSONField, UUIDField, PrimaryKeyRelatedField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation
+from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType
 from django.contrib.gis.geos import GEOSGeometry
 
 
@@ -11,13 +11,38 @@ class DatasetSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class AtuaSerializer(ModelSerializer):
+    class Meta:
+        model = Atua
+        fields = '__all__'
+
+
+
+class StoryTypeSerializer(ModelSerializer):
+    class Meta:
+        model = StoryType
+        fields = '__all__'
+
+
+
+class ContentTypeSerializer(ModelSerializer):
+    class Meta:
+        model = ContentType
+        fields = '__all__'
+
+
 class StorySerializer(ModelSerializer):
     storyBodyElements_temp = ListField(write_only=True)
+    atua_temp = PrimaryKeyRelatedField(write_only=True,many=True,queryset=Atua.objects.all())
+    story_type_id = PrimaryKeyRelatedField(source="StoryType",queryset=StoryType.objects.all(),required=False)
+
     storyBodyElements = SerializerMethodField()
+    story_type = StoryTypeSerializer(read_only=True)
 
     class Meta:
         model = Story
         fields = '__all__'
+        read_only_fields = ('atua',)
 
     def get_storyBodyElements(self, story):
         sb = StoryBodyElement.objects.filter(story=story)
@@ -26,7 +51,13 @@ class StorySerializer(ModelSerializer):
 
     def create(self, validated_data):
         elements = validated_data.pop('storyBodyElements_temp')
-        story = Story.objects.create(**validated_data)
+        atuas = validated_data.pop('atua_temp')
+        story_type_data =  validated_data.pop('StoryType')
+
+        story = Story.objects.create(**validated_data,story_type=story_type_data)
+
+        for atua in atuas:
+            story.atua.add(atua)
         for element in elements:
             if 'mediafile' in element:
                 if element['mediafile'] is not None:
@@ -36,15 +67,25 @@ class StorySerializer(ModelSerializer):
                 if element['geom_attr'] is not None:
                     geomattr = StoryGeomAttrib.objects.get(id=element['geom_attr']['id'])
                     element['geom_attr'] = geomattr
+            elif 'content_type' in element:
+                if element['content_type']:
+                    content_type = ContentType.objects.get(id=element['content_type'])
+                    element['content_type'] = content_type
 
             StoryBodyElement.objects.create(story=story,**element)
         return story
 
     def update(self, instance, validated_data):
         storyBodyElements = validated_data.pop('storyBodyElements_temp')
+        atuas = validated_data.pop('atua_temp')
+        instance.story_type = validated_data.pop('StoryType')
+        instance.atua.clear()
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+
+        for atua in atuas:
+            instance.atua.add(atua)
 
         for element in storyBodyElements:
 
@@ -57,6 +98,12 @@ class StorySerializer(ModelSerializer):
                     element.pop('mediafile_name')
                 elif element['element_type'] == 'GEOM':
                     element.pop('geom_attr')
+
+                if 'content_type' in element:
+                    if element['content_type']:
+                        id = element['content_type']["id"] if "id" in element['content_type'] else element['content_type']
+                        content_type = ContentType.objects.get(id=id)
+                        element['content_type'] = content_type
 
                 elem = StoryBodyElement.objects.get(id=element["id"])
                 for attr, value in element.items():
@@ -71,6 +118,12 @@ class StorySerializer(ModelSerializer):
                     if element['geom_attr'] is not None:
                         geomattr = StoryGeomAttrib.objects.get(id=element['geom_attr']['id'])
                         element['geom_attr'] = geomattr
+
+                if 'content_type' in element:
+                    if element['content_type']:
+                        id = element['content_type']["id"] if "id" in element['content_type'] else element['content_type']
+                        content_type = ContentType.objects.get(id=id)
+                        element['content_type'] = content_type
 
                 StoryBodyElement.objects.create(story=instance,**element)
 

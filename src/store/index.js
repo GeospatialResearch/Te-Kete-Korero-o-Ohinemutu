@@ -34,7 +34,15 @@ const store = new Vuex.Store({
       title : '',
       summary : '',
       status: 'DRAFT',
-      storyBodyElements: []
+      storyBodyElements: [],
+      atua: [],
+      story_type_id: '',
+      approx_time: {
+        type: '',
+        date: null,
+        start_time: null,
+        end_time: null
+      }
     },
     drawMode: false,
     storyViewMode: true,
@@ -42,7 +50,10 @@ const store = new Vuex.Store({
     reuseMode: false,
     featuresForReuse: [],
     websiteTranslObj: null,
-    lang: 'eng'
+    lang: 'eng',
+    allAtuas: [],
+    allStoryTypes: [],
+    allElementContentTypes: []
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -97,6 +108,15 @@ const store = new Vuex.Store({
     SET_STORIES (state, response) {
       state.stories = response.body
     },
+    SET_ALLATUAS (state, response) {
+      state.allAtuas = response.body
+    },
+    SET_ALLSTORYTYPES (state, response) {
+      state.allStoryTypes = response.body
+    },
+    SET_ALL_ELEMENT_CONTENTTYPES (state, response) {
+      state.allElementContentTypes = response.body
+    },
     SET_STORY_CONTENT (state, response) {
       // Sort the storyBodyElements array by attribute order_position
       response.storyBodyElements.sort((a, b) => parseFloat(a.order_position) - parseFloat(b.order_position))
@@ -125,7 +145,15 @@ const store = new Vuex.Store({
         title : '',
         summary : '',
         status: 'DRAFT',
-        storyBodyElements: []
+        storyBodyElements: [],
+        atua: [],
+        story_type_id: '',
+        approx_time: {
+          type: '',
+          date: null,
+          start_time: null,
+          end_time: null
+        }
       }
     },
     ADD_FEATURES_FOR_REUSE (state, f) {
@@ -227,10 +255,37 @@ const store = new Vuex.Store({
       })
         // .catch((error) => store.commit('API_FAIL', error))
     },
+    getAtuas () {
+      // To getall atuas
+      return api.get(apiRoot + '/atuas')
+        .then((response) => {
+          store.commit('SET_ALLATUAS', response)
+        })
+        // .catch((error) => store.commit('API_FAIL', error))
+    },
+    getStoryTypes () {
+      // To getall storytypes
+      return api.get(apiRoot + '/storytypes')
+        .then((response) => {
+          store.commit('SET_ALLSTORYTYPES', response)
+        })
+        // .catch((error) => store.commit('API_FAIL', error))
+    },
+    getElementContentTypes () {
+      // To getall contenttypes
+      return api.get(apiRoot + '/contenttypes')
+        .then((response) => {
+          store.commit('SET_ALL_ELEMENT_CONTENTTYPES', response)
+        })
+        // .catch((error) => store.commit('API_FAIL', error))
+    },
     getStoryContent (store, storyid) {
       // Add auth headers to the request in the future
       return api.get(apiRoot + '/stories/' + storyid + '/')
         .then((response) => {
+          if (response.body.story_type) {
+            response.body.story_type_id = response.body.story_type.id
+          }
           store.commit('SET_STORY_CONTENT', response.body)
           return response.body
           })
@@ -239,6 +294,8 @@ const store = new Vuex.Store({
     saveStoryContent (store, story) {
       story.storyBodyElements_temp = story.storyBodyElements
       delete story['storyBodyElements']
+      story.atua_temp = story.atua
+      delete story['atua']
       return api.patch(apiRoot + '/stories/' + story.id + '/', story)
         .then((response) => {
           store.dispatch('getStories')
@@ -248,6 +305,8 @@ const store = new Vuex.Store({
     addStory (store, story) {
       story.storyBodyElements_temp = story.storyBodyElements
       delete story['storyBodyElements']
+      story.atua_temp = story.atua
+      delete story['atua']
       return api.post(apiRoot + '/stories/', story)
         .then((response) => {
           store.dispatch('getStories')

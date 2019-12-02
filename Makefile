@@ -64,6 +64,15 @@ create-superuser:
 load-translations:
 	docker-compose $(DEV) exec api python3 manage.py load_website_translations --ignoredb no
 
+load-atua:
+	docker-compose $(DEV) exec api python3 manage.py load_atua
+
+load-storytypes:
+	docker-compose $(DEV) exec api python3 manage.py load_story_types
+
+load-contenttypes:
+	docker-compose $(DEV) exec api python3 manage.py load_content_types
+
 # initialise-db: migrate load-test
 # 	docker-compose $(DEV) restart api
 
@@ -85,7 +94,9 @@ reset-db:
 	-docker-compose $(DEV) stop db
 	docker-compose $(DEV) rm --force db
 	docker-compose $(DEV) up -d db && sleep 10
-	# make migrate
+	make migrate
+
+initialise-db: create-superuser load-translations load-atua load-storytypes load-contenttypes
 
 # Code checking
 check: flake8 eslint
