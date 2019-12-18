@@ -1,0 +1,48 @@
+version: "3.4"
+volumes:
+  staticfiles:
+  media:
+services:
+  api:
+    depends_on:
+      - 'db'
+    ports:
+      - 8000
+    volumes:
+      - staticfiles:/code/staticfiles
+      - media:/code/media
+      - ./djangoproj/settings.py:/code/djangoproj/settings.py
+
+  www:
+    build:
+      args:
+        ENVIRONMENT: "localprod"
+    environment:
+      - VIRTUAL_HOST=www.maptool.vcap.me
+    volumes:
+      - ./build/nginx-www-default.conf:/etc/nginx/conf.d/default.conf
+      - ./build/nginx-www.conf:/etc/nginx/nginx.conf
+
+  api-nginx:
+    build:
+      context: .
+      dockerfile: ./DockerfileDjangoNginx
+    environment:
+      - VIRTUAL_HOST=api.maptool.vcap.me
+    depends_on:
+      - 'api'
+    volumes:
+      - staticfiles:/code/staticfiles
+      - media:/code/media
+      - ./build-api/nginx-api-default.conf:/etc/nginx/conf.d/default.conf
+      - ./build/nginx-www.conf:/etc/nginx/nginx.conf
+
+  proxy:
+    # image: jwilder/nginx-proxy:latest
+    build:
+      context: .
+      dockerfile: DockerfileNginxProxy
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    ports:
+      - '80:80'

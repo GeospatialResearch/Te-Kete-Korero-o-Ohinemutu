@@ -75,7 +75,7 @@ const store = new Vuex.Store({
     SET_INTERNAL_LAYERS (state, layersArray) {
       each(layersArray, (obj) => {
         obj.visible = false
-        obj.legendURL = process.env.WEB_HOST + ":8080/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + obj.name + "&myData:" + Math.random()
+        obj.legendURL = process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + obj.name + "&myData:" + Math.random()
         Vue.set(state.internalLayers, obj.name, obj)
       })
     },
@@ -83,7 +83,7 @@ const store = new Vuex.Store({
       var obj = {
         name: payload.filename,
         visible: true,
-        legendURL: process.env.WEB_HOST + ":8080/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + payload.filename + "&myData:" + Math.random(),
+        legendURL: process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + payload.filename + "&myData:" + Math.random(),
         geomtype: ['POINT', 'MULTIPOINT'].includes(payload.geomtype) ? 0 : ['LINESTRING', 'MULTILINESTRING'].includes(payload.geomtype) ? 1 : ['POLYGON', 'MULTIPOLYGON'].includes(payload.geomtype) ? 2 : 3,
         assigned_name: null
       }
@@ -315,11 +315,14 @@ const store = new Vuex.Store({
     },
     addMedia (store, media) {
       return api.post(apiRoot + '/upload_media_file/', media, {
-        progress(e) {
-          if (e.lengthComputable) {
-            console.log(e.loaded / e.total * 100);
-          }
-        }
+        // progress(e) {
+        //   if (e.lengthComputable) {
+        //     console.log(e.loaded / e.total * 100);
+        //   }
+        // }
+        headers: {
+                'Content-Type': 'multipart/form-data'
+            }
       })
         .then((response) => {
           return response

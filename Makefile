@@ -15,15 +15,24 @@ stop:
 run-prod:
 	docker-compose $(PROD) up
 
+stop-prod:
+	docker-compose $(PROD) stop
+
 # Building things
 build-dev-www:
 	docker-compose $(DEV) build www
 
-build-dev-api:
+build-api:
 	docker-compose $(DEV) build api
 
 build-prod:
 	docker-compose $(PROD) build
+
+build-prod-www:
+	docker-compose $(PROD) build www
+
+build-api-nginx:
+	docker-compose $(PROD) build api-nginx
 
 # Get rid of local folders that are built
 clean:
@@ -90,8 +99,14 @@ load-contenttypes:
 # 	docker-compose $(DEV) up -d db && sleep 10
 # 	make initialise-db
 #
+db-backup:
+	docker exec <container-name> pg_dump -a -T public.django_migrations -T public.django_content_type -T public.auth_permission -U mapuser <database-name> > db_backup.sql
+
+db-restore:
+	docker exec -i <container-name> psql -U mapuser -d <database-name> < db_backup.sql
+
 reset-db:
-	-docker-compose $(DEV) stop db
+	docker-compose $(DEV) stop db
 	docker-compose $(DEV) rm --force db
 	docker-compose $(DEV) up -d db && sleep 10
 	make migrate
@@ -108,35 +123,15 @@ eslint:
 	docker-compose $(DEV) exec www yarn run lint
 
 # # Careful, these push docker images.
-# push-image-www:
-# 	docker build \
-# 		--build-arg ENVIRONMENT=master \
-# 		--tag geospatialri/storytool:latest \
-# 		--file DockerfileNodeNginx \
-# 		.
-# 	docker push geospatialri/storytool:latest
-#
-# push-image-api:
-# 	docker build \
-# 		--tag geospatialri/storytool-django:latest \
-# 		--file DockerfileDjango \
-# 		.
-#
-# 	docker push geospatialri/storytool-django:latest
-#
-#
 # # Use this only to avoid bitbucket pipeline usage
-# build-www:
-# 	docker build \
-# 	    -t geospatialri/esp-v2:develop \
-# 			--build-arg DATA_HOST=https://data.esp.gritool.com \
-# 	    --build-arg API_HOST=https://api.esp.staging.geospatial.ac.nz \
-# 	    --build-arg WEB_HOST=https://www.esp.staging.geospatial.ac.nz \
-# 	    --build-arg AUTH_HOST=https://staging.accounts.crcsi.com.au \
-# 	    --build-arg AUTH_CLIENT_ID=487960 \
-# 	    -f DockerfileNodeNginx \
-# 	    .
-# 	docker push geospatialri/esp-v2:develop
+build-push-www:
+	docker build \
+	    -t geospatialri/bicultool:develop \
+	    --build-arg API_HOST=https://api.maptool.test.geospatial.ac.nz \
+	    --build-arg WEB_HOST=https://www.maptool.test.geospatial.ac.nz \
+	    -f DockerfileNodeNginx \
+	    .
+	docker push geospatialri/bicultool:develop
 #
 # build-www-kube:
 # 	docker build \
@@ -151,21 +146,31 @@ eslint:
 # 	docker push geospatialri/esp-v2-kube:develop
 #
 #
-# build-api:
-# 	docker build \
-# 	    -t geospatialri/esp-v2-django:develop \
-# 	    -f DockerfileDjango \
-# 	    .
-# 	docker push geospatialri/esp-v2-django:develop
+build-push-api:
+	docker build \
+	    -t geospatialri/bicultool-django:develop \
+	    -f DockerfileDjango \
+	    .
+	docker push geospatialri/bicultool-django:develop
 #
 #
 # # attention: for kube, the build-api/nginx-api-default.conf must have server localhost: 8000; instead of server api:8000;
-# build-api-nginx:
-# 	docker build \
-# 	    -t geospatialri/esp-v2-django-nginx:develop \
-# 	    -f DockerfileDjangoNginx \
-# 	    .
-# 	docker push geospatialri/esp-v2-django-nginx:develop
+build-push-api-nginx:
+	docker build \
+	    -t geospatialri/bicultool-django-nginx:develop \
+	    -f DockerfileDjangoNginx \
+	    .
+	docker push geospatialri/bicultool-django-nginx:develop
+
+
+build-push-nginx-proxy:
+	docker build \
+	    -t geospatialri/nginx-proxy:develop \
+	    -f DockerfileNginxProxy \
+	    .
+	docker push geospatialri/nginx-proxy:develop
+
+
 #
 # set-images:
 # 	kubectl set image --namespace=esp deployment/esp-www esp-www=geospatialri/esp-v2-kube:develop

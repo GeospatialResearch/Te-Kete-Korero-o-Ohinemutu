@@ -48,9 +48,9 @@ module.exports = merge(baseConfig, {
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
-      // 'process.env.DATA_HOST': JSON.stringify(config.parameters.DATA_HOST),
       'process.env.API_HOST': JSON.stringify(utils.parameters.API_HOST),
       'process.env.WEB_HOST': JSON.stringify(utils.parameters.WEB_HOST),
+      'process.env.GEOSERVER_HOST': JSON.stringify(utils.parameters.GEOSERVER_HOST),
       'process.env.LINZ_ACCESS_KEY': JSON.stringify(utils.parameters.LINZ_ACCESS_KEY),
       'process.env.MFE_ACCESS_KEY': JSON.stringify(utils.parameters.MFE_ACCESS_KEY)
     })

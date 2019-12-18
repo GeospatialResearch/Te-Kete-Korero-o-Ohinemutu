@@ -83,7 +83,7 @@ html, body {
 
 .ol-custom{
   z-index: 1000;
-  position: relative;
+  /* position: relative; */
   margin-top: .5em;
   right: .5em;
 }

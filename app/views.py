@@ -317,6 +317,7 @@ class UploadMediaFileView(APIView):
         audio_exts = ['.mp3']
         filename = str(request.data['file'])
         base_name, ext = os.path.splitext(filename)
+        print("##############")
         if ext.lower() not in img_exts and ext.lower() not in video_exts and ext.lower() not in audio_exts:
             raise ValidationError("The format of the media file " + filename + " is not supported. Please, upload a media file with one of the following extensions: " + ",".join(img_exts) + "," + ",".join(video_exts) + " and" + ",".join(audio_exts))
 
@@ -379,7 +380,7 @@ class CleanGeomsView(APIView):
 class DatasetViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DatasetSerializer
     queryset = Dataset.objects.all()
-    
+
 
 class StoryViewSet(viewsets.ModelViewSet):
     serializer_class = StorySerializer

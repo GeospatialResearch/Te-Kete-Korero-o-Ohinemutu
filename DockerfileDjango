@@ -20,7 +20,7 @@ RUN pip3 install -r /tmp/requirements.txt \
     && rm -f /tmp/requirements.txt \
     && rm -rf $HOME/.cache/pip
 
-# This is for prod, these three are overwritten for development
+# This is for prod, these three are overwritten for development by the volumes
 ADD manage.py $APPDIR
 ADD djangoproj $APPDIR/djangoproj
 ADD app $APPDIR/app
@@ -28,5 +28,6 @@ ADD app $APPDIR/app
 # Static needs to be there for prod
 RUN mkdir $APPDIR/static
 ADD build-api/run-django.sh $APPDIR/run-django.sh
+RUN chmod +x $APPDIR/run-django.sh
 
 CMD $APPDIR/run-django.sh

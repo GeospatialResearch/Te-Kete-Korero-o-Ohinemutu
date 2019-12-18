@@ -110,7 +110,7 @@
     <div v-if="isUploadingData || isLoading" class="loading-background" />
     <div v-if="isUploadingData || isLoading" class="loader-loading" :style="togglePanel?'left: 38%;':'left: 55%;'" />
     <div v-if="isUploadingData">
-      <p class="loading-info text-center" :style="togglePanel?'left: 35%;':'left: 54%;'">
+      <p class="loading-info text-center" :style="togglePanel?'left: 34.5%;':'left: 51.5%;'">
         Uploading data... <br>
         This may take several minutes
       </p>
@@ -154,7 +154,7 @@
             </div>
           </div>
           <div class="form-group row">
-            <label for="geomDesc" class="col-sm-2 col-form-label col-form-label-sm"><strong>Description</strong></label>
+            <label for="geomDesc" class="col-sm-2 col-form-label col-form-label-sm"><strong>Desc</strong></label>
             <div class="col-sm-10 col-form-label col-form-label-sm">
               <textarea v-if="isDrawMode" id="geomDesc" v-model="drawnFeature.description" required rows="4" class="form-control form-control-sm mb-4" placeholder="Description of what the geographical feature represents" />
               <span v-else>{{ drawnFeature.description }}</span>
@@ -1277,7 +1277,7 @@ export default {
       $('#restyleLayerModal').modal('hide')
     },
     getInternalLayerLegend (layerkey) {
-      return process.env.WEB_HOST + ":8080/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + layerkey + "&myData:" + Math.random()
+      return process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + layerkey + "&myData:" + Math.random()
     },
     refreshInternalLegend () {
       each(this.internalLayers, (layer, layerkey) => {

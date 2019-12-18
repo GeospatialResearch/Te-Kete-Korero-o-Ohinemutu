@@ -1,4 +1,6 @@
 version: "3.4"
+volumes:
+  media:
 services:
   api:
     volumes:
@@ -6,6 +8,7 @@ services:
       - ./djangoproj:/code/djangoproj
       - ./manage.py:/code/manage.py
       # - ./.flake8:/code/.flake8
+      - media:/code/media
     environment:
       - PYTHONUNBUFFERED=0
       - ENVIRONMENT=DEVELOPMENT

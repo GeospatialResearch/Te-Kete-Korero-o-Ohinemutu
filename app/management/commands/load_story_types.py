@@ -15,7 +15,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        storyTypeObj = {'Traditional Narrative','Cultural Narrative','Lived Experience'}
+        storyTypeObj = {'Traditional Narrative','Cultural Narrative','Lived Experience', 'Historical Narrative', 'Scientific Narrative'}
 
         try:
             for k in storyTypeObj:

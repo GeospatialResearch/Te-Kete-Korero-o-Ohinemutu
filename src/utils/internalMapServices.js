@@ -24,7 +24,7 @@ var addGeoserverWMS = function (layername) {
     name: layername,
     zIndex: 20,
     source: new ImageWMS({
-      url: process.env.WEB_HOST + ':8080/geoserver/storyapp/wms',
+      url: process.env.GEOSERVER_HOST + '/storyapp/wms',
       params: {'LAYERS': 'storyapp:' + layername },
       ratio: 1,
       serverType: 'geoserver'
@@ -40,7 +40,7 @@ var zoomToGeoserverVectorLayer = function (layername) {
   const map = store.state.map
   store.commit('SET_LOADING', true)
 
-  $.ajax( process.env.WEB_HOST + ':8080/geoserver/wfs', {
+  $.ajax( process.env.GEOSERVER_HOST + '/wfs', {
     type: 'GET',
     data: {
         service: 'WFS',

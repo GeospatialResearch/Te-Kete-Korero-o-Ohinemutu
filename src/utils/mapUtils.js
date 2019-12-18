@@ -450,19 +450,19 @@ var drawingStyle = new Style({
 
 var allStoriesGeomsStyle = new Style({
                     fill: new Fill({
-                      color: 'rgba(214, 29, 29, 0.6)'
+                      color: 'rgba(195, 12, 12, 0.7)'
                     }),
                     stroke: new Stroke({
-                      color: 'rgba(214, 29, 29, 1)',
+                      color: 'rgba(195, 12, 12, 1)',
                       width: 2
                     }),
                     image: new CircleStyle({
-                      radius: 3,
+                      radius: 5,
                       fill: new Fill({
-                        color: 'rgba(214, 29, 29, 0.6)'
+                        color: 'rgba(195, 12, 12, 0.7)'
                       }),
                       stroke: new Stroke({
-                        color: 'rgba(214, 29, 29, 1)',
+                        color: 'rgba(195, 12, 12, 1)',
                         width: 2
                       })
                     })

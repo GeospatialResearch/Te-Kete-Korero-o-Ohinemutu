@@ -15,6 +15,9 @@ services:
       - '8000:8000'
     depends_on:
       - 'db'
+    volumes:
+      - media:/code/media
+
   db:
     image: mdillon/postgis:9.6
     env_file: .dockerenv
@@ -28,6 +31,8 @@ services:
       - '8080:8080'
     depends_on:
       - 'db'
+    volumes:
+      - geoserver-data:/opt/geoserver/data_dir
 
   portainer:
     image: portainer/portainer
@@ -54,5 +59,6 @@ services:
 #         timeout: 10s
 #         retries: 3
 #
-# volumes:
-#    geoserver-data:
+volumes:
+  geoserver-data:
+  media:
