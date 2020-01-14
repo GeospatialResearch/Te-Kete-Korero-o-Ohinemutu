@@ -9,7 +9,7 @@
         <p v-if="story.approx_time.type === 'PRECISE_DATE'" class="badge badge-light mb-2 p-2 float-right">
           {{ story.approx_time.date }}
         </p>
-        <div v-else>
+        <div v-if="story.approx_time.type === 'YEAR_RANGE'">
           <p v-if="story.approx_time.end_time" class="badge badge-light mb-2 p-2 float-right">
             {{ story.approx_time.start_time }} - {{ story.approx_time.end_time }}
           </p>
@@ -17,9 +17,17 @@
             {{ story.approx_time.start_time }} - present
           </p>
         </div>
+        <p v-if="story.approx_time.type === 'PRECISE_YEAR'" class="badge badge-light mb-2 p-2 float-right">
+          {{ story.approx_time.year }}
+        </p>
+        <p v-if="story.approx_time.type === 'TIMELESS'" class="badge badge-light mb-2 p-2 float-right">
+          Timeless
+        </p>
       </div>
       <div class="mt-5">
-        <h4 title="Story title">{{ story.title }}</h4>
+        <h4 title="Story title">
+          {{ story.title }}
+        </h4>
         <p class="story-summary" title="Story summary">
           {{ story.summary }}
         </p>
@@ -32,7 +40,7 @@
           </i>
         </div>
 
-        <hr class="mt-5" />
+        <hr class="mt-5">
       </div>
 
 
@@ -51,7 +59,11 @@
           <div class="align-center">
             <div v-if="element.element_type == 'IMG'">
               <img :src="mediaRoot + element.mediafile_name" class="story-elem-img img-fluid">
-              <i><font-awesome-icon icon="search-plus" size="lg" class="positioner-magnify" @click="magnifyImage(element)" /></i>
+              <span class="fa-stack fa-1x positioner-magnify" @click="magnifyImage(element)">
+                <i class="fa fa-circle fa-stack-2x icon-background" />
+                <i class="fa fa-search-plus fa-stack-1x" />
+              </span>
+              <!-- <i><font-awesome-icon icon="search-plus" size="lg" color="#97ee19" class="positioner-magnify" @click="magnifyImage(element)" /></i> -->
             </div>
 
             <video v-if="element.element_type == 'VIDEO'" controls controlsList="nodownload" class="story-elem-video">
@@ -107,10 +119,16 @@
               Select date type
             </option>
             <option key="PRECISE_DATE" value="PRECISE_DATE">
-              PRECISE DATE
+              Precise date
             </option>
-            <option key="DATE_RANGE" value="DATE_RANGE">
-              DATE RANGE
+            <option key="YEAR_RANGE" value="YEAR_RANGE">
+              Year range
+            </option>
+            <option key="PRECISE_YEAR" value="PRECISE_YEAR">
+              Precise year
+            </option>
+            <option key="TIMELESS" value="TIMELESS">
+              Timeless
             </option>
           </select>
           <div v-if="story.approx_time.type === 'PRECISE_DATE'" class="container">
@@ -123,23 +141,32 @@
             </div>
           </div>
 
-          <div v-if="story.approx_time.type === 'DATE_RANGE'" class="container">
+          <div v-if="story.approx_time.type === 'YEAR_RANGE'" class="container">
             <div class="row col-md-12">
               <div class="form-group col-md-6">
-                <input v-model="story.approx_time.start_time" required min="1" max="2019" type="number" class="form-control form-control-sm" title="Start date" placeholder="Start (year)">
+                <input v-model="story.approx_time.start_time" required min="1" max="2020" type="number" class="form-control form-control-sm" title="Start date" placeholder="Start (year)">
               </div>
               <div class="form-group col-md-6">
-                <input v-model="story.approx_time.end_time" :disabled="!story.approx_time.start_time" :min="story.approx_time.start_time" max="2019" type="number" class="form-control form-control-sm" title="End date" placeholder="End (year)">
+                <input v-model="story.approx_time.end_time" :disabled="!story.approx_time.start_time" :min="story.approx_time.start_time" max="2020" type="number" class="form-control form-control-sm" title="End date" placeholder="End (year)">
                 <div class="invalid-feedback">
                   The end date must be equal or greater than the start date.
                 </div>
               </div>
             </div>
           </div>
+
+          <div v-if="story.approx_time.type === 'PRECISE_YEAR'" class="container">
+            <div class="row col-md-12 text-center">
+              <div class="col-md-3" />
+              <div class="form-group col-md-6">
+                <input v-model="story.approx_time.year" required min="1" max="2020" type="number" class="form-control form-control-sm" title="Year" placeholder="year">
+              </div>
+            </div>
+          </div>
         </div>
       </form>
 
-      <hr />
+      <hr>
       <p class="text-muted">
         <font-awesome-icon icon="info-circle" />
         Use the button below to add new elements to the story and reorder the elements dragging and dropping them.
@@ -212,19 +239,19 @@
     <div class="clear" />
     <div :class="[togglePanel ? 'col-md-5 visible': 'col-md-0 invisible', 'row sidepanel-footer']">
       <div class="col-md-10">
-        <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
+        <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
           Update story
         </button>
-        <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
+        <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
           Save story
         </button>
-        <button v-if="!isStoryViewMode" type="button" class="btn btn-danger ml-2" @click="showCancelStorySavingModal()">
+        <button v-if="!isStoryViewMode" type="button" class="btn btn-sm btn-danger ml-2" @click="showCancelStorySavingModal()">
           Cancel
         </button>
-        <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-primary" @click="editStory()">
+        <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-sm btn-primary" @click="editStory()">
           Edit story
         </button>
-        <div v-if="isStoryViewMode" class="btn-group dropup ml-3">
+        <div v-if="isStoryViewMode" class="btn-group btn-group-sm dropup ml-3">
           <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <font-awesome-icon icon="share-alt" class="mr-2" />
           </button>
@@ -235,7 +262,7 @@
             <a class="dropdown-item" href="#">Publish story</a>
           </div>
         </div>
-        <button v-if="isStoryViewMode" type="button" class="btn btn-secondary float-right" @click="closeStory()">
+        <button v-if="isStoryViewMode" type="button" class="btn btn-sm btn-secondary float-right" @click="closeStory()">
           Close story
         </button>
       </div>
@@ -295,7 +322,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5>Content Type</h5>
+            <h4>Settings</h4>
           </div>
           <div class="modal-body">
             <!-- <div v-if="story.length > 0"> -->
@@ -304,7 +331,7 @@
             </h5>
             <select v-model="elementContentType" class="form-control form-control-sm">
               <option key="SELECT" value="" selected>
-                Select story type
+                Select content type
               </option>
               <option v-for="item in allElementContentTypes" :key="item.id" :value="item.id">
                 {{ item.type }}
@@ -347,7 +374,7 @@
 
     <div id="editingWarningModal" class="modal fade">
       <div class="modal-dialog">
-        <div :class="[isDrawMode ? 'draw-info': '', 'modal-content']">
+        <div :class="[isDrawMode ? ' modal-margin-top': '', 'modal-content']">
           <div class="modal-header">
             <h5>Attention</h5>
           </div>
@@ -379,8 +406,8 @@
 
     <div id="magnifyImageModal" class="modal fade">
       <div class="modal-dialog modal-xl">
-        <div class="modal-content" style="background-color: #FFE;">
-          <div class="modal-body text-center mt-5">
+        <div class="modal-content">
+          <div class="modal-body text-center pt-5 magnify-modal">
             <img v-if="magnifyImageElem" :src="mediaRoot + magnifyImageElem.mediafile_name" class="story-elem-img mb-3" style="width:1000px;">
             <p v-if="magnifyImageElem">
               {{ magnifyImageElem.media_description }}
@@ -413,8 +440,8 @@
               </h6>
               <div class="row">
                 <div class="col-sm-9 geom-usage">
-                  <h6 title="Narrative title" class="text-muted">
-                    <i><font-awesome-icon icon="book-open" /></i>&nbsp;&nbsp;{{ usage.story.title }}
+                  <h6 class="text-muted">
+                    <span title="Narrative title"><i><font-awesome-icon icon="book-open" /></i>&nbsp;&nbsp;{{ usage.story.title }}</span> &mdash; <small title="Story type"><i>{{ usage.story.storytype }}</i></small>
                   </h6>
                   <h6 title="Narrative summary" class="ml-4">
                     <i>{{ usage.story.summary }}</i>
@@ -520,16 +547,12 @@ export default {
       }
       return this.$store.state.reuseMode
     },
-    allAtuas()
-    {
+    allAtuas() {
       return this.$store.state.allAtuas
     },
-    allStoryTypes(){
+    allStoryTypes() {
       return this.$store.state.allStoryTypes
     },
-    // selectedDateType(){
-    //   return this.$store.state.date_type_temp
-    // },
     allElementContentTypes(){
       return this.$store.state.allElementContentTypes
     },
@@ -593,6 +616,7 @@ export default {
       EventBus.$emit('removeLayer', 'storyGeomsLayer')
       EventBus.$emit('resetDrawnFeature')
       this.$store.commit('RESTORE_ALL_USEDSTORIESGEOMETRIES')
+      this.$store.state.allStoriesGeomsLayer.visible = true
     },
     reset () {
       this.uploadError = null

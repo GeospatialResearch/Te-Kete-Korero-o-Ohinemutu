@@ -3,7 +3,7 @@
     <nav id="sidebar" class="sidebar-wrapper">
       <div class="sidebar-content">
         <!-- sidebar-brand  -->
-        <div class="sidebar-item sidebar-brand text-center pb-0 mb-3">
+        <div class="sidebar-item sidebar-brand text-center">
           <a href="#" class="app-title">{{ translationObj.culturalNarratives[lang] }}</a>
         </div>
         <!-- sidebar-header  -->
@@ -21,20 +21,6 @@
             </span>
           </div>
         </div>
-        <!-- sidebar-search  -->
-        <div class="sidebar-item sidebar-search">
-          <div>
-            <div class="input-group">
-              <input type="text" class="form-control search-menu" :placeholder="translationObj.search[lang]">
-              <div class="input-group-append">
-                <span class="input-group-text">
-                  <i aria-hidden="true"><font-awesome-icon icon="search" /></i>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
 
         <!-- sidebar-menu  -->
         <div class=" sidebar-item sidebar-menu">
@@ -53,7 +39,7 @@
             <!-- sidebar import dataset  -->
             <div class="sidebar-item sidebar-search pointer">
               <div>
-                <div class="input-group">
+                <div class="input-group input-group-sm">
                   <div class="form-control search-menu text-center label-info" @click="uploadDatasetClicked">
                     {{ translationObj.uploadDataset[lang] }}
                   </div>
@@ -86,7 +72,7 @@
                       <span v-else>
                         &emsp;{{ layer.name }}
                       </span>
-                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(layer)">
+                      <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(layer)">
                         <font-awesome-icon icon="ellipsis-v" />
                       </span>
                     </a>
@@ -109,7 +95,7 @@
                         <span v-else><font-awesome-icon icon="square" /></span>
                       </span>
                       &emsp;{{ layer.layername }}
-                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Information" :data-content="createPopoverInfo(layer)">
+                      <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Information" :data-content="createPopoverInfo(layer)">
                         <font-awesome-icon icon="info" class="layer-info" />
                       </span>
                     </a>
@@ -132,7 +118,7 @@
                         <span v-else><font-awesome-icon icon="square" /></span>
                       </span>
                       &emsp;{{ allStoriesGeomsLayer.layername }}
-                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(allStoriesGeomsLayer)">
+                      <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(allStoriesGeomsLayer)">
                         <font-awesome-icon icon="ellipsis-v" />
                       </span>
                     </a>
@@ -144,7 +130,7 @@
             <!-- sidebar open panel  -->
             <div class="sidebar-item sidebar-search pointer">
               <div>
-                <div class="input-group">
+                <div class="input-group input-group-sm">
                   <div class="form-control search-menu text-center label-info" @click="openPanel()">
                     {{ translationObj.addNewNarrative[lang] }}
                   </div>
@@ -165,7 +151,7 @@
               </a>
               <div v-if="!stories.length" class="sidebar-submenu">
                 <div class="text-center">
-                  <span>No stories available</span>
+                  <span>No narratives available</span>
                 </div>
               </div>
               <div v-else class="sidebar-submenu">
@@ -176,7 +162,7 @@
                       <span class="inline-text">
                         <span class="ml-2 ellipsis-text"> {{ story.title }}</span>
                       </span>
-                      <span class="float-right" data-toggle="popover" data-placement="right" data-trigger="click" title="Narrative Options" :data-content="createPopoverStoryOptions(story)">
+                      <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Narrative Options" :data-content="createPopoverStoryOptions(story)">
                         <font-awesome-icon icon="ellipsis-v" />
                       </span>
                     </a>
@@ -194,10 +180,71 @@
               </a>
               <div class="sidebar-submenu">
                 <div class="text-center">
-                  <span>No stories available</span>
+                  <span>No narratives available</span>
                 </div>
               </div>
             </li>
+
+            <!-- sidebar-search  -->
+            <div class="sidebar-item sidebar-search">
+              <div>
+                <div class="input-group input-group-sm">
+                  <input v-model="filter.freeText" type="text" class="form-control search-menu" placeholder="Filter narratives..." @keyup="filterNarratives()">
+                  <div class="input-group-append" title="Advanced filter">
+                    <button class="btn btn-dark" type="button" @click="advancedFilterModal()">
+                      <i aria-hidden="true"><font-awesome-icon icon="filter" /></i>
+                    </button>
+                  </div>
+                  <div class="input-group-append" title="Clear filter">
+                    <button class="btn btn-dark" type="button" @click="clearNarrativesFilter()">
+                      <i aria-hidden="true"><font-awesome-icon icon="times" /></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="m-2">
+                  <span v-for="atua in filter.atua" :key="atua" class="badge badge-pill badge-light m-1" title="Atua">{{ allAtuas.find(x => x.id == atua).name }}</span>
+                  <span v-for="type in filter.storyType" :key="type" class="badge badge-pill badge-light m-1" title="Story Type">{{ allStoryTypes.find(x => x.id == type).type }}</span>
+                </div>
+              </div>
+            </div>
+
+
+            <li v-show="filter.freeText || filter.atua.length !== 0 || filter.storyType.length !== 0" class="sidebar-dropdown">
+              <a href="#">
+                <i><font-awesome-icon icon="book-open" /></i>
+                <span class="menu-text">Filtered narratives</span>
+                <span class="badge badge-pill badge-secondary">{{ filteredStories.length }}</span>
+              </a>
+              <div v-if="!filter.freeText && filter.atua.length == 0 && filter.storyType.length == 0" class="sidebar-submenu">
+                <div class="text-center">
+                  <span>No filter defined</span>
+                </div>
+              </div>
+              <div v-else class="sidebar-submenu">
+                <div v-if="filteredStories.length === 0">
+                  <div class="text-center">
+                    <span>No narratives matching the filter</span>
+                  </div>
+                </div>
+                <div v-else>
+                  <ul>
+                    <li v-for="story in filteredStories" :key="story.id">
+                      <a href="#" class="sidebar-line" :title="story.title">
+                        <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
+                        <span class="inline-text">
+                          <span class="ml-2 ellipsis-text"> {{ story.title }}</span>
+                        </span>
+                        <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Narrative Options" :data-content="createPopoverStoryOptions(story)">
+                          <font-awesome-icon icon="ellipsis-v" />
+                        </span>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </li>
+
             <!-- <li class="sidebar-dropdown">
               <a href="#">
                 <i class="fa fa-tachometer-alt" />
@@ -487,12 +534,40 @@
     </div>
     <div id="storyIsBeingEditedWarningModal" class="modal fade">
       <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content modal-margin-top">
           <div class="modal-header">
             <h5>Attention</h5>
           </div>
           <div class="modal-body text-center">
             <h6>A story is being edited, be sure you save the changes before opening another story or doing other operations.</h6>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="advancedFilterModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Filter Narratives</h5>
+          </div>
+          <div class="modal-body pl-5 pr-5">
+            <h6>By Atua</h6>
+            <select v-model="filter.atua" class="form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Atua" @change="filterNarratives()">
+              <option v-for="item in allAtuas" :key="item.id" :value="item.id">
+                {{ item.name }}
+              </option>
+            </select>
+            <h6>By Story Type</h6>
+            <select v-model="filter.storyType" class="form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Story Type" @change="filterNarratives()">
+              <option v-for="item in allStoryTypes" :key="item.id" :value="item.id">
+                {{ item.type }}
+              </option>
+            </select>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -510,6 +585,7 @@
   import 'utils/sidebar'
   import { EventBus } from 'store/event-bus'
   import { langObj } from 'utils/initialTranslObj'
+  import { each, intersection, some } from 'underscore'
 
   export default {
     data () {
@@ -519,7 +595,13 @@
         layerAssignedName: null,
         layerName: null,
         layerToDelete: null,
-        storyToDelete: null
+        storyToDelete: null,
+        filter: {
+          atua: [],
+          storyType: [],
+          freeText: null
+        },
+        filteredStories: []
       }
     },
     computed: {
@@ -551,6 +633,12 @@
       },
       allStoriesGeomsLayer () {
         return this.$store.state.allStoriesGeomsLayer
+      },
+      allAtuas() {
+        return this.$store.state.allAtuas
+      },
+      allStoryTypes () {
+        return this.$store.state.allStoryTypes
       }
     },
     mounted: function () {
@@ -666,7 +754,7 @@
       changeLayerVisibility_allStoriesGeomsLayer () {
         this.$store.state.allStoriesGeomsLayer.visible = !this.$store.state.allStoriesGeomsLayer.visible
         if (this.$store.state.allStoriesGeomsLayer.visible) {
-          this.$store.commit('RESTORE_ALL_USEDSTORIESGEOMETRIES', false)
+          this.$store.commit('RESTORE_ALL_USEDSTORIESGEOMETRIES')
         } else {
           EventBus.$emit('removeLayer', 'allStoriesGeomsLayer')
           EventBus.$emit('resetSelectedFeatures')
@@ -735,6 +823,71 @@
             html: true
           })
         })
+      },
+      advancedFilterModal () {
+        $('#advancedFilterModal').modal('show')
+      },
+      filterNarratives () {
+        this.filteredStories = []
+
+        each(this.stories, (story) => {
+          var filterStory_byAtua
+          var filterStory_byType
+          var filterStory_byFreeText
+
+          if (this.filter.freeText !== null && this.filter.freeText !== "") {
+            filterStory_byFreeText = false
+            if (story.title.toLowerCase().includes(this.filter.freeText.toLowerCase())) {
+              filterStory_byFreeText = true
+            }
+            if (story.summary.toLowerCase().includes(this.filter.freeText.toLowerCase())) {
+              filterStory_byFreeText = true
+            }
+            some(story.storyBodyElements, (elem) => {
+              if (elem.element_type === 'TEXT') {
+                if (elem.text.toLowerCase().includes(this.filter.freeText.toLowerCase())) {
+                  filterStory_byFreeText = true
+                }
+              }
+            })
+          }
+
+          if (this.filter.atua.length > 0) {
+            var atuaInters = intersection(story.atua, this.filter.atua)
+            if (atuaInters !== undefined && atuaInters.length !== 0) {
+              filterStory_byAtua = true
+            } else {
+              filterStory_byAtua = false
+            }
+          }
+
+          if (this.filter.storyType.length > 0) {
+            if (this.filter.storyType.includes(story.story_type.id)) {
+              filterStory_byType = true
+            } else {
+              filterStory_byType = false
+            }
+          }
+
+          var filterStory = [filterStory_byAtua, filterStory_byType, filterStory_byFreeText]
+
+          if (filterStory.every(element => element === undefined) || filterStory.includes(false)) {
+            // do not filter the story
+          } else {
+            this.filteredStories.push(story)
+          }
+        })
+
+        this.reinitialisePopups()
+
+      },
+      clearNarrativesFilter () {
+        this.filteredStories = []
+        this.filter = {
+          atua: [],
+          storyType: [],
+          freeText: null
+        }
       }
     }
   }

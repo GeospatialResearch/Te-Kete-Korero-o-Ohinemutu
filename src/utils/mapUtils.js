@@ -20,9 +20,13 @@ const VectorTileSource = require('ol/source/VectorTile').default
 const VectorTileLayer = require('ol/layer/VectorTile').default
 const GeoJSON = require('ol/format/GeoJSON').default
 var getWidth = require('ol/extent').getWidth
+var extend = require('ol/extent').extend
+var getCenter = require('ol/extent').getCenter
 // var findByName = require('utils/olHelper').findByName
 const extLayersObj = require('utils/objects').extLayersObj
 var _ = require('underscore')
+const AnimatedCluster = require('ol-ext/layer/AnimatedCluster').default
+const Cluster = require('ol/source/Cluster').default
 
 
 var singleClickCallbackFunction = function (evt) {
@@ -43,10 +47,12 @@ var singleClickCallbackFunction = function (evt) {
     }
   })
   map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
-    if (layer.get('name') !== 'storyGeomsLayer' && layer.get('name') !== 'allStoriesGeomsLayer' && layer.get('name') !== 'selectedFeaturesLayer') {
-      nExpectedCount++
+    if (layer) {
+      if (layer.get('name') !== 'storyGeomsLayer' && layer.get('name') !== 'allStoriesGeomsLayer' && layer.get('name') !== 'selectedFeaturesLayer') {
+        nExpectedCount++
+      }
     }
-  })
+  }, { hitTolerance: store.state.hitTolerance })
   EventBus.$emit('defineExpectedCount', nExpectedCount)
 
   // Show allStoriesGeomsLayer features usage
@@ -57,6 +63,10 @@ var singleClickCallbackFunction = function (evt) {
   })
   var geomsUsage = []
   if (features) {
+
+    // if using Cluster we need to get the features inside the Cluster feature
+    features = features[0].get('features')
+
     if (store.state.reuseMode) {
       store.commit('ADD_FEATURES_FOR_REUSE', features)
       if (nExpectedCount == 0) {
@@ -66,7 +76,14 @@ var singleClickCallbackFunction = function (evt) {
       features.forEach((feature) => {
         geomsUsage.push(store.state.allStoriesGeomsLayer.allUsedStoriesGeometriesObj[feature.getProperties().id])
       })
-      EventBus.$emit('showGeomsUsage', geomsUsage)
+      if (features.length > 5) {
+        // map.getView().setZoom(map.getView().getZoom()+1)
+        var extent = features[0].getGeometry().getExtent().slice(0)
+        features.forEach(function(feature){ extend(extent,feature.getGeometry().getExtent())});
+        map.getView().fit(extent, { duration: 2000 })
+      } else {
+        EventBus.$emit('showGeomsUsage', geomsUsage)
+      }
     }
   }
 
@@ -74,14 +91,16 @@ var singleClickCallbackFunction = function (evt) {
 
     // External vector layers
     map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
-      if (extLayersObj[layer.get('name')]) {  // if the extLayersObj has this layer name (in order to exclude the name storyGeomsLayer)
-        EventBus.$emit('showLayersFeaturesPopup', {
-          'features': [feature],
-          'coordinate': evt.coordinate,
-          'layername': extLayersObj[layer.get('name')].layername
-        })
+      if (layer) {
+        if (extLayersObj[layer.get('name')]) {  // if the extLayersObj has this layer name (in order to exclude the name storyGeomsLayer)
+          EventBus.$emit('showLayersFeaturesPopup', {
+            'features': [feature],
+            'coordinate': evt.coordinate,
+            'layername': extLayersObj[layer.get('name')].layername
+          })
+        }
       }
-    })
+    }, { hitTolerance: store.state.hitTolerance })
 
     // Internal geoserser wms layers
     layers.forEach( (layer) => {
@@ -116,10 +135,12 @@ var singleClickCallbackFunction = function (evt) {
 
   // Show storyGeomsLayer features info
   map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
-    if (layer.get('name') === 'storyGeomsLayer') {
-      EventBus.$emit('getStoryGeomInfo', feature)
+    if (layer) {
+      if (layer.get('name') === 'storyGeomsLayer') {
+        EventBus.$emit('getStoryGeomInfo', feature)
+      }
     }
-  })
+  }, { hitTolerance: store.state.hitTolerance })
 
 }
 
@@ -306,32 +327,57 @@ var addAllStoriesGeomsLayer = function (geoms) {
   EventBus.$emit('removeLayer', 'allStoriesGeomsLayer')
   EventBus.$emit('resetDrawnFeature')
 
-  // Create an empty allStoriesGeomsLayer layer
-  var allStoriesGeomsSource = new VectorSource({
-    format: new GeoJSON()
-  })
-  var allstoriesGeomsVector = new VectorLayer({
-    source: allStoriesGeomsSource,
-    name: 'allStoriesGeomsLayer',
-    style: allStoriesGeomsStyle,
-    zIndex: 30
-  })
-  map.addLayer(allstoriesGeomsVector)
+  // // Create an empty allStoriesGeomsLayer layer
+  // var allStoriesGeomsSource = new VectorSource({
+  //   format: new GeoJSON()
+  // })
+  // var allstoriesGeomsVector = new VectorLayer({
+  //   source: allStoriesGeomsSource,
+  //   name: 'allStoriesGeomsLayer',
+  //   style: allStoriesGeomsStyle,
+  //   zIndex: 30
+  // })
+  // map.addLayer(allstoriesGeomsVector)
 
+  // Cluster Source
+  var clusterSource = new Cluster({
+    distance: 40,
+    source: new VectorSource()
+  });
+  // Animated cluster layer
+  var clusterLayer = new AnimatedCluster({
+    name: 'allStoriesGeomsLayer',
+    source: clusterSource,
+    animationDuration: 700,
+    // Cluster style
+    style: getClusterStyle,
+    zIndex: 30
+  });
+  map.addLayer(clusterLayer);
+
+  // Add features to layer
   var featuresToAdd = []
   var ol_geom
   _.each(geoms, (geom) => {
-
     ol_geom = olFeatureFromJsonGeom(geom)
-
     featuresToAdd.push(new Feature({
         geometry: ol_geom,
         id: geom.id,
         label: geom.name
     }))
-
   })
-  allStoriesGeomsSource.addFeatures(featuresToAdd)
+
+  // Make the centers to be the geometries so can be used in the cluster
+  _.each(featuresToAdd, (feat) => {
+    var aa = feat.getGeometry().getExtent()
+    var oo = getCenter(aa)
+    feat.set('feat_geometry', feat.getGeometry())
+    feat.set('geometry', new Point(oo)) // center
+  })
+
+  // allStoriesGeomsSource.addFeatures(featuresToAdd)
+  clusterLayer.getSource().getSource().clear()
+  clusterLayer.getSource().getSource().addFeatures(featuresToAdd)
 
   // var extent = allstoriesGeomsVector.getSource().getExtent()
   // map.getView().fit(extent, { duration: 2000 })
@@ -359,16 +405,25 @@ var removeStoryGeomsFromStoriesGeomsLayer = function () {
   if (storyfeaturesId.length > 0) {
     map.getLayers().forEach( (layer) => {
       if (layer.get('name') === 'allStoriesGeomsLayer') {
-        var features = layer.getSource().getFeatures()
+
+        // getting the features of all clusters
+        var features = layer.getSource().getSource().getFeatures()
         if (features.length != store.state.allStoriesGeomsLayer.allUsedStoriesGeometries.length) {
           store.commit('RESTORE_ALL_USEDSTORIESGEOMETRIES')
           return
         }
-        features.forEach((feature) => {
-          if (storyfeaturesId.includes(feature.getProperties().id)) {
-            layer.getSource().removeFeature(feature)
+
+        // remove story geoms from all geoms
+        var featuresToAdd = []
+        _.each(features, (feature) => {
+          if (!storyfeaturesId.includes(feature.getProperties().id)) {
+            featuresToAdd.push(feature)
           }
         })
+
+        // we need to reach clusterSource of allStoriesGeomsLayer
+        layer.getSource().getSource().clear()
+        layer.getSource().getSource().addFeatures(featuresToAdd)
       }
     })
   }
@@ -448,25 +503,48 @@ var drawingStyle = new Style({
                   })
 
 
+// var allStoriesGeomsStyle = new Style({
+//                     fill: new Fill({
+//                       color: 'rgba(195, 12, 12, 0.7)'
+//                     }),
+//                     stroke: new Stroke({
+//                       color: 'rgba(195, 12, 12, 1)',
+//                       width: 2
+//                     }),
+//                     image: new CircleStyle({
+//                       radius: 5,
+//                       fill: new Fill({
+//                         color: 'rgba(195, 12, 12, 0.7)'
+//                       }),
+//                       stroke: new Stroke({
+//                         color: 'rgba(195, 12, 12, 1)',
+//                         width: 2
+//                       })
+//                     })
+//                   })
+
 var allStoriesGeomsStyle = new Style({
-                    fill: new Fill({
-                      color: 'rgba(195, 12, 12, 0.7)'
-                    }),
-                    stroke: new Stroke({
-                      color: 'rgba(195, 12, 12, 1)',
-                      width: 2
-                    }),
-                    image: new CircleStyle({
-                      radius: 5,
-                      fill: new Fill({
-                        color: 'rgba(195, 12, 12, 0.7)'
-                      }),
-                      stroke: new Stroke({
-                        color: 'rgba(195, 12, 12, 1)',
-                        width: 2
-                      })
-                    })
-                  })
+                                  image: new CircleStyle({
+                                    radius: Math.max(8, Math.min(5*0.75, 20)),
+                                    stroke: new Stroke({
+                                      color: "rgba(0,128,0,0.5)",
+                                      width: 13,
+                                      // lineDash: dash_,
+                                      lineCap: "butt"
+                                    }),
+                                    fill: new Fill({
+                                      color:"rgba(0,128,0,1)"
+                                    })
+                                  }),
+                                  text: new Text({
+                                    text: '1',
+                                    font: 'bold 13px sans-serif',
+                                    //textBaseline: 'top',
+                                    fill: new Fill({
+                                      color: '#fff'
+                                    })
+                                  })
+                                })
 
 
 var defaultStoryGeomStyle = function (feature) {
@@ -525,6 +603,42 @@ var selectedFeaturesStyle = new Style({
 
 var defaultStoryGeomLayerStyle = function (feature) {
   return [defaultStoryGeomStyle(feature)]
+}
+
+// Style for the clusters
+var styleCache = {};
+function getClusterStyle (feature){
+  var size = feature.get('features').length;
+  var style = styleCache[size];
+  if (!style) {
+    var color = size>25 ? "192,0,0" : size>8 ? "255,128,0" : "0,128,0";
+    var radius = Math.max(8, Math.min(size*0.75, 20));
+    // var dash = 2*Math.PI*radius/6;
+    // var dash_ = [ 0, dash, dash, dash, dash, dash, dash ];
+    style = styleCache[size] = new Style({
+      image: new CircleStyle({
+        radius: radius,
+        stroke: new Stroke({
+          color: "rgba("+color+",0.5)",
+          width: 13,
+          // lineDash: dash_,
+          lineCap: "butt"
+        }),
+        fill: new Fill({
+          color:"rgba("+color+",1)"
+        })
+      }),
+      text: new Text({
+        text: size.toString(),
+        font: 'bold 13px sans-serif',
+        //textBaseline: 'top',
+        fill: new Fill({
+          color: '#fff'
+        })
+      })
+    });
+  }
+  return style;
 }
 
 

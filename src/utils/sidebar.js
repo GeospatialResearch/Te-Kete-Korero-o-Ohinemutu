@@ -4,6 +4,15 @@ const store = require('store').default
 
 $(function () {
 
+  // // Resize map on window resize
+  // $(window).on('resize', function(){
+  //   var w = window.outerWidth;
+  //   var h = window.outerHeight;
+  //   var txt = "Window size: width=" + w + ", height=" + h;
+  //   console.log(txt)
+  //   EventBus.$emit("updateMapWidth")
+  // })
+
   // Dropdown menu
   $(".sidebar-dropdown > a").click(function () {
       $(".sidebar-submenu").slideUp(200);
@@ -48,6 +57,9 @@ $(function () {
   //toggle sidebar overlay
   $("#overlay").click(function () {
       $(".page-wrapper").toggleClass("toggled");
+      _.delay(() => {
+        EventBus.$emit("updateMapWidth")
+      }, 100)
   });
 
   //switch between themes
@@ -108,7 +120,7 @@ $(function () {
   $(document.body).on('click', "[id*='_zoomto']" ,function(){
     var layer_name = $(this).attr('id').replace("_zoomto", "")
     if (layer_name === 'allStoriesGeomsLayer') {
-      EventBus.$emit('zoomToLayer', {layerName:layer_name, layerType:'allstoriesgeoms'})
+      EventBus.$emit('zoomToLayer', {layerName:layer_name})
     } else {
       EventBus.$emit('zoomToLayer', {layerName:layer_name, layerType:'internal'})
     }

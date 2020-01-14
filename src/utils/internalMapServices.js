@@ -69,6 +69,7 @@ var zoomToGeoserverLayerBbox = function (layername) {
 
   store.dispatch('getInternalRasterLayerBbox', layername)
   .then((response) => {
+    console.log(response.body.bbox)
     var extentmin = transform([response.body.bbox[0], response.body.bbox[3]].map(Number), 'EPSG:4326', 'EPSG:3857')
     var extentmax = transform([response.body.bbox[1], response.body.bbox[2]].map(Number), 'EPSG:4326', 'EPSG:3857')
     var extentx = [extentmin[0], extentmax[0]].sort((a, b) => a - b) // For ascending sort

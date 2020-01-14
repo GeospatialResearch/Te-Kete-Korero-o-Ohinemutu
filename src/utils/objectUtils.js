@@ -64,7 +64,7 @@ var pointStyle = function (color) {
 }
 
 var imgFormats = ['jpg', 'jpeg', 'png', 'svg', 'bmp']
-var videoFormats = ['mp4']
+var videoFormats = ['mp4', 'mov']
 var audioFormats = ['mp3']
 
 

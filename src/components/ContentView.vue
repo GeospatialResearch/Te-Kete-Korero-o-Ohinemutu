@@ -4,7 +4,7 @@
     <main class="page-content">
       <div id="overlay" class="overlay" />
       <div class="container-fluid">
-        <div id="navbar" class="row p-4 navbar">
+        <div id="navbar" class="row navbar">
           <div class="align-self-center">
             <a id="toggle-sidebar" class="btn-sm btn-dark mr-2" href="#" title="Toggle sidebar">
               <font-awesome-icon icon="bars" />
@@ -17,7 +17,7 @@
                 English
               </option>
               <option value="mao">
-                Māori
+                Te Reo
               </option>
             </select>
           </div>

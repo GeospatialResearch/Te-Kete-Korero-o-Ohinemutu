@@ -313,7 +313,7 @@ class UploadMediaFileView(APIView):
 
         # Make some validation on media file format
         img_exts = ['.jpg', '.jpeg', '.png', '.svg', '.bmp']
-        video_exts = ['.mp4']
+        video_exts = ['.mp4', '.mov']
         audio_exts = ['.mp3']
         filename = str(request.data['file'])
         base_name, ext = os.path.splitext(filename)
@@ -385,6 +385,9 @@ class DatasetViewSet(viewsets.ReadOnlyModelViewSet):
 class StoryViewSet(viewsets.ModelViewSet):
     serializer_class = StorySerializer
     queryset = Story.objects.all()
+
+    def get_queryset(self):
+        return self.queryset.order_by('-created_date')
 
     def perform_create(self,serializer):
         serializer.save()

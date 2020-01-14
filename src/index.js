@@ -9,11 +9,15 @@ import store from './store'
 import 'malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js'
 import 'malihu-custom-scrollbar-plugin'
 import 'bootstrap'
+
 // import fontawesome icons
 import { FontAwesomeIcon } from './utils/icons.js'
 Vue.component('font-awesome-icon', FontAwesomeIcon)
+
+// import VueDraggable
 import vuedraggable from 'vuedraggable'
 Vue.use(vuedraggable)
+
 // import css
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './css/custom.css'
@@ -22,6 +26,8 @@ import './css/sidebar-themes.css'
 import 'ol/ol.css'
 import 'malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.css'
 import 'animate.css'
+import 'ol-geocoder/dist/ol-geocoder.css'
+import 'ol-ext/dist/ol-ext.css'
 
 // initialising all popovers
 $(function () {

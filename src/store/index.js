@@ -22,7 +22,7 @@ const store = new Vuex.Store({
     allStoriesGeomsLayer: {
       visible: true,
       name: 'allStoriesGeomsLayer',
-      layername: 'Geometries of Narratives',
+      layername: 'Geometries in Narratives',
       style: null,
       allUsedStoriesGeometries: null,
       allUsedStoriesGeometriesObj: null
@@ -41,7 +41,8 @@ const store = new Vuex.Store({
         type: '',
         date: null,
         start_time: null,
-        end_time: null
+        end_time: null,
+        year: null
       }
     },
     drawMode: false,
@@ -53,7 +54,9 @@ const store = new Vuex.Store({
     lang: 'eng',
     allAtuas: [],
     allStoryTypes: [],
-    allElementContentTypes: []
+    allElementContentTypes: [],
+    isMobile: false,
+    hitTolerance: 0
   },
   mutations: {
     CHANGE (state, flavor) {
@@ -356,7 +359,9 @@ const store = new Vuex.Store({
       })
     },
     addGeometryAttrb (store, drawnfeature) {
-      drawnfeature.geometry = drawnfeature.geometry.geometry
+      if (drawnfeature.geometry.geometry) {
+        drawnfeature.geometry = drawnfeature.geometry.geometry
+      }
       return api.post(apiRoot + '/storygeomsattrib/', drawnfeature)
         .then((response) => {
           return response
@@ -433,7 +438,8 @@ const store = new Vuex.Store({
           storyDetail = {
             'id': response.body[0].story.id,
             'title': response.body[0].story.title,
-            'summary': response.body[0].story.summary
+            'summary': response.body[0].story.summary,
+            'storytype': response.body[0].story.story_type.type,
           }
           return storyDetail
         } else {

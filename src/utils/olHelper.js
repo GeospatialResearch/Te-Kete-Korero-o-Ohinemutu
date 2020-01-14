@@ -10,8 +10,9 @@ module.exports = {
     return null;
   },
   flyTo: function (location, view, done) {
-    var duration = 5000;
-    var zoom = view.getZoom();
+    var duration = 3000;
+    var topZoom = 7
+    var zoom = 13
     var parts = 2;
     var called = false;
 
@@ -26,13 +27,13 @@ module.exports = {
       }
     }
 
-    if (view.getZoom() > 13) {
+    if (view.getZoom() > 7) {
       view.animate({
         center: location,
         duration: duration
       }, callback)
       view.animate({
-        zoom: zoom - 1,
+        zoom: topZoom,
         duration: duration / 2
       }, {
           zoom: zoom,
@@ -40,9 +41,9 @@ module.exports = {
         }, callback)
     } else {
       view.animate({
-        zoom: 13,
+        zoom: zoom,
         center: location,
-        duration: duration
+        duration: 2000
       })
     }
   }

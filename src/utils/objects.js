@@ -29,7 +29,7 @@ var extLayersObj = {
     visible: false,
     zindex: 10,
     minresolution: 0,
-    maxresolution: 4.5,
+    maxresolution: 4.8,
     functionToCall: function (obj) {
       return addLinzWFS(obj)
     },
