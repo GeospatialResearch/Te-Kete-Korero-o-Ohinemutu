@@ -44,8 +44,7 @@ INSTALLED_APPS = [
     'app',
     'corsheaders',
     'rest_framework',
-    'rest_framework_gis',
-    'ckeditor'
+    'rest_framework_gis'
 ]
 
 MIDDLEWARE = [

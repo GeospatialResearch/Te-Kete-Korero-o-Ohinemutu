@@ -25,12 +25,38 @@
         </p>
       </div>
       <div class="mt-5">
-        <h4 title="Story title">
-          {{ story.title }}
-        </h4>
-        <p class="story-summary" title="Story summary">
-          {{ story.summary }}
-        </p>
+        <div v-if="story.title">
+          <div v-show="story.title.mao">
+            <select v-model="storyLang" class="btn btn-sm btn-secondary dropdown-toggle" @change="onChangeStoryLang">
+              <option value="eng">
+                English
+              </option>
+              <option value="mao">
+                Māori
+              </option>
+            </select>
+          </div>
+        </div>
+        <div v-if="story.title">
+          <div v-show="storyLang === 'eng'">
+            <h4 v-show="story.title.eng" title="Story title">
+              {{ story.title.eng }}
+            </h4>
+            <p class="story-summary" title="Story summary">
+              {{ story.summary.eng }}
+            </p>
+          </div>
+          <div v-show="storyLang === 'mao'">
+            <h4 v-show="story.title.mao" title="Story title">
+              {{ story.title.mao }}
+            </h4>
+            <p class="story-summary" title="Story summary">
+              {{ story.summary.mao }}
+            </p>
+          </div>
+        </div>
+
+
         <div v-if="story.atua" class="float-right" style="font-size:13px;">
           Atua:
           <i v-for="atua in allAtuas" :key="atua.id">
@@ -48,12 +74,16 @@
         <font-awesome-icon v-if="element.content_type" disabled icon="info-circle" color="grey" class="pointer float-right" :title="element.content_type.type" />
         <div :class="element.content_type?'mr-4':''">
           <div v-if="element.element_type == 'TEXT'">
-            <div class="ql-text mb-4" v-html="element.text" />
+            <div v-show="storyLang === 'eng'" class="ql-text mb-4" v-html="element.texteng">
+            </div>
+            <div v-show="storyLang === 'mao'" class="ql-text mb-4" v-html="element.textmao">
+            </div>
           </div>
           <div v-if="element.element_type == 'GEOM'">
             <div :id="element.geom_attr.id" class="text-center m-4 geometry-name">
               <i><font-awesome-icon icon="map-marked-alt" size="lg" class="pointer" title="Zoom to geometry" @click="zoomToGeometry(element)" /></i>&nbsp;
-              <strong>{{ element.geom_attr.name }}</strong>
+              <strong v-show="storyLang === 'eng'">{{ element.geom_attr.name.eng }}</strong>
+              <strong v-show="storyLang === 'mao'">{{ element.geom_attr.name.mao }}</strong>
             </div>
           </div>
           <div class="align-center">
@@ -66,6 +96,7 @@
               <!-- <i><font-awesome-icon icon="search-plus" size="lg" color="#97ee19" class="positioner-magnify" @click="magnifyImage(element)" /></i> -->
             </div>
 
+
             <video v-if="element.element_type == 'VIDEO'" controls controlsList="nodownload" class="story-elem-video">
               <source :src="mediaRoot + element.mediafile_name" type="video/mp4">
               Your browser does not support the video tag.
@@ -74,24 +105,44 @@
               <source :src="mediaRoot + element.mediafile_name" type="audio/mpeg">
               Your browser does not support the audio element.
             </audio>
-            <p v-if="element.element_type != 'TEXT'" class="media-caption">
-              {{ element.media_description }}
+            <p v-if="element.element_type != 'TEXT' && storyLang === 'eng' && element.media_description" class="media-caption">
+              {{ element.media_description.eng }}
+            </p>
+            <p v-if="element.element_type != 'TEXT' && storyLang === 'mao' && element.media_description" class="media-caption">
+              {{ element.media_description.mao }}
             </p>
           </div>
         </div>
       </div>
     </div>
-    <div v-else>
+    <div v-else> <!-- edit mode -->
       <form :id="story.id + '_storyform'">
         <div class="row col-md-12">
+          <div class="row col-md-12">
+            <input v-model="storyLang" type="radio" name="optstorylang" value="eng" @change="onChangeStoryLang">
+            <label>English</label>
+            <input v-model="storyLang" type="radio" name="optstorylang" value="mao" @change="onChangeStoryLang">
+            <label>Te reo</label>
+          </div>
+
           <h5 class="mb-0">
             Title
           </h5>
-          <input v-model="story.title" required type="text" class="form-control form-control-sm mb-3" title="Title of the story">
+          <input v-show="storyLang === 'eng'" v-model="story.titleeng" required type="text" class="form-control form-control-sm mb-3" placeholder="Title">
+          <input v-show="storyLang === 'mao'" v-model="story.titlemao" :required="(story.titleeng == null || story.titleeng == '') ? true : false" type="text" class="form-control form-control-sm mb-3" placeholder="Taitara">
+          <div class="invalid-feedback">
+            Title is mandatory
+          </div>
+
           <h5 class="mb-0">
             Summary
           </h5>
-          <textarea v-model="story.summary" required class="form-control form-control-sm mb-3" title="Story summary" />
+          <textarea v-show="storyLang === 'eng'" v-model="story.summaryeng" required class="form-control form-control-sm mb-3" placeholder="Summary" />
+          <textarea v-show="storyLang === 'mao'" v-model="story.summarymao" :required="(story.summaryeng == null || story.summaryeng == '') ? true : false" class="form-control form-control-sm mb-3" placeholder="Whakarāpopototanga" />
+          <div class="invalid-feedback">
+            Summary is mandatory
+          </div>
+
           <h5 v-if="story.atua" class="mb-0">
             Atua
           </h5>
@@ -198,8 +249,11 @@
                   <button type="button" class="btn pr-0" title="Zoom to geometry" @click="zoomToGeometry(element)">
                     <i><font-awesome-icon icon="map-marked-alt" class="pointer" />&nbsp;</i>
                   </button>
-                  <span>
-                    <i><strong>{{ element.geom_attr.name }}</strong></i>
+                  <span v-show="storyLang === 'eng'">
+                    <i><strong>{{ element.geom_attr.name.eng }}</strong></i>
+                  </span>
+                  <span v-show="storyLang === 'mao'">
+                    <i><strong>{{ element.geom_attr.name.mao }}</strong></i>
                   </span>
                   <button type="button" class="btn pr-0" title="Edit geometry" @click="editGeometry(element.geom_attr)">
                     <i><font-awesome-icon icon="edit" /></i>
@@ -213,7 +267,12 @@
                 </div>
               </div>
               <div v-if="element.element_type == 'TEXT'">
-                <vue-editor v-model="element.text" :editor-toolbar="customToolbar" class="custom-ql-editor" />
+                <div v-show="storyLang === 'eng'" class="container">
+                  <vue-editor v-model="element.texteng" required :editor-toolbar="customToolbar" class="custom-ql-editor" placeholder="Text" />
+                </div>
+                <div v-show="storyLang === 'mao'" class="container">
+                  <vue-editor v-model="element.textmao" :editor-toolbar="customToolbar" class="custom-ql-editor" placeholder="Kuputuhi" />
+                </div>
               </div>
               <div class="align-center">
                 <img v-if="element.element_type == 'IMG'" :src="mediaRoot + element.mediafile_name" class="story-elem-img img-fluid">
@@ -226,11 +285,20 @@
                   Your browser does not support the audio element.
                 </audio>
               </div>
-              <textarea v-if="!['TEXT','GEOM'].includes(element.element_type)" v-model="element.media_description" rows="1" class="form-control form-control-sm mt-1" title="Media description" placeholder="Media description (optional)" />
-            </div>
+              <!-- <textarea v-if="!['TEXT','GEOM'].includes(element.element_type)" v-model="element.media_description" rows="1" class="form-control form-control-sm mt-1" title="Media description" placeholder="Media description (optional)" /> -->
+              <div v-if="element.media_description">
+                <div v-show="storyLang === 'eng'" class="container">
+                  <textarea v-if="!['TEXT','GEOM'].includes(element.element_type)" v-model="element.media_description.eng" rows="1" class="form-control form-control-sm mt-1" title="Media description" placeholder="Media description (optional)" />
+                </div>
+                <div v-show="storyLang === 'mao'" class="container">
+                  <textarea v-if="!['TEXT','GEOM'].includes(element.element_type)" v-model="element.media_description.mao" rows="1" class="form-control form-control-sm mt-1" title="Media description" placeholder=" Whakaahuatanga pāpāho (kōwhiringa)" />
+                </div>
+              </div>
+
             <div class="col-md-1 delete-element">
               <font-awesome-icon disabled icon="cog" size="lg" color="grey" class="pointer" title="Settings" @click="settingsElementModal(element)" />
               <font-awesome-icon disabled icon="times-circle" size="lg" color="grey" class="pointer ml-2" title="Delete element" @click="deleteElementModal(element)" />
+            </div>
             </div>
           </div>
         </draggable>
@@ -239,16 +307,16 @@
     <div class="clear" />
     <div :class="[togglePanel ? 'col-md-5 visible': 'col-md-0 invisible', 'row sidepanel-footer']">
       <div class="col-md-10">
-        <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
+        <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
           Update story
         </button>
-        <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
+        <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
           Save story
         </button>
         <button v-if="!isStoryViewMode" type="button" class="btn btn-sm btn-danger ml-2" @click="showCancelStorySavingModal()">
           Cancel
         </button>
-        <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-sm btn-primary" @click="editStory()">
+        <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-primary" @click="editStory()">
           Edit story
         </button>
         <div v-if="isStoryViewMode" class="btn-group btn-group-sm dropup ml-3">
@@ -293,7 +361,13 @@
               <h6 class="mb-1 mt-3">
                 Media description (optional)
               </h6>
-              <textarea v-model="tempMediaDescription" class="form-control form-control-sm" title="Media description" />
+              <!-- <textarea v-model="tempMediaDescription" class="form-control form-control-sm" title="Media description" placeholder="Media description (optional)"/> -->
+              <div v-show="storyLang === 'eng'" class="container">
+                <textarea v-model="tempMediaDescriptionEng" class="form-control form-control-sm" title="Media description" placeholder="Media description (optional)" />
+              </div>
+              <div v-show="storyLang === 'mao'" class="container">
+                <textarea v-model="tempMediaDescriptionMao" class="form-control form-control-sm" title="Media description" placeholder="Whakaahuatanga pāpāho (kōwhiringa)" />
+              </div>
             </form>
             <div v-if="uploadError" class="alert alert-danger text-center">
               <h5>Upload failed with error:</h5>
@@ -410,7 +484,12 @@
           <div class="modal-body text-center pt-5 magnify-modal">
             <img v-if="magnifyImageElem" :src="mediaRoot + magnifyImageElem.mediafile_name" class="story-elem-img mb-3" style="width:1000px;">
             <p v-if="magnifyImageElem">
-              {{ magnifyImageElem.media_description }}
+              <span v-show="storyLang === 'eng'">
+                {{ magnifyImageElem.media_description.eng }}
+              </span>
+              <span v-show="storyLang === 'mao'">
+                {{ magnifyImageElem.media_description.mao }}
+              </span>
             </p>
           </div>
           <div class="modal-footer">
@@ -436,7 +515,7 @@
           <div class="modal-body pt-0 pb-0 ml-2">
             <div v-for="usage in geomsUsage" :key="usage.geomAttr.id" class="mt-4">
               <h6 title="Feature name">
-                <strong><i><font-awesome-icon icon="map-marked-alt" /></i>&nbsp;&nbsp;{{ usage.geomAttr.name }}</strong>
+                <strong><i><font-awesome-icon icon="map-marked-alt" /></i>&nbsp;&nbsp;{{ usage.geomAttr.name.eng }}</strong>
               </h6>
               <div class="row">
                 <div class="col-sm-9 geom-usage">
@@ -496,14 +575,16 @@ export default {
         [{ 'color': [] }, { 'background': [] }],
         ['link']
       ],
-      tempMediaDescription: null,
+      tempMediaDescriptionEng: null,
+      tempMediaDescriptionMao: null,
       uploadedFile: null,
       selectedElement: null,
       magnifyImageElem: null,
       isGeomMedia: false,
       mediaForGeomAttr: null,
       geomsUsage: null,
-      elementContentType: null
+      elementContentType: null,
+      storyLang: 'eng'
     }
   },
   computed: {
@@ -547,12 +628,16 @@ export default {
       }
       return this.$store.state.reuseMode
     },
-    allAtuas() {
+    allAtuas()
+    {
       return this.$store.state.allAtuas
     },
-    allStoryTypes() {
+    allStoryTypes(){
       return this.$store.state.allStoryTypes
     },
+    // selectedDateType(){
+    //   return this.$store.state.date_type_temp
+    // },
     allElementContentTypes(){
       return this.$store.state.allElementContentTypes
     },
@@ -611,6 +696,20 @@ export default {
         end_time: null
       }
     },
+    containsMao:function(){
+      some(this.story.storyBodyElements, function (el) {
+        // checks if it has Maori text
+        if (el.element_type === 'TEXT' && (el.textmao !== undefined || el.textmao !== null || el.textmao !== ""))
+        {
+          return true
+        }
+        return false
+      })
+    },
+    onChangeStoryLang:function(){
+      // Update the store with the new Story view language
+      this.$store.commit('SET_STORY_VIEW_LANG', this.storyLang)
+    },
     closePanel () {
       this.$store.commit('SET_PANEL_OPEN', false)
       EventBus.$emit('removeLayer', 'storyGeomsLayer')
@@ -621,12 +720,14 @@ export default {
     reset () {
       this.uploadError = null
       this.uploadedFile = null
-      this.tempMediaDescription = null
+      this.tempMediaDescriptionEng = null
+      this.tempMediaDescriptionMao = null
     },
     addEmptyVueEditor: function () {
       this.story.storyBodyElements.unshift({
         element_type: 'TEXT',
-        text: null
+        texteng: null,
+        textmao: null
       })
     },
     uploadFileClicked () {
@@ -679,7 +780,7 @@ export default {
         element_type: imgFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'IMG' : videoFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'VIDEO' : audioFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'AUDIO' : null,
         mediafile_name: this.uploadedFile.name,
         mediafile: this.uploadedFile.id,
-        media_description: this.tempMediaDescription
+        media_description: {eng:this.tempMediaDescriptionEng,mao:this.tempMediaDescriptionMao}
       })
       this.reset()
     },
@@ -696,15 +797,21 @@ export default {
       EventBus.$emit('resetDrawnFeature')
 
       var storyform = document.getElementById(this.story.id + "_storyform")
+      let delInstance = this;//To delete the current element ('this' keyword does not work correctly inside loop, so created thisway)
 
       if (storyform.checkValidity()) {
-        const elements = this.story.storyBodyElements
+
+        let elements = this.story.storyBodyElements
         some(this.story.storyBodyElements, function (el, i) {
           // Remove empty text elements from storyBodyElements array
-          if (el.element_type === 'TEXT' && (el.text === undefined || el.text === null || el.text === "")) {
+          if (el.element_type === 'TEXT' && (el.texteng === undefined || el.texteng === null || el.texteng === "") && (el.textmao === undefined || el.textmao === null || el.textmao === "")) {
+            if (el.hasOwnProperty('id')) {
+              delInstance.$store.dispatch('deleteStoryBodyElement', el)
+            }
             elements.splice(i, 1)
             return true
           }
+
           // Replace empty string by null
           if (el.content_type === "") {
             el.content_type = null
@@ -854,7 +961,7 @@ export default {
         media_type: imgFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'IMG' : videoFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'VIDEO' : audioFormats.includes(this.uploadedFile.filetype.toLowerCase()) ? 'AUDIO' : null,
         mediafile_name: this.uploadedFile.name,
         mediafile: this.uploadedFile.id,
-        media_description: this.tempMediaDescription
+        media_description: {eng:this.tempMediaDescriptionEng,mao:this.tempMediaDescriptionMao}
       }
 
       this.$store.dispatch('addGeometryAttrbMedia', geomAttrMedia)

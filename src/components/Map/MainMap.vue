@@ -151,101 +151,119 @@
               <font-awesome-icon v-if="isDrawMode && !drawnFeature.id" icon="times" class="float-right pointer" size="lg" @click="deleteGeom()" />
             </div>
           </div>
-        </div>
-        <hr class="mt-0 mb-0">
-        <div class="row">
-          <div class="col-md-5">
-            <form id="geomAttrForm" class="ml-2">
-              <p v-if="isDrawMode" class="text-muted mb-0 mt-2">
-                <font-awesome-icon icon="info-circle" />
-                <small>Snap the yellow geometry and drag the blue point to change the feature's shape.</small>
-              </p>
-              <label class="mt-3"><strong>Name</strong></label>
-              <div>
-                <input v-if="isDrawMode" v-model="drawnFeature.name" required type="text" class="form-control form-control-sm" placeholder="Name of the geographical feature">
-                <span v-else>{{ drawnFeature.name }}</span>
+      </div>
+      <hr class="mt-0 mb-0">
+   <div class="row">
+     <div class="col-md-5">
+       <form id="geomAttrForm" class="ml-2">
+         <p v-if="isDrawMode" class="text-muted mb-0 mt-2">
+           <font-awesome-icon icon="info-circle" />
+           <small>Snap the yellow geometry and drag the blue point to change the feature's shape.</small>
+         </p>
+         <label class="mt-3"><strong>Name</strong></label>
+         <div class="col-sm-10 col-form-label col-form-label-sm">
+           <div v-if="storyViewLang === 'eng'">
+             <input v-if="isDrawMode" v-model="drawnFeature.name.eng" required type="text" class="form-control form-control-sm" placeholder="Name of the geographical feature in English">
+             <span v-else>{{ drawnFeature.name.eng }}</span>
+           </div>
+           <div v-if="storyViewLang === 'mao'">
+             <input v-if="isDrawMode" v-model="drawnFeature.name.mao" required type="text" class="form-control form-control-sm" placeholder="Ingoa o te waahi whenua">
+             <span v-else>{{ drawnFeature.name.mao }}</span>
+           </div>
+         </div>
+         <label class="mt-3"><strong>Description</strong></label>
+         <div class="col-sm-10 col-form-label col-form-label-sm">
+           <div v-if="storyViewLang === 'eng'">
+             <textarea v-if="isDrawMode" v-model="drawnFeature.description.eng" required rows="4" class="form-control form-control-sm mb-4" placeholder="Description of what the geographical feature represents" />
+             <span v-else>{{ drawnFeature.description.eng }}</span>
+           </div>
+           <div v-if="storyViewLang === 'mao'">
+             <textarea v-if="isDrawMode" v-model="drawnFeature.description.mao" required rows="4" class="form-control form-control-sm mb-4" placeholder="
+Whakaahuatanga o te tohu o te waahi whenua" />
+             <span v-else>{{ drawnFeature.description.mao }}</span>
+           </div>
+         </div>
+      </form>
+      <div class="pt-3">
+        <button v-if="isDrawMode" type="button" class="btn btn-sm btn-danger" @click="stopDrawing()">
+          Cancel
+        </button>
+        <button v-if="isDrawMode" type="button" class="btn btn-sm btn-success" @click="saveGeomAttrb()">
+          <span v-if="!drawnFeature.id">Add feature to story</span>
+          <span v-else>Update feature</span>
+        </button>
+      </div>
+    </div>
+     <div v-if="drawnFeature.geometry" :class="[isGeomMediaMode ? '': 'pt-4', 'col-7 pl-5 pr-5 geometry-media-section']" >
+      <div v-if="isGeomMediaMode" class="mb-1 text-center">
+        <button type="button" class="btn btn-sm btn-primary" @click="addMediaFileToGeom()">
+          Add new media
+        </button>
+        <button v-if="drawnFeature.geomAttribMedia.length > 0" type="button" class="btn btn-sm btn-success" @click="saveCaptions()">
+          Save
+        </button>
+      </div>
+      <div v-if="drawnFeature.geomAttribMedia" class="carousel slide" data-ride="carousel">
+        <div class="row m-0">
+          <div class="col-1 p-0">
+            <a class="carousel-control-prev" role="button" @click="slidePrev()">
+              <font-awesome-icon v-if="drawnFeature.geomAttribMedia.length > 1" icon="chevron-circle-left" color="black" class="pointer" size="lg" />
+            </a>
+          </div>
+          <div class="col-10 p-0">
+            <p v-if="drawnFeature.geomAttribMedia.length > 0" class="text-center mb-1 media-caption">
+              <small>{{ drawnFeature.geomAttribMedia.length }} media</small>
+            </p>
+            <p v-if="!drawnFeature.geomAttribMedia || drawnFeature.geomAttribMedia.length == 0" class="text-center mb-1 media-caption">
+              No media files
+            </p>
+            <div class="carousel-inner text-center">
+              <div v-for="(media, idx) in drawnFeature.geomAttribMedia" :key="media.id" class="carousel-item" :class="{ active: idx==0 }">
+                <div v-if="media.media_type == 'IMG'">
+                  <img :src="mediaRoot + media.mediafile_name" alt="" class="geometry-media">
+                  <i v-if="isGeomMediaMode"><font-awesome-icon icon="trash-alt" size="lg" color="red" class="positioner-delete" title="Delete media" @click="deleteMediaFromGeom(media)" /></i>
+                  <span v-else class="fa-stack fa-1x positioner-magnify" @click="magnifyImage(media)">
+                    <i class="fa fa-circle fa-stack-2x icon-background" />
+                    <i class="fa fa-search-plus fa-stack-1x" />
+                  </span>
+                </div>
+                <div v-if="media.media_type == 'VIDEO'">
+                  <video controls controlsList="nodownload" class="geometry-media">
+                    <source :src="mediaRoot + media.mediafile_name" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                  <i v-if="isGeomMediaMode"><font-awesome-icon icon="trash-alt" size="lg" color="red" class="positioner-delete" title="Delete media" @click="deleteMediaFromGeom(media)" /></i>
+                </div>
+                <div v-if="media.media_type == 'AUDIO'">
+                  <audio controls controlsList="nodownload">
+                    <source :src="mediaRoot + media.mediafile_name" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                  </audio>
+                  <i v-if="isGeomMediaMode"><font-awesome-icon icon="trash-alt" size="lg" color="red" class="positioner-delete" title="Delete media" @click="deleteMediaFromGeom(media)" /></i>
+                </div>
+                <div v-if="isGeomMediaMode">
+                  <textarea v-show="media.media_description && storyViewLang === 'eng'" v-model="media.media_description.eng" rows="1" class="form-control form-control-sm mt-2" placeholder="Media caption" />
+                  <textarea v-show="media.media_description && storyViewLang === 'mao'" v-model="media.media_description.mao" rows="1" class="form-control form-control-sm mt-2" placeholder="Media caption" />
+                </div>
+                <p v-else class="media-caption">
+                  <span v-show="media.media_description && storyViewLang === 'eng'">{{ media.media_description.eng }}</span>
+                  <span v-show="media.media_description && storyViewLang === 'mao'">{{ media.media_description.mao }}</span>
+                </p>
               </div>
-              <label class="mt-3"><strong>Description</strong></label>
-              <div>
-                <textarea v-if="isDrawMode" v-model="drawnFeature.description" required rows="4" class="form-control form-control-sm" placeholder="Description of what the geographical feature represents" />
-                <p v-else>{{ drawnFeature.description }}</p>
-              </div>
-            </form>
-            <div class="pt-3">
-              <button v-if="isDrawMode" type="button" class="btn btn-sm btn-danger" @click="stopDrawing()">
-                Cancel
-              </button>
-              <button v-if="isDrawMode" type="button" class="btn btn-sm btn-success" @click="saveGeomAttrb()">
-                <span v-if="!drawnFeature.id">Add feature to story</span>
-                <span v-else>Update feature</span>
-              </button>
             </div>
           </div>
-          <div v-if="drawnFeature.geometry" :class="[isGeomMediaMode ? '': 'pt-4', 'col-7 pl-5 pr-5 geometry-media-section']" >
-            <div v-if="isGeomMediaMode" class="mb-1 text-center">
-              <button type="button" class="btn btn-sm btn-primary" @click="addMediaFileToGeom()">
-                Add new media
-              </button>
-              <button v-if="drawnFeature.geomAttribMedia.length > 0" type="button" class="btn btn-sm btn-success" @click="saveCaptions()">
-                Save
-              </button>
-            </div>
-            <div v-if="drawnFeature.geomAttribMedia" class="carousel slide" data-ride="carousel">
-              <div class="row m-0">
-                <div class="col-1 p-0">
-                  <a class="carousel-control-prev" role="button" @click="slidePrev()">
-                    <font-awesome-icon v-if="drawnFeature.geomAttribMedia.length > 1" icon="chevron-circle-left" color="black" class="pointer" size="lg" />
-                  </a>
-                </div>
-                <div class="col-10 p-0">
-                  <p v-if="drawnFeature.geomAttribMedia.length > 0" class="text-center mb-1 media-caption">
-                    <small>{{ drawnFeature.geomAttribMedia.length }} media</small>
-                  </p>
-                  <p v-if="!drawnFeature.geomAttribMedia || drawnFeature.geomAttribMedia.length == 0" class="text-center mb-1 media-caption">
-                    No media files
-                  </p>
-                  <div class="carousel-inner text-center">
-                    <div v-for="(media, idx) in drawnFeature.geomAttribMedia" :key="media.id" class="carousel-item" :class="{ active: idx==0 }">
-                      <div v-if="media.media_type == 'IMG'">
-                        <img :src="mediaRoot + media.mediafile_name" alt="" class="geometry-media">
-                        <i v-if="isGeomMediaMode"><font-awesome-icon icon="trash-alt" size="lg" color="red" class="positioner-delete" title="Delete media" @click="deleteMediaFromGeom(media)" /></i>
-                        <span v-else class="fa-stack fa-1x positioner-magnify" @click="magnifyImage(media)">
-                          <i class="fa fa-circle fa-stack-2x icon-background" />
-                          <i class="fa fa-search-plus fa-stack-1x" />
-                        </span>
-                      </div>
-                      <div v-if="media.media_type == 'VIDEO'">
-                        <video controls controlsList="nodownload" class="geometry-media">
-                          <source :src="mediaRoot + media.mediafile_name" type="video/mp4">
-                          Your browser does not support the video tag.
-                        </video>
-                        <i v-if="isGeomMediaMode"><font-awesome-icon icon="trash-alt" size="lg" color="red" class="positioner-delete" title="Delete media" @click="deleteMediaFromGeom(media)" /></i>
-                      </div>
-                      <div v-if="media.media_type == 'AUDIO'">
-                        <audio controls controlsList="nodownload">
-                          <source :src="mediaRoot + media.mediafile_name" type="audio/mpeg">
-                          Your browser does not support the audio element.
-                        </audio>
-                        <i v-if="isGeomMediaMode"><font-awesome-icon icon="trash-alt" size="lg" color="red" class="positioner-delete" title="Delete media" @click="deleteMediaFromGeom(media)" /></i>
-                      </div>
-                      <textarea v-if="isGeomMediaMode" v-model="media.media_description" rows="1" class="form-control form-control-sm mt-1" placeholder="Media caption" />
-                      <p v-else class="media-caption" style="color:#333;">
-                        {{ media.media_description }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-1 p-0">
-                  <a class="carousel-control-next" role="button" @click="slideNext()">
-                    <font-awesome-icon v-if="drawnFeature.geomAttribMedia.length > 1" icon="chevron-circle-right" color="black" class="pointer" size="lg" />
-                  </a>
-                </div>
-              </div>
-            </div>
+          <div class="col-1 p-0">
+            <a class="carousel-control-next" role="button" @click="slideNext()">
+              <font-awesome-icon v-if="drawnFeature.geomAttribMedia.length > 1" icon="chevron-circle-right" color="black" class="pointer" size="lg" />
+            </a>
           </div>
         </div>
       </div>
     </div>
+  </div>
+  </div>
+  </div>
+
 
     <!-- Modals -->
     <div id="drawInfoModal" class="modal fade">
@@ -582,6 +600,7 @@ export default {
       features_info: '',
       layersFeaturesPopupCount: 0,
       nExpectedCount: null,
+
       layerStyle: {
          color: '#ffffff',
          opacity: 1,
@@ -597,8 +616,8 @@ export default {
        drawingSource: null,
        drawnFeature: {
          geometry: null,
-         name: null,
-         description: null
+         name: {eng:'',mao:''},
+         description: {eng:'',mao:''}
        },
        storyGeomStyle: {
          color: '#1f6de0',
@@ -672,6 +691,9 @@ export default {
     isStoryViewMode () {
       return this.$store.state.storyViewMode
     },
+    storyViewLang () {
+      return this.$store.state.storyViewLang
+    },
     isGeomMediaMode () {
       return this.$store.state.geomMediaMode
     },
@@ -702,12 +724,10 @@ export default {
   created: function () {
     // Set external layers
     this.$store.commit('SET_EXTERNAL_LAYERS', $.extend(true, {}, extLayersObj))
-
     if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
      this.$store.state.isMobile = true
      this.$store.state.hitTolerance = 20
    }
-
     // Set internal layers and other stuff before creating the map
     Promise.all([
       this.$store.dispatch('getDatasets'),
@@ -1085,7 +1105,7 @@ export default {
           featuresToAdd.push(new Feature({
               geometry: ol_geom,
               name: geomElem.geom_attr.id,
-              label: geomElem.geom_attr.name
+              label: geomElem.geom_attr.name[this.$store.state.storyViewLang]
           }))
 
           geomAttrStyles[geomElem.geom_attr.id] = geomElem.geom_attr.style
@@ -1096,7 +1116,7 @@ export default {
         var features = storyGeomsSource.getFeatures()
         features.forEach((feature) => {
           if (geomAttrStyles[feature.getProperties().name]) {
-            var geomAttrStyle = this.createOLStyle({ 'label': feature.getProperties().label, 'styleObj': geomAttrStyles[feature.getProperties().name] })
+            var geomAttrStyle = this.createOLStyle({ 'label': feature.getProperties().label, 'styleObj': geomAttrStyles[feature.getProperties().name[this.$store.state.storyViewLang]] })
             feature.setStyle(geomAttrStyle)
           }
         })
@@ -1131,7 +1151,7 @@ export default {
           var feature = new Feature({
               geometry: ol_geom,
               name: geomAttr.id,
-              label: geomAttr.name
+              label: geomAttr.name[this.$store.state.storyViewLang]
           })
           layer.getSource().addFeatures([feature])
         }
@@ -1234,9 +1254,9 @@ export default {
         if (layer.get('name') === 'storyGeomsLayer') {
           var features = layer.getSource().getFeatures()
           features.forEach((feature) => {
-            if (feature.getProperties().name === geomAttr.id) {
+            if (feature.getProperties().name[this.$store.state.storyViewLang] === geomAttr.id) {
               feature.setGeometry(ol_geom)
-              var geomAttrStyle = this.createOLStyle({ 'label': geomAttr.name, 'styleObj': geomAttr.style })
+              var geomAttrStyle = this.createOLStyle({ 'label': geomAttr.name[this.$store.state.storyViewLang], 'styleObj': geomAttr.style })
               feature.setStyle(geomAttrStyle)
             }
           })
@@ -1280,8 +1300,8 @@ export default {
       }
       this.drawnFeature = {
         geometry: null,
-        name: null,
-        description: null
+        name: {eng:'',mao:''},
+        description: {eng:'',mao:''}
       }
     })
 
@@ -1374,6 +1394,7 @@ export default {
         }
       })
 
+
       // Declaration of map events
       enableEventListeners()
 
@@ -1385,6 +1406,7 @@ export default {
 
       // Fix map height and width
       this.fixContentHeight()
+
       this.fixContentWidth()
 
     },
@@ -1530,7 +1552,6 @@ export default {
       this.drawingSource.removeFeature(lastFeature)
     },
     saveGeomAttrb () {
-
       var geomform = document.getElementById("geomAttrForm")
 
       if (geomform.checkValidity()) {
@@ -1607,7 +1628,7 @@ export default {
       EventBus.$emit('resetDrawnFeature')
     },
     setOLStyle () {
-      var style = this.createOLStyle({'label': this.storyGeomStyle['geomAttr'].name, 'styleObj': this.storyGeomStyle})
+      var style = this.createOLStyle({'label': this.storyGeomStyle['geomAttr'].name[this.$store.state.storyViewLang], 'styleObj': this.storyGeomStyle})
 
       this.storyGeomStyle.feature.setStyle(style)
       $('#restyleStoryGeomModal').modal('hide')
@@ -1709,7 +1730,6 @@ export default {
                 return true
               }
             })
-
           }
         }
       })
@@ -1758,41 +1778,41 @@ export default {
         this.drawnFeature.geometry = geojsonStr.features[0]
       }) //modifyend event
     },
-    magnifyImage (element) {
-      this.magnifyImageElem = element
-      $('#magnifyGeomImageModal').modal('show')
-    },
-    getMyLocation () {
-      var geolocation = new Geolocation({
-        // take the projection to use from the map's view
-        projection: this.map.getView().getProjection(),
-        tracking: true,
-        trackingOptions: {
-            enableHighAccuracy: true
-        }
-      })
+ magnifyImage (element) {
+   this.magnifyImageElem = element
+   $('#magnifyGeomImageModal').modal('show')
+ },
+ getMyLocation () {
+   var geolocation = new Geolocation({
+     // take the projection to use from the map's view
+     projection: this.map.getView().getProjection(),
+     tracking: true,
+     trackingOptions: {
+         enableHighAccuracy: true
+     }
+   })
 
-      // listen to changes in position
-      geolocation.on('change', () => {
-        var position = geolocation.getPosition()
-        var lonLat = transform([position[0], position[1]], 'EPSG:3857', 'EPSG:4326')
-        this.pointFromCoord = {
-          lat: lonLat[1],
-          long: lonLat[0]
-        }
-        geolocation.setTracking(false)
-      })
+   // listen to changes in position
+   geolocation.on('change', () => {
+     var position = geolocation.getPosition()
+     var lonLat = transform([position[0], position[1]], 'EPSG:3857', 'EPSG:4326')
+     this.pointFromCoord = {
+       lat: lonLat[1],
+       long: lonLat[0]
+     }
+     geolocation.setTracking(false)
+   })
 
-      // handle geolocation error.
-      geolocation.on('error', function(error) {
-        console.log(error.message)
-      })
-    },
-    slidePrev() {
-      $('.carousel').carousel('prev').carousel('pause')
-    },
-    slideNext() {
-      $('.carousel').carousel('next').carousel('pause')
+   // handle geolocation error.
+   geolocation.on('error', function(error) {
+     console.log(error.message)
+   })
+ },
+ slidePrev() {
+   $('.carousel').carousel('prev').carousel('pause')
+ },
+ slideNext() {
+   $('.carousel').carousel('next').carousel('pause')
     }
   }
 }

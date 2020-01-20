@@ -363,7 +363,7 @@ var addAllStoriesGeomsLayer = function (geoms) {
     featuresToAdd.push(new Feature({
         geometry: ol_geom,
         id: geom.id,
-        label: geom.name
+        label: geom.name.eng
     }))
   })
 

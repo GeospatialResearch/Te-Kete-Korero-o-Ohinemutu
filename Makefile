@@ -71,7 +71,7 @@ create-superuser:
 	docker-compose $(DEV) exec api python3 manage.py createsuperuser
 
 load-translations:
-	docker-compose $(DEV) exec api python3 manage.py load_website_translations --ignoredb no
+	docker-compose $(DEV) exec api python3 manage.py load_website_translations --ignoredb yes
 
 load-atua:
 	docker-compose $(DEV) exec api python3 manage.py load_atua

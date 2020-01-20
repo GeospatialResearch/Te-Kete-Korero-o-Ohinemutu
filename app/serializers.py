@@ -87,6 +87,7 @@ class StorySerializer(ModelSerializer):
         for atua in atuas:
             instance.atua.add(atua)
 
+
         for element in storyBodyElements:
 
             if 'story' in element:

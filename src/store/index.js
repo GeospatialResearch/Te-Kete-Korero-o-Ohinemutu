@@ -31,8 +31,10 @@ const store = new Vuex.Store({
     map_zoom: 0,
     stories: [],
     storyContent: {
-      title : '',
-      summary : '',
+      titleeng : '',
+      titlemao : '',
+      summaryeng : '',
+      summarymao : '',
       status: 'DRAFT',
       storyBodyElements: [],
       atua: [],
@@ -52,6 +54,7 @@ const store = new Vuex.Store({
     featuresForReuse: [],
     websiteTranslObj: null,
     lang: 'eng',
+    storyViewLang: 'eng',
     allAtuas: [],
     allStoryTypes: [],
     allElementContentTypes: [],
@@ -123,6 +126,22 @@ const store = new Vuex.Store({
     SET_STORY_CONTENT (state, response) {
       // Sort the storyBodyElements array by attribute order_position
       response.storyBodyElements.sort((a, b) => parseFloat(a.order_position) - parseFloat(b.order_position))
+      each(response.storyBodyElements, el =>{
+        if (el.element_type === 'TEXT')
+        {
+          el.texteng = el.text.eng
+          el.textmao = el.text.mao
+        }
+        if (el.element_type !== 'TEXT' && el.element_type !== 'GEOM')
+        {
+          el.tempMediaDescriptionEng = el.media_description.eng
+          el.tempMediaDescriptionMao = el.media_description.mao
+        }
+      })
+      response['titleeng']= response.title.eng
+      response['titlemao']= response.title.mao
+      response['summaryeng']= response.summary.eng
+      response['summarymao']= response.summary.mao
       state.storyContent = response
     },
     SET_STORY_VIEW_MODE (state, mode){
@@ -180,6 +199,9 @@ const store = new Vuex.Store({
     },
     SET_LANG (state, value) {
       state.lang = value
+    },
+    SET_STORY_VIEW_LANG(state, value) {
+      state.storyViewLang = value
     },
     SET_ALL_USEDSTORIESGEOMETRIES (state, payload) {
       state.allStoriesGeomsLayer.allUsedStoriesGeometriesObj = payload.allusedgeomsObj
@@ -295,10 +317,44 @@ const store = new Vuex.Store({
         // .catch((error) => store.commit('API_FAIL', error))
     },
     saveStoryContent (store, story) {
+      each(story.storyBodyElements, el =>{
+        if (el.element_type === 'TEXT')
+        {
+          el.text = {
+            eng: el.texteng,
+            mao: el.textmao,
+          }
+          delete el['texteng']
+          delete el['textmao']
+        }
+        // if (el.element_type !== 'GEOM')
+        // {
+        //   delete el['tempGeomNameEng']
+        //   delete el['tempGeomNameMao']
+        // }
+        if (el.element_type !== 'TEXT' && el.element_type !== 'GEOM')
+        {
+          delete el['tempMediaDescriptionEng']
+          delete el['tempMediaDescriptionMao']
+        }
+      })
       story.storyBodyElements_temp = story.storyBodyElements
       delete story['storyBodyElements']
       story.atua_temp = story.atua
+      story.title = {
+        eng: story.titleeng,
+        mao: story.titlemao,
+      }
+      story.summary = {
+        eng: story.summaryeng,
+        mao: story.summarymao,
+      }
       delete story['atua']
+      delete story['titleeng']
+      delete story['titlemao']
+      delete story['summaryeng']
+      delete story['summarymao']
+
       return api.patch(apiRoot + '/stories/' + story.id + '/', story)
         .then((response) => {
           store.dispatch('getStories')
@@ -306,10 +362,33 @@ const store = new Vuex.Store({
         })
     },
     addStory (store, story) {
+      each(story.storyBodyElements, el =>{
+        if (el.element_type === 'TEXT')
+        {
+          el.text = {
+            eng: el.texteng,
+            mao: el.textmao,
+          }
+          delete el['texteng']
+          delete el['textmao']
+        }
+      })
       story.storyBodyElements_temp = story.storyBodyElements
       delete story['storyBodyElements']
       story.atua_temp = story.atua
+      story.title = {
+        eng: story.titleeng,
+        mao: story.titlemao
+      }
+      story.summary = {
+        eng: story.summaryeng,
+        mao: story.summarymao
+      }
       delete story['atua']
+      delete story['titleeng']
+      delete story['titlemao']
+      delete story['summaryeng']
+      delete story['summarymao']
       return api.post(apiRoot + '/stories/', story)
         .then((response) => {
           store.dispatch('getStories')
