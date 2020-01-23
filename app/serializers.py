@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, ListField, SerializerMethodField, JSONField, PrimaryKeyRelatedField
+from rest_framework.serializers import ModelSerializer, ListField, SerializerMethodField, JSONField, PrimaryKeyRelatedField, ReadOnlyField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType
 from django.contrib.gis.geos import GEOSGeometry
@@ -35,6 +35,7 @@ class StorySerializer(ModelSerializer):
     storyBodyElements_temp = ListField(write_only=True)
     atua_temp = PrimaryKeyRelatedField(write_only=True,many=True,queryset=Atua.objects.all())
     story_type_id = PrimaryKeyRelatedField(source="StoryType",queryset=StoryType.objects.all(),required=False)
+    owner = ReadOnlyField(source='owner.username')
 
     storyBodyElements = SerializerMethodField()
     story_type = StoryTypeSerializer(read_only=True)

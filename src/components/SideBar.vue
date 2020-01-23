@@ -6,24 +6,28 @@
         <div class="sidebar-item sidebar-brand text-center">
           <a href="#" class="app-title">{{ translationObj.culturalNarratives[lang] }}</a>
         </div>
+
         <!-- sidebar-header  -->
         <div class="sidebar-item sidebar-header d-flex flex-nowrap">
-          <div class="user-pic">
+          <div v-if="authenticated" class="user-pic">
             <img class="img-responsive img-rounded" src="static/img/user.jpg" alt="User picture">
           </div>
-          <div class="user-info">
-            <span class="user-name">John <strong>Smith</strong>
+          <div v-if="authenticated" class="user-info">
+            <span class="user-name">Welcome, <strong>{{ username }}</strong>
             </span>
-            <span class="user-role">Administrator</span>
-            <span class="user-status">
+            <span class="user-status mt-0">Whanau: </span>
+            <span class="user-status mt-0">Hapu: </span>
+            <span class="user-status mt-0">Iwi: </span>
+            <!-- <span class="user-role">Administrator</span> -->
+            <!-- <span class="user-status">
               <i><font-awesome-icon icon="circle" /></i>
               <span>Online</span>
-            </span>
+            </span> -->
           </div>
         </div>
 
         <!-- sidebar-menu  -->
-        <div class=" sidebar-item sidebar-menu">
+        <div class="sidebar-item sidebar-menu">
           <ul>
             <li class="header-menu">
               <span>General</span>
@@ -38,7 +42,10 @@
 
             <!-- sidebar import dataset  -->
             <div class="sidebar-item sidebar-search pointer">
-              <div>
+              <li class="header-menu">
+                <span>Layers</span>
+              </li>
+              <div v-if="authenticated">
                 <div class="input-group input-group-sm">
                   <div class="form-control search-menu text-center label-info" @click="uploadDatasetClicked">
                     {{ translationObj.uploadDataset[lang] }}
@@ -51,8 +58,8 @@
                 </div>
               </div>
             </div>
-            <li class="sidebar-dropdown">
-              <a href="#" title="Data uploaded by you">
+            <li v-if="authenticated" class="sidebar-dropdown">
+              <a href="#" title="Data uploaded by you" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
                 <span class="menu-text">{{ translationObj.myLayers[lang] }}</span>
@@ -81,7 +88,7 @@
               </div>
             </li>
             <li class="sidebar-dropdown">
-              <a href="#" title="Data from External Data Services">
+              <a href="#" title="Data from External Data Services" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
                 <span class="menu-text">{{ translationObj.extLayers[lang] }}</span>
@@ -104,7 +111,7 @@
               </div>
             </li>
             <li class="sidebar-dropdown">
-              <a href="#" title="Data uploaded and managed by admin" @click="reinitialisePopups()">
+              <a href="#" title="Data uploaded and managed by admin" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
                 <span class="menu-text">Default layers</span>
@@ -129,7 +136,10 @@
 
             <!-- sidebar open panel  -->
             <div class="sidebar-item sidebar-search pointer">
-              <div>
+              <li class="header-menu">
+                <span>Narratives</span>
+              </li>
+              <div v-if="authenticated">
                 <div class="input-group input-group-sm">
                   <div class="form-control search-menu text-center label-info" @click="openPanel()">
                     {{ translationObj.addNewNarrative[lang] }}
@@ -142,21 +152,19 @@
                 </div>
               </div>
             </div>
-            <li class="sidebar-dropdown">
-              <a href="#">
+            <li v-if="authenticated" class="sidebar-dropdown">
+              <a href="#" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-book-open" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="book-open" /></i>
                 <span class="menu-text">{{ translationObj.myNarratives[lang] }}</span>
                 <!-- <span class="badge badge-pill badge-warning">New</span> -->
               </a>
-              <div v-if="!stories.length" class="sidebar-submenu">
-                <div class="text-center">
+              <div class="sidebar-submenu">
+                <div v-if="!myNarratives.length" class="text-center">
                   <span>No narratives available</span>
                 </div>
-              </div>
-              <div v-else class="sidebar-submenu">
-                <ul>
-                  <li v-for="story in stories" :key="story.id">
+                <ul v-else>
+                  <li v-for="story in myNarratives" :key="story.id">
                     <a href="#" class="sidebar-line" :title="story.title.eng">
                       <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
                       <span class="inline-text">
@@ -172,16 +180,29 @@
             </li>
 
             <li class="sidebar-dropdown">
-              <a href="#">
+              <a href="#" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-book-open" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="book-open" /></i>
-                <span class="menu-text">{{ translationObj.publicNarratives[lang] }}</span>
-                <!-- <span class="badge badge-pill badge-warning">New</span> -->
+                <span v-if="authenticated" class="menu-text">{{ translationObj.otherNarratives[lang] }}</span>
+                <span v-else class="menu-text">Public Narratives</span>
               </a>
               <div class="sidebar-submenu">
-                <div class="text-center">
+                <div v-if="!otherNarratives.length" class="text-center">
                   <span>No narratives available</span>
                 </div>
+                <ul v-else>
+                  <li v-for="story in otherNarratives" :key="story.id">
+                    <a href="#" class="sidebar-line" :title="story.title.eng">
+                      <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
+                      <span class="inline-text">
+                        <span class="ml-2 ellipsis-text"> {{ story.title.eng }}</span>
+                      </span>
+                      <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Narrative Options" :data-content="createPopoverStoryOptions(story)">
+                        <font-awesome-icon icon="ellipsis-v" />
+                      </span>
+                    </a>
+                  </li>
+                </ul>
               </div>
             </li>
 
@@ -211,7 +232,7 @@
 
 
             <li v-show="filter.freeText || filter.atua.length !== 0 || filter.storyType.length !== 0" class="sidebar-dropdown">
-              <a href="#">
+              <a href="#" @click="dropdownSidebarDropdow($event)">
                 <i><font-awesome-icon icon="book-open" /></i>
                 <span class="menu-text">Filtered narratives</span>
                 <span class="badge badge-pill badge-secondary">{{ filteredStories.length }}</span>
@@ -233,7 +254,7 @@
                       <a href="#" class="sidebar-line" :title="story.title">
                         <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
                         <span class="inline-text">
-                          <span class="ml-2 ellipsis-text"> {{ story.title }}</span>
+                          <span class="ml-2 ellipsis-text"> {{ story.title.eng }}</span>
                         </span>
                         <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Narrative Options" :data-content="createPopoverStoryOptions(story)">
                           <font-awesome-icon icon="ellipsis-v" />
@@ -601,7 +622,9 @@
           storyType: [],
           freeText: null
         },
-        filteredStories: []
+        filteredStories: [],
+        myNarratives: [],
+        otherNarratives: []
       }
     },
     computed: {
@@ -639,6 +662,36 @@
       },
       allStoryTypes () {
         return this.$store.state.allStoryTypes
+      },
+      authenticated () {
+        return this.$store.state.authenticated
+      },
+      username () {
+        var username
+        if (this.$store.state.user) {
+          username = this.$store.state.user.username
+        }
+        return username
+      }
+    },
+    watch: {
+      stories: function () {
+        this.filterNarratives()
+
+        this.myNarratives = []
+        this.otherNarratives = []
+        if (this.authenticated) {
+          each(this.stories, (story) => {
+            if (story.owner == this.username) {
+              this.myNarratives.push(story)
+            } else {
+              this.otherNarratives.push(story)
+            }
+          })
+        } else {
+          this.otherNarratives = this.stories
+        }
+
       }
     },
     mounted: function () {
@@ -807,12 +860,19 @@
         EventBus.$emit('resetDrawnFeature')
       },
       createPopoverStoryOptions (story) {
-        var storyOptions = `<div class="layer-options">
-                              <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
-                              <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit narrative</a>
-                              <div class="dropdown-divider"></div>
-                              <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">Delete narrative</a>
-                            </div>`
+        var storyOptions
+        if (story.owner === this.username || this.username === 'admin') {
+          storyOptions = `<div class="layer-options">
+                            <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
+                            <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit narrative</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">Delete narrative</a>
+                          </div>`
+        } else {
+          storyOptions = `<div class="layer-options">
+                            <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
+                          </div>`
+        }
 
         return storyOptions
       },
@@ -837,15 +897,15 @@
 
           if (this.filter.freeText !== null && this.filter.freeText !== "") {
             filterStory_byFreeText = false
-            if (story.title.toLowerCase().includes(this.filter.freeText.toLowerCase())) {
+            if (JSON.stringify(story.title).toLowerCase().includes(this.filter.freeText.toLowerCase())) {
               filterStory_byFreeText = true
             }
-            if (story.summary.toLowerCase().includes(this.filter.freeText.toLowerCase())) {
+            if (JSON.stringify(story.summary).toLowerCase().includes(this.filter.freeText.toLowerCase())) {
               filterStory_byFreeText = true
             }
             some(story.storyBodyElements, (elem) => {
               if (elem.element_type === 'TEXT') {
-                if (elem.text.toLowerCase().includes(this.filter.freeText.toLowerCase())) {
+                if (JSON.stringify(elem.text).toLowerCase().includes(this.filter.freeText.toLowerCase())) {
                   filterStory_byFreeText = true
                 }
               }
@@ -887,6 +947,17 @@
           atua: [],
           storyType: [],
           freeText: null
+        }
+      },
+      dropdownSidebarDropdow (event) {
+        $(".sidebar-submenu").slideUp(200)
+        if ($(event.target).parent().hasClass("active")) {
+          $(".sidebar-dropdown").removeClass("active")
+          $(event.target).parent().removeClass("active")
+        } else {
+          $(".sidebar-dropdown").removeClass("active")
+          $(event.target).next(".sidebar-submenu").slideDown(200)
+          $(event.target).parent().addClass("active")
         }
       }
     }

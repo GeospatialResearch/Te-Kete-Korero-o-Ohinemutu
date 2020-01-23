@@ -4,27 +4,14 @@ const store = require('store').default
 
 $(function () {
 
-  // // Resize map on window resize
-  // $(window).on('resize', function(){
-  //   var w = window.outerWidth;
-  //   var h = window.outerHeight;
-  //   var txt = "Window size: width=" + w + ", height=" + h;
-  //   console.log(txt)
-  //   EventBus.$emit("updateMapWidth")
-  // })
-
-  // Dropdown menu
-  $(".sidebar-dropdown > a").click(function () {
-      $(".sidebar-submenu").slideUp(200);
-      if ($(this).parent().hasClass("active")) {
-          $(".sidebar-dropdown").removeClass("active");
-          $(this).parent().removeClass("active");
-      } else {
-          $(".sidebar-dropdown").removeClass("active");
-          $(this).next(".sidebar-submenu").slideDown(200);
-          $(this).parent().addClass("active");
-      }
-  });
+  // Resize map on window resize
+  $(window).on('resize', function(){
+    var w = window.outerWidth;
+    var h = window.outerHeight;
+    var txt = "Window size: width=" + w + ", height=" + h;
+    console.log(txt)
+    EventBus.$emit("updateMapWidth")
+  })
 
   //toggle sidebar
   $("#toggle-sidebar").click(function () {

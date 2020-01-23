@@ -2,65 +2,92 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import api from './api.js'
 import { EventBus } from './event-bus'
-import { each, some } from 'underscore'
+import { each, some, isEmpty } from 'underscore'
 import { info as notifyInfo, close as notifyClose } from 'utils/notify'
 
 Vue.use(Vuex)
 
 const apiRoot = process.env.API_HOST + '/v1'
 
-const store = new Vuex.Store({
-  state: {
-    flavor: '',
-    map: null,
-    isLoading: false,
-    isUploadingData: false,
-    isPanelOpen: false,
-    contentToShow: 'map',
-    externalLayers: null,
-    internalLayers: {},
-    allStoriesGeomsLayer: {
-      visible: true,
-      name: 'allStoriesGeomsLayer',
-      layername: 'Geometries in Narratives',
-      style: null,
-      allUsedStoriesGeometries: null,
-      allUsedStoriesGeometriesObj: null
-    },
-    map_resolution: 0,
-    map_zoom: 0,
-    stories: [],
-    storyContent: {
-      titleeng : '',
-      titlemao : '',
-      summaryeng : '',
-      summarymao : '',
-      status: 'DRAFT',
-      storyBodyElements: [],
-      atua: [],
-      story_type_id: '',
-      approx_time: {
-        type: '',
-        date: null,
-        start_time: null,
-        end_time: null,
-        year: null
-      }
-    },
-    drawMode: false,
-    storyViewMode: true,
-    geomMediaMode: false,
-    reuseMode: false,
-    featuresForReuse: [],
-    websiteTranslObj: null,
-    lang: 'eng',
-    storyViewLang: 'eng',
-    allAtuas: [],
-    allStoryTypes: [],
-    allElementContentTypes: [],
-    isMobile: false,
-    hitTolerance: 0
+var getAuthHeader = function () {
+  var authToken = localStorage.getItem('token')
+  var authHeader
+  if (authToken !== undefined && authToken !== null) {
+    authHeader = {
+      'Authorization': 'JWT ' + authToken // rest-auth with jwt enabled (REST_USE_JWT = True in settings.py)
+      // 'Authorization': 'Token ' + authToken // rest-auth token (REST_USE_JWT = False in settings.py)
+    }
+  }
+  return authHeader
+}
+
+var getData = function () {
+  store.dispatch('getDatasets')
+  store.dispatch('getStories')
+  store.dispatch('getAtuas'),
+  store.dispatch('getStoryTypes'),
+  store.dispatch('getElementContentTypes'),
+  store.dispatch('getWebsiteTranslation')
+}
+
+const initialState = {
+  flavor: '',
+  map: null,
+  isLoading: false,
+  isUploadingData: false,
+  isPanelOpen: false,
+  contentToShow: 'map',
+  externalLayers: null,
+  internalLayers: {},
+  allStoriesGeomsLayer: {
+    visible: true,
+    name: 'allStoriesGeomsLayer',
+    layername: 'Geometries in Narratives',
+    style: null,
+    allUsedStoriesGeometries: null,
+    allUsedStoriesGeometriesObj: null
   },
+  map_resolution: 0,
+  map_zoom: 0,
+  stories: [],
+  storyContent: {
+    titleeng : '',
+    titlemao : '',
+    summaryeng : '',
+    summarymao : '',
+    status: 'DRAFT',
+    storyBodyElements: [],
+    atua: [],
+    story_type_id: '',
+    approx_time: {
+      type: '',
+      date: null,
+      start_time: null,
+      end_time: null,
+      year: null
+    }
+  },
+  drawMode: false,
+  storyViewMode: true,
+  geomMediaMode: false,
+  reuseMode: false,
+  featuresForReuse: [],
+  websiteTranslObj: null,
+  lang: 'eng',
+  storyViewLang: 'eng',
+  allAtuas: [],
+  allStoryTypes: [],
+  allElementContentTypes: [],
+  isMobile: false,
+  hitTolerance: 0,
+  // User related attributes
+  token: null, // (used for jwt or rest-auth token),
+  authenticated: false,
+  user: null
+}
+
+const store = new Vuex.Store({
+  state: initialState,
   mutations: {
     CHANGE (state, flavor) {
       state.flavor = flavor
@@ -211,11 +238,40 @@ const store = new Vuex.Store({
     RESTORE_ALL_USEDSTORIESGEOMETRIES (state) {
       EventBus.$emit('createLayer', state.allStoriesGeomsLayer.allUsedStoriesGeometries, 'allstoriesgeoms')
     },
+    // Account system
+    SET_LOGIN (state, response) {
+      if (!isEmpty(response.body)) {
+        state.user = response.body.user
+        if (response.body.hasOwnProperty('token')) {
+          state.token = response.body.token // rest-auth jwt
+          localStorage.setItem('token', response.body.token)
+        } else if (response.body.hasOwnProperty('key')) {
+          state.token = response.body.key // rest-auth token
+          localStorage.setItem('token', response.body.key)
+        }
+        state.authenticated = true
+        // store.dispatch('checkAdmin')
+      }
+    },
+    DEAUTHENTICATE (state) {
+      localStorage.removeItem('token')
+      state.authenticated = false
+      state.user = null
+      state.token = null
+      if (state.isPanelOpen) {
+        EventBus.$emit('closePanel')
+      }
+      // Reset state to initial values
+      for (const f in initialState) {
+        Vue.set(state, f, initialState[f])
+      }
+    },
     // Generic fail handling
     API_FAIL (state, error) {
       if (error.status === 401 || error.status === 403) {
+        console.log((error))
         console.error("Authentication error found. Logging user out.")
-        // store.commit("DEAUTHENTICATE")
+        store.commit("DEAUTHENTICATE")
       } else {
         console.error(error)
       }
@@ -226,7 +282,7 @@ const store = new Vuex.Store({
   },
   actions: {
     uploadFile (store, datafile) {
-      return api.post(apiRoot + '/upload_file/', datafile)
+      return api.post(apiRoot + '/upload_file/', datafile, { headers: getAuthHeader() })
         .then((response) => {
           return response
         })
@@ -236,77 +292,82 @@ const store = new Vuex.Store({
         })
     },
     getDatasets (store) {
-      return api.get(apiRoot + '/datasets/')
+      return api.get(apiRoot + '/datasets/', { headers: getAuthHeader() })
         .then((response) => {
           store.commit('SET_INTERNAL_LAYERS', response.body)
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     getInternalLayerStyle (store, layername) {
-      return api.get(apiRoot + '/get_layer_style/?layername=' + layername)
+      return api.get(apiRoot + '/get_layer_style/?layername=' + layername, { headers: getAuthHeader() })
         .then((response) => {
           return response
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     setInternalLayerStyle (store, payload) {
-      return api.post(apiRoot + '/set_layer_style/', payload)
+      return api.post(apiRoot + '/set_layer_style/', payload, { headers: getAuthHeader() })
         .then((response) => {
           return response
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     deleteLayer (store, layername) {
-      return api.post(apiRoot + '/delete_layer/', {'layername': layername})
+      return api.post(apiRoot + '/delete_layer/', {'layername': layername}, { headers: getAuthHeader() })
         .then(() => {
           store.commit('DELETE_INTERNAL_LAYER', layername)
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     renameLayer (store, payload) {
-      return api.post(apiRoot + '/rename_layer/', payload)
+      return api.post(apiRoot + '/rename_layer/', payload, { headers: getAuthHeader() })
         .then(() => {
           store.commit('RENAME_INTERNAL_LAYER', payload)
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     getInternalRasterLayerBbox (store, layername) {
-      return api.get(apiRoot + '/get_layer_bbox/?layername=' + layername)
+      return api.get(apiRoot + '/get_layer_bbox/?layername=' + layername, { headers: getAuthHeader() })
         .then((response) => {
           return response
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     getStories () {
       // To be filtered in the future based on the stories that the public/user has access
-      return api.get(apiRoot + '/stories')
+      return api.get(apiRoot + '/stories', { headers: getAuthHeader() })
       .then((response) => {
         store.commit('SET_STORIES', response)
         store.dispatch('getAllUsedStoriesGeometries')
       })
-        // .catch((error) => store.commit('API_FAIL', error))
+      .catch((error) => store.commit('API_FAIL', error))
     },
     getAtuas () {
       // To getall atuas
-      return api.get(apiRoot + '/atuas')
+      return api.get(apiRoot + '/atuas', { headers: getAuthHeader() })
         .then((response) => {
           store.commit('SET_ALLATUAS', response)
         })
-        // .catch((error) => store.commit('API_FAIL', error))
+        .catch((error) => store.commit('API_FAIL', error))
     },
     getStoryTypes () {
       // To getall storytypes
-      return api.get(apiRoot + '/storytypes')
+      return api.get(apiRoot + '/storytypes', { headers: getAuthHeader() })
         .then((response) => {
           store.commit('SET_ALLSTORYTYPES', response)
         })
-        // .catch((error) => store.commit('API_FAIL', error))
+        .catch((error) => store.commit('API_FAIL', error))
     },
     getElementContentTypes () {
       // To getall contenttypes
-      return api.get(apiRoot + '/contenttypes')
+      return api.get(apiRoot + '/contenttypes', { headers: getAuthHeader() })
         .then((response) => {
           store.commit('SET_ALL_ELEMENT_CONTENTTYPES', response)
         })
-        // .catch((error) => store.commit('API_FAIL', error))
+        .catch((error) => store.commit('API_FAIL', error))
     },
     getStoryContent (store, storyid) {
-      // Add auth headers to the request in the future
-      return api.get(apiRoot + '/stories/' + storyid + '/')
+      return api.get(apiRoot + '/stories/' + storyid + '/', { headers: getAuthHeader() })
         .then((response) => {
           if (response.body.story_type) {
             response.body.story_type_id = response.body.story_type.id
@@ -314,7 +375,18 @@ const store = new Vuex.Store({
           store.commit('SET_STORY_CONTENT', response.body)
           return response.body
           })
-        // .catch((error) => store.commit('API_FAIL', error))
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    getWebsiteTranslation () {
+      return api.get(apiRoot + '/websitetranslation/', { headers: getAuthHeader() })
+        .then((response) => {
+          var result = {}
+          response.body.forEach(function(item) {
+            result[item.field_name]=item
+          })
+          store.commit('SET_TRANSLATION', result)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     saveStoryContent (store, story) {
       each(story.storyBodyElements, el =>{
@@ -327,11 +399,6 @@ const store = new Vuex.Store({
           delete el['texteng']
           delete el['textmao']
         }
-        // if (el.element_type !== 'GEOM')
-        // {
-        //   delete el['tempGeomNameEng']
-        //   delete el['tempGeomNameMao']
-        // }
         if (el.element_type !== 'TEXT' && el.element_type !== 'GEOM')
         {
           delete el['tempMediaDescriptionEng']
@@ -355,11 +422,12 @@ const store = new Vuex.Store({
       delete story['summaryeng']
       delete story['summarymao']
 
-      return api.patch(apiRoot + '/stories/' + story.id + '/', story)
+      return api.patch(apiRoot + '/stories/' + story.id + '/', story, { headers: getAuthHeader() })
         .then((response) => {
           store.dispatch('getStories')
           store.commit('SET_STORY_CONTENT', response.body)
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     addStory (store, story) {
       each(story.storyBodyElements, el =>{
@@ -389,11 +457,12 @@ const store = new Vuex.Store({
       delete story['titlemao']
       delete story['summaryeng']
       delete story['summarymao']
-      return api.post(apiRoot + '/stories/', story)
+      return api.post(apiRoot + '/stories/', story, { headers: getAuthHeader() })
         .then((response) => {
           store.dispatch('getStories')
           store.commit('SET_STORY_CONTENT', response.body)
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     addMedia (store, media) {
       return api.post(apiRoot + '/upload_media_file/', media, {
@@ -402,9 +471,8 @@ const store = new Vuex.Store({
         //     console.log(e.loaded / e.total * 100);
         //   }
         // }
-        headers: {
-                'Content-Type': 'multipart/form-data'
-            }
+        headers: { 'Content-Type': 'multipart/form-data',
+                  'Authorization': 'JWT ' + localStorage.getItem('token') }
       })
         .then((response) => {
           return response
@@ -414,118 +482,138 @@ const store = new Vuex.Store({
         })
     },
     deleteStoryBodyElement (store, element) {
-      return api.delete(apiRoot + '/storybodyelements/' + element.id + '/')
+      return api.delete(apiRoot + '/storybodyelements/' + element.id + '/', { headers: getAuthHeader() })
         .then(() => store.commit('DELETE_ELEMENT', element))
-        // .catch((error) => store.commit('API_FAIL', error))
+        .catch((error) => store.commit('API_FAIL', error))
     },
     deleteUnusedMediaFiles () {
-      return api.post(apiRoot + '/delete_unused_media/')
+      return api.post(apiRoot + '/delete_unused_media/', {}, { headers: getAuthHeader() })
         .then((response) => {
           return response
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     deleteUnusedGeomAttrs () {
-      return api.post(apiRoot + '/delete_unused_geoms/')
+      return api.post(apiRoot + '/delete_unused_geoms/', {}, { headers: getAuthHeader() })
         .then((response) => {
           return response
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     deleteStory (store, storyid) {
-      return api.delete(apiRoot + '/stories/' + storyid + '/')
+      return api.delete(apiRoot + '/stories/' + storyid + '/', { headers: getAuthHeader() })
       .then(() => {
         store.dispatch('getStories')
         store.dispatch('deleteUnusedMediaFiles')
       })
+      .catch((error) => store.commit('API_FAIL', error))
     },
     addGeometryAttrb (store, drawnfeature) {
       if (drawnfeature.geometry.geometry) {
         drawnfeature.geometry = drawnfeature.geometry.geometry
       }
-      return api.post(apiRoot + '/storygeomsattrib/', drawnfeature)
+      return api.post(apiRoot + '/storygeomsattrib/', drawnfeature, { headers: getAuthHeader() })
         .then((response) => {
           return response
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     updateGeometryAttrb (store, drawnfeature) {
       if (drawnfeature.geometry.geometry) {
         drawnfeature.geometry = drawnfeature.geometry.geometry
       }
-      return api.patch(apiRoot + '/storygeomsattrib/' + drawnfeature.id + '/', drawnfeature)
+      return api.patch(apiRoot + '/storygeomsattrib/' + drawnfeature.id + '/', drawnfeature, { headers: getAuthHeader() })
         .then((response) => {
           return response
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     addGeometryAttrbMedia (store, geomAttrMedia) {
       geomAttrMedia.mediafile_temp = geomAttrMedia.mediafile
       geomAttrMedia.geomattr_temp = geomAttrMedia.geom_attr
       delete geomAttrMedia['mediafile']
       delete geomAttrMedia['geom_attr']
-      return api.post(apiRoot + '/storygeomsattribmedia/', geomAttrMedia)
+      return api.post(apiRoot + '/storygeomsattribmedia/', geomAttrMedia, { headers: getAuthHeader() })
         .then((response) => {
           return response
         })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     updateGeometryAttrbMediaCaptions (store, geomAttrMediaFiles) {
       each(geomAttrMediaFiles, geomAttrMedia => {
-        return api.patch(apiRoot + '/storygeomsattribmedia/' + geomAttrMedia.id + '/', geomAttrMedia)
+        return api.patch(apiRoot + '/storygeomsattribmedia/' + geomAttrMedia.id + '/', geomAttrMedia, { headers: getAuthHeader() })
       })
     },
     deleteGeometryAttrbMedia (store, geomAttrMedia) {
-      return api.delete(apiRoot + '/storygeomsattribmedia/' + geomAttrMedia.id + '/')
-    },
-    getWebsiteTranslation () {
-      return api.get(apiRoot + '/websitetranslation/')
-        .then((response) => {
-          var result = {}
-          response.body.forEach(function(item) {
-            result[item.field_name]=item
-          })
-          store.commit('SET_TRANSLATION', result)
-        })
-        // .catch((error) => store.commit('API_FAIL', error))
+      return api.delete(apiRoot + '/storygeomsattribmedia/' + geomAttrMedia.id + '/', { headers: getAuthHeader() })
     },
     getAllUsedStoriesGeometries () {
-      api.get(apiRoot + '/storygeomsattrib')
+      api.get(apiRoot + '/storybodyelements', { headers: getAuthHeader() })
         .then((response) => {
           var allUsedGeoms = []
           var allUsedGeomsObj = {}
-          var count = 0
-          var totalGeomAttrs = response.body
-          totalGeomAttrs.forEach((geomAttr) => {
-            store.dispatch('getGeometryUsage', geomAttr)
-            .then((response) => {
-              count++
-              if (response) {
-                // geomAttr['usage'] = {'geomAttr': geomAttr, 'story': response}
-                allUsedGeoms.push(geomAttr)
-                allUsedGeomsObj[geomAttr.id] = {'geomAttr': geomAttr, 'story': response}
-              }
-              if (count === totalGeomAttrs.length) {
-                store.commit('SET_ALL_USEDSTORIESGEOMETRIES', {'allusedgeoms': allUsedGeoms, 'allusedgeomsObj': allUsedGeomsObj})
-                return
-              }
-            })
+          response.body.forEach((elem) => {
+            if (elem.element_type === 'GEOM') {
+              allUsedGeoms.push(elem.geom_attr)
+              allUsedGeomsObj[elem.geom_attr.id] = {'geomAttr': elem.geom_attr,
+                                                    'story': {
+                                                      'id': elem.story.id,
+                                                      'title': elem.story.title,
+                                                      'summary': elem.story.summary,
+                                                      'storytype': elem.story.story_type.type
+                                                    }
+                                                  }
+            }
           })
+          store.commit('SET_ALL_USEDSTORIESGEOMETRIES', {'allusedgeoms': allUsedGeoms, 'allusedgeomsObj': allUsedGeomsObj})
         })
-        // .catch((error) => store.commit('API_FAIL', error))
+        .catch((error) => store.commit('API_FAIL', error))
     },
-    getGeometryUsage (store, geomAttr) {
-      var storyDetail
-      return api.get(apiRoot + '/storybodyelements/?geomattr=' + geomAttr.id)
-      .then((response) => {
-        if (response.body[0]) {
-          storyDetail = {
-            'id': response.body[0].story.id,
-            'title': response.body[0].story.title,
-            'summary': response.body[0].story.summary,
-            'storytype': response.body[0].story.story_type.type,
-          }
-          return storyDetail
-        } else {
-          return null
-        }
-
-      })
+    // getGeometryUsage (store, geomAttr) {
+    //   var storyDetail
+    //   return api.get(apiRoot + '/storybodyelements/?geomattr=' + geomAttr.id, { headers: getAuthHeader() })
+    //   .then((response) => {
+    //     if (response.body[0]) {
+    //       storyDetail = {
+    //         'id': response.body[0].story.id,
+    //         'title': response.body[0].story.title,
+    //         'summary': response.body[0].story.summary,
+    //         'storytype': response.body[0].story.story_type.type,
+    //       }
+    //       return storyDetail
+    //     } else {
+    //       return null
+    //     }
+    //
+    //   })
+    // },
+    
+    // Login using rest-auth with or without jwt enabled (the response brings a generated jwt or the token stored in db)
+    logIn (store, payload) {
+      return api.post(process.env.API_HOST + '/auth/login/', payload)
+        .then((response) => {
+          store.commit('SET_LOGIN', response)
+          getData()
+          // router.push('/')
+          return response
+        })
+        .catch((error) => {
+          return error
+        })
+    },
+    logOut () {
+      store.commit('DEAUTHENTICATE')
+      getData()
+      // router.push('/')
+    },
+    getUser (store) {
+      // To check the token validation
+      return api.get(apiRoot + '/check_user/', { headers: getAuthHeader() })
+        .then( (response) => {
+          store.commit('SET_LOGIN', response)
+          getData()
+        })
+        .catch((error) => store.commit('API_FAIL', error))
     }
   }
 })

@@ -3,6 +3,30 @@ from django.contrib.postgres.fields import JSONField
 import uuid
 from model_utils import Choices
 from rest_framework.exceptions import ValidationError
+from django.db.models import Q
+
+# QuerySets
+class StoryQuerySet(models.QuerySet):
+    def for_user(self, user):
+        # Not logged in? Only public data or data created by admin
+        if not user.is_authenticated:
+            return self.filter(Q(owner=1)) # those the admin is the owner
+        # Super user? All the data!
+        if user.is_superuser:
+            return self.all()
+        else:
+            return self.filter(Q(owner=user)) | self.filter(Q(owner=1))
+
+class StoryBodyElementQuerySet(models.QuerySet):
+    def for_user(self, user):
+        # Not logged in? Only public data or data created by admin
+        if not user.is_authenticated:
+            return self.filter(Q(story__owner=1)) # those stories the admin is the owner
+        # Super user? All the data!
+        if user.is_superuser:
+            return self.all()
+        else:
+            return self.filter(Q(story__owner=user)) | self.filter(Q(story__owner=1))
 
 
 # Create your models here.
@@ -67,7 +91,10 @@ class Story(models.Model):
     status = models.CharField(max_length=20, default=STATUS.DRAFT, null=False, choices=STATUS)
     approx_time = JSONField(default=None, blank=True, null=True)
     atua =  models.ManyToManyField("Atua")
-    story_type = models.ForeignKey(StoryType,blank=True, null=True,on_delete=models.CASCADE)
+    story_type = models.ForeignKey(StoryType, blank=True, null=True, on_delete=models.CASCADE)
+    owner = models.ForeignKey('auth.User', related_name='stories', on_delete=models.CASCADE)
+
+    objects = StoryQuerySet.as_manager()
 
 
 class MediaFile(models.Model):
@@ -125,6 +152,8 @@ class StoryBodyElement(models.Model):
     geom_attr = models.ForeignKey(StoryGeomAttrib, on_delete=models.CASCADE, blank=True, null=True)
     order_position = models.IntegerField(blank=True, null=True)
     content_type = models.ForeignKey(ContentType,blank=True, null=True,on_delete=models.CASCADE)
+
+    objects = StoryBodyElementQuerySet.as_manager()
 
 
 class WebsiteTranslation(models.Model):

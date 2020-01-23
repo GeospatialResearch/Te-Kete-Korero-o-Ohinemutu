@@ -20,6 +20,9 @@ from rest_framework import routers
 from app import views
 from django.conf.urls.static import static
 from django.conf import settings
+from django.views.generic import RedirectView
+
+from rest_framework_jwt.views import obtain_jwt_token
 
 # Construct v1 API routes (it needs rest_framework installed)
 router = routers.DefaultRouter()
@@ -46,6 +49,7 @@ v1 = router.urls + [
     url(r'^rename_layer/', views.RenameLayer.as_view()),
     url(r'^get_layer_bbox/', views.get_layer_bbox),
     url(r'^datasets/', views.dataset_list),
+    url(r'^check_user/', views.GetUser.as_view()),
 
 ]
 
@@ -55,6 +59,14 @@ urlpatterns = [
 
     # Version namespaced API routes
     url('^v1/', include(v1)),
+    # Redirect to the most current API version
+    url(r'^$', RedirectView.as_view(url='/v1/')),
+    # Login and logout views for the browsable API
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+
+    # registration and login with django-rest-auth package
+    url(r'^auth/', include('rest_auth.urls')),
+    url(r'^auth-jwt/', obtain_jwt_token)
 
 ]
 

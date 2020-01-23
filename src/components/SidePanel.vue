@@ -1,8 +1,24 @@
 <template>
   <div id="sidePanel" :class="{'col-md-5':togglePanel, 'col-md-0':!togglePanel}">
-    <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closeStory()" />
+    <div class="row col-md-12 m-0 mb-3 p-0 pb-2 sticky">
+      <div class="col-md-6 p-0">
+        <div class="mt-3">
+          <div class="form-check form-check-inline">
+            <input id="inlineRadio1" v-model="storyLang" class="form-check-input" type="radio" name="optstorylang" value="eng" @change="onChangeStoryLang()">
+            <label class="form-check-label" for="inlineRadio1">English</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input id="inlineRadio2" v-model="storyLang" class="form-check-input" type="radio" name="optstorylang" value="mao" @change="onChangeStoryLang()">
+            <label class="form-check-label" for="inlineRadio2">Te Reo</label>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 p-0">
+        <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closeStory()" />
+      </div>
+    </div>
 
-    <div v-if="isStoryViewMode" class="mt-5 mb-5">
+    <div v-if="isStoryViewMode" class="mt-4 mb-5">
       <span class="badge badge-warning mb-2 p-2" title="Story status">{{ story.status }}</span>
       <span v-if="story.story_type" class="badge badge-success mb-2 p-2 float-right" title="Story type">{{ story.story_type.type }}</span>
       <div title="Story Date">
@@ -26,37 +42,30 @@
       </div>
       <div class="mt-5">
         <div v-if="story.title">
-          <div v-show="story.title.mao">
-            <select v-model="storyLang" class="btn btn-sm btn-secondary dropdown-toggle" @change="onChangeStoryLang">
-              <option value="eng">
-                English
-              </option>
-              <option value="mao">
-                Māori
-              </option>
-            </select>
-          </div>
-        </div>
-        <div v-if="story.title">
           <div v-show="storyLang === 'eng'">
-            <h4 v-show="story.title.eng" title="Story title">
-              {{ story.title.eng }}
+            <h4 title="Story title">
+              <span v-if="story.title.eng">{{ story.title.eng }}</span>
+              <span v-else class="text-muted font-italic">No title defined in English</span>
             </h4>
             <p class="story-summary" title="Story summary">
-              {{ story.summary.eng }}
+              <span v-if="story.summary.eng">{{ story.summary.eng }}</span>
+              <span v-else class="text-muted font-italic">No summary defined in English</span>
             </p>
           </div>
           <div v-show="storyLang === 'mao'">
-            <h4 v-show="story.title.mao" title="Story title">
-              {{ story.title.mao }}
+            <h4 title="Story title">
+              <span v-if="story.title.mao">{{ story.title.mao }}</span>
+              <span v-else class="text-muted font-italic">No title defined in Te Reo</span>
             </h4>
             <p class="story-summary" title="Story summary">
-              {{ story.summary.mao }}
+              <span v-if="story.summary.mao">{{ story.summary.mao }}</span>
+              <span v-else class="text-muted font-italic">No summary defined in Te Reo</span>
             </p>
           </div>
         </div>
-
-
+        <p class="font-italic mb-0">
+          <small>&mdash; Story by {{ username }}</small>
+        </p>
         <div v-if="story.atua" class="float-right" style="font-size:13px;">
           Atua:
           <i v-for="atua in allAtuas" :key="atua.id">
@@ -65,25 +74,27 @@
             </strong>
           </i>
         </div>
-
-        <hr class="mt-5">
+        <hr class="mt-4">
       </div>
-
 
       <div v-for="element in story.storyBodyElements" :key="element.id" class="col-md-12">
         <font-awesome-icon v-if="element.content_type" disabled icon="info-circle" color="grey" class="pointer float-right" :title="element.content_type.type" />
         <div :class="element.content_type?'mr-4':''">
           <div v-if="element.element_type == 'TEXT'">
-            <div v-show="storyLang === 'eng'" class="ql-text mb-4" v-html="element.texteng">
-            </div>
-            <div v-show="storyLang === 'mao'" class="ql-text mb-4" v-html="element.textmao">
-            </div>
+            <div v-show="storyLang === 'eng'" class="ql-text mb-4" v-html="element.texteng" />
+            <div v-show="storyLang === 'mao'" class="ql-text mb-4" v-html="element.textmao" />
           </div>
           <div v-if="element.element_type == 'GEOM'">
-            <div :id="element.geom_attr.id" class="text-center m-4 geometry-name">
+            <div :id="element.geom_attr.id" class="text-center m-4">
               <i><font-awesome-icon icon="map-marked-alt" size="lg" class="pointer" title="Zoom to geometry" @click="zoomToGeometry(element)" /></i>&nbsp;
-              <strong v-show="storyLang === 'eng'">{{ element.geom_attr.name.eng }}</strong>
-              <strong v-show="storyLang === 'mao'">{{ element.geom_attr.name.mao }}</strong>
+              <strong v-show="storyLang === 'eng'">
+                <span v-if="element.geom_attr.name.eng">{{ element.geom_attr.name.eng }}</span>
+                <span v-else class="text-muted font-italic">No name defined in English</span>
+              </strong>
+              <strong v-show="storyLang === 'mao'">
+                <span v-if="element.geom_attr.name.mao">{{ element.geom_attr.name.mao }}</span>
+                <span v-else class="text-muted font-italic">No name defined in Te Reo</span>
+              </strong>
             </div>
           </div>
           <div class="align-center">
@@ -95,7 +106,6 @@
               </span>
               <!-- <i><font-awesome-icon icon="search-plus" size="lg" color="#97ee19" class="positioner-magnify" @click="magnifyImage(element)" /></i> -->
             </div>
-
 
             <video v-if="element.element_type == 'VIDEO'" controls controlsList="nodownload" class="story-elem-video">
               <source :src="mediaRoot + element.mediafile_name" type="video/mp4">
@@ -115,16 +125,10 @@
         </div>
       </div>
     </div>
-    <div v-else> <!-- edit mode -->
+    <div v-else>
+      <!-- edit mode -->
       <form :id="story.id + '_storyform'">
         <div class="row col-md-12">
-          <div class="row col-md-12">
-            <input v-model="storyLang" type="radio" name="optstorylang" value="eng" @change="onChangeStoryLang">
-            <label>English</label>
-            <input v-model="storyLang" type="radio" name="optstorylang" value="mao" @change="onChangeStoryLang">
-            <label>Te reo</label>
-          </div>
-
           <h5 class="mb-0">
             Title
           </h5>
@@ -249,12 +253,14 @@
                   <button type="button" class="btn pr-0" title="Zoom to geometry" @click="zoomToGeometry(element)">
                     <i><font-awesome-icon icon="map-marked-alt" class="pointer" />&nbsp;</i>
                   </button>
-                  <span v-show="storyLang === 'eng'">
-                    <i><strong>{{ element.geom_attr.name.eng }}</strong></i>
-                  </span>
-                  <span v-show="storyLang === 'mao'">
-                    <i><strong>{{ element.geom_attr.name.mao }}</strong></i>
-                  </span>
+                  <strong v-show="storyLang === 'eng'">
+                    <span v-if="element.geom_attr.name.eng">{{ element.geom_attr.name.eng }}</span>
+                    <span v-else class="text-muted font-italic">No name defined in English</span>
+                  </strong>
+                  <strong v-show="storyLang === 'mao'">
+                    <span v-if="element.geom_attr.name.mao">{{ element.geom_attr.name.mao }}</span>
+                    <span v-else class="text-muted font-italic">No name defined in Te Reo</span>
+                  </strong>
                   <button type="button" class="btn pr-0" title="Edit geometry" @click="editGeometry(element.geom_attr)">
                     <i><font-awesome-icon icon="edit" /></i>
                   </button>
@@ -294,11 +300,10 @@
                   <textarea v-if="!['TEXT','GEOM'].includes(element.element_type)" v-model="element.media_description.mao" rows="1" class="form-control form-control-sm mt-1" title="Media description" placeholder=" Whakaahuatanga pāpāho (kōwhiringa)" />
                 </div>
               </div>
-
+            </div>
             <div class="col-md-1 delete-element">
               <font-awesome-icon disabled icon="cog" size="lg" color="grey" class="pointer" title="Settings" @click="settingsElementModal(element)" />
               <font-awesome-icon disabled icon="times-circle" size="lg" color="grey" class="pointer ml-2" title="Delete element" @click="deleteElementModal(element)" />
-            </div>
             </div>
           </div>
         </draggable>
@@ -307,19 +312,19 @@
     <div class="clear" />
     <div :class="[togglePanel ? 'col-md-5 visible': 'col-md-0 invisible', 'row sidepanel-footer']">
       <div class="col-md-10">
-        <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
+        <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
           Update story
         </button>
-        <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-success" @click="saveStory()">
+        <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
           Save story
         </button>
         <button v-if="!isStoryViewMode" type="button" class="btn btn-sm btn-danger ml-2" @click="showCancelStorySavingModal()">
           Cancel
         </button>
-        <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-primary" @click="editStory()">
+        <button v-if="story.hasOwnProperty('id') && isStoryViewMode && (story.owner === username || username === 'admin')" type="button" class="btn btn-sm btn-primary" @click="editStory()">
           Edit story
         </button>
-        <div v-if="isStoryViewMode" class="btn-group btn-group-sm dropup ml-3">
+        <div v-if="isStoryViewMode && (story.owner === username || username === 'admin')" class="btn-group btn-group-sm dropup ml-3">
           <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <font-awesome-icon icon="share-alt" class="mr-2" />
           </button>
@@ -520,10 +525,10 @@
               <div class="row">
                 <div class="col-sm-9 geom-usage">
                   <h6 class="text-muted">
-                    <span title="Narrative title"><i><font-awesome-icon icon="book-open" /></i>&nbsp;&nbsp;{{ usage.story.title }}</span> &mdash; <small title="Story type"><i>{{ usage.story.storytype }}</i></small>
+                    <span title="Narrative title"><i><font-awesome-icon icon="book-open" /></i>&nbsp;&nbsp;{{ usage.story.title.eng }}</span> &mdash; <small title="Story type"><i>{{ usage.story.storytype }}</i></small>
                   </h6>
                   <h6 title="Narrative summary" class="ml-4">
-                    <i>{{ usage.story.summary }}</i>
+                    <i>{{ usage.story.summary.eng }}</i>
                   </h6>
                 </div>
                 <div class="col-sm-3 text-center">
@@ -604,9 +609,11 @@ export default {
       if (this.$store.state.drawMode) {
         disableEventListenerSingleClick()
         $('#sidePanel :button').prop('disabled', true)
+        $('#sidePanel :radio').prop('disabled', true)
       }else {
         enableEventListenerSingleClick()
         $('#sidePanel :button').prop('disabled', false)
+        $('#sidePanel :radio').prop('disabled', false)
       }
       return this.$store.state.drawMode
     },
@@ -635,12 +642,16 @@ export default {
     allStoryTypes(){
       return this.$store.state.allStoryTypes
     },
-    // selectedDateType(){
-    //   return this.$store.state.date_type_temp
-    // },
     allElementContentTypes(){
       return this.$store.state.allElementContentTypes
     },
+    username () {
+      var username
+      if (this.$store.state.user) {
+        username = this.$store.state.user.username
+      }
+      return username
+    }
   },
   mounted: function () {
     EventBus.$on('addGeometryElement', (geomAttr) => {
@@ -686,6 +697,10 @@ export default {
       $('#geomsUsageModal').modal('show')
     })
 
+    EventBus.$on('closePanel', () => {
+      this.closePanel()
+    })
+
   },
   methods: {
     onChange (e) {
@@ -709,6 +724,7 @@ export default {
     onChangeStoryLang:function(){
       // Update the store with the new Story view language
       this.$store.commit('SET_STORY_VIEW_LANG', this.storyLang)
+      EventBus.$emit('addStoryGeomsToMap', this.story.storyBodyElements)
     },
     closePanel () {
       this.$store.commit('SET_PANEL_OPEN', false)
@@ -992,8 +1008,7 @@ export default {
           this.$store.commit('SET_PANEL_OPEN', true)
           EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
           delay(() => {
-            console.log(geomAttr)
-            // EventBus.$emit('zoomToGeometry', geomAttr)
+            EventBus.$emit('zoomToGeometry', geomAttr)
           }, 10)
 
         })

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+import datetime
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -34,6 +35,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    # Django Apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,11 +43,41 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+
+    # Local Apps (Your project's apps)
     'app',
+
+    # Third-Party Apps
     'corsheaders',
     'rest_framework',
-    'rest_framework_gis'
+    'rest_framework_gis',
+    'rest_framework.authtoken',
+    'rest_auth'
+
 ]
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': (
+        'app.permissions.IsOwnerOrReadOnly',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        # for browsable api view usage
+        'rest_framework.authentication.SessionAuthentication',
+        # enables simple command line authentication
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
+
+# Enables django-rest-auth to use JWT tokens instead of regular tokens.
+REST_USE_JWT = True
+
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=60)
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -155,6 +187,3 @@ if not DEBUG:
 
 MEDIA_URL =  '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
-# FILE_UPLOAD_MAX_MEMORY_SIZE = 1000000000
-# DATA_UPLOAD_MAX_MEMORY_SIZE = 1000000000

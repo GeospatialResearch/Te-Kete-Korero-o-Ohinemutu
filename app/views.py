@@ -387,10 +387,10 @@ class StoryViewSet(viewsets.ModelViewSet):
     queryset = Story.objects.all()
 
     def get_queryset(self):
-        return self.queryset.order_by('-created_date')
+        return self.queryset.for_user(self.request.user).order_by('-created_date')
 
     def perform_create(self,serializer):
-        serializer.save()
+        serializer.save(owner=self.request.user)
     def perform_update(self,serializer):
         serializer.save()
 
@@ -400,13 +400,14 @@ class StoryBodyElementViewSet(viewsets.ModelViewSet):
     queryset = StoryBodyElement.objects.all()
 
     def get_queryset(self):
+
         # If required, filter for the geom
         geomattr = self.request.query_params.get('geomattr', None)
         if geomattr is not None:
             queryset = self.queryset.filter(geom_attr=geomattr)
             return queryset
 
-        return self.queryset
+        return self.queryset.for_user(self.request.user)
 
 
 class AtuaViewSet(viewsets.ModelViewSet):
@@ -429,7 +430,6 @@ class StoryGeomAttribViewSet(viewsets.ModelViewSet):
     queryset = StoryGeomAttrib.objects.all()
 
     def perform_create(self,serializer):
-        print("&&&&&&&&&&&&&&&&&&&&&&")
         serializer.save()
     def perform_update(self,serializer):
         serializer.save()
@@ -488,3 +488,12 @@ def get_layer_bbox(request):
         resource = cat.get_resource(layername)
 
     return JsonResponse({'bbox': resource.latlon_bbox})
+
+
+class GetUser(APIView):
+    def get(self, request):
+        if request.user is not None and not request.user.is_anonymous:
+            print(request.user)
+            return Response({'user': {'email': request.user.email, 'username': request.user.username}})
+        else:
+            return Response({})
