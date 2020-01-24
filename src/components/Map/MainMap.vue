@@ -481,9 +481,16 @@
                     <span v-else> (from a story)</span>
                   </h6>
                   <h6 class="text-muted">
-                    <span v-for="(value, propertykey) in geom.properties" :key="propertykey">
-                      <small v-if="propertykey.toLowerCase() != 'id' && !Array.isArray(value) && value != null && value != '' && value != 'NULL'">{{ propertykey }}: {{ value }}; </small>
-                    </span>
+                    <div v-if="geom.id">
+                      <span v-for="(value, propertykey) in geom.properties" :key="propertykey">
+                        <small v-if="propertykey.toLowerCase() != 'id' && !Array.isArray(value) && value != null && value != '' && value != 'NULL'">{{ propertykey }}: {{ value }}; </small>
+                      </span>
+                    </div>
+                    <div v-else>
+                      <span v-for="(value, propertykey) in geom.properties" :key="propertykey">
+                        <small v-if="propertykey.toLowerCase() == 'label'">{{ propertykey }}: {{ value }}; </small>
+                      </span>
+                    </div>
                   </h6>
                 </div>
                 <div class="col-sm-3 text-center">
