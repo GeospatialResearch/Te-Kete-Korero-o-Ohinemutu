@@ -64,7 +64,7 @@
           </div>
         </div>
         <p class="font-italic mb-0">
-          <small>&mdash; Story by {{ username }}</small>
+          <small>&mdash; Story by {{ story.owner }}</small>
         </p>
         <div v-if="story.atua" class="float-right" style="font-size:13px;">
           Atua:
