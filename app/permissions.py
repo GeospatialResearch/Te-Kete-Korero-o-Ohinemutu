@@ -39,15 +39,23 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
         # Finally, if the user owns the thing, he can do update and delete.
 
+        if isinstance(obj, StoryBodyElement):
+            return obj.story.owner == request.user
+
         if isinstance(obj, StoryGeomAttrib):
-            storybodyelem = StoryBodyElement.objects.filter(geom_attr=obj)[0]
-            return storybodyelem.story.owner == request.user
+            try:
+                storybodyelem = StoryBodyElement.objects.filter(geom_attr=obj)[0]
+                return storybodyelem.story.owner == request.user
+            except Exception as e:
+                return True
 
         if isinstance(obj, StoryGeomAttribMedia):
             geom_attr = StoryGeomAttrib.objects.filter(id=obj.geom_attr.id)[0]
-            print(geom_attr)
-            storybodyelem = StoryBodyElement.objects.filter(geom_attr=geom_attr)[0]
-            print(storybodyelem)
-            return storybodyelem.story.owner == request.user
+            try:
+                storybodyelem = StoryBodyElement.objects.filter(geom_attr=geom_attr)[0]
+                return storybodyelem.story.owner == request.user
+            except Exception as e:
+                return True
 
+        # if story
         return obj.owner == request.user

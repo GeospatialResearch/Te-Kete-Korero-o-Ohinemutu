@@ -356,12 +356,19 @@
             <form v-if="!uploadError" enctype="multipart/form-data" novalidate>
               <div class="dropbox">
                 <input type="file" :name="uploadFieldName" class="input-file" @change="fileChange($event.target.files)">
-                <p v-if="!uploadedFile">
+                <p v-if="!uploadedFile && !uploadingMedia">
                   Click to browse or drop a media file here
                 </p>
-                <p v-else>
+                <p v-if="uploadedFile && !uploadingMedia">
                   {{ uploadedFile.name }}
                 </p>
+                <div v-if="uploadingMedia">
+                  <p class="uploadmedia-loading p-4 mt-2 mb-0">
+                  </p>
+                  <p class="p-0">
+                    Uploading media...
+                  </p>
+                </div>
               </div>
               <h6 class="mb-1 mt-3">
                 Media description (optional)
@@ -386,10 +393,10 @@
               <span v-if="!uploadError">Cancel</span>
               <span v-else>Close</span>
             </span>
-            <button v-if="!uploadError && !isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary" data-dismiss="modal" @click="addMediaElement()">
+            <button v-if="!uploadError && !isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary wait-for-media" data-dismiss="modal" @click="addMediaElement()">
               Add media to story
             </button>
-            <button v-if="!uploadError && isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary" data-dismiss="modal" @click="addGeomAttrMedia()">
+            <button v-if="!uploadError && isGeomMedia" :disabled="!uploadedFile" type="button" class="btn btn-primary wait-for-media" data-dismiss="modal" @click="addGeomAttrMedia()">
               Add media to geometry
             </button>
           </div>
@@ -568,6 +575,8 @@ export default {
       mediaRoot: process.env.API_HOST + '/media/',
       uploadFieldName: 'file',
       uploadError: null,
+      uploadedFile: null,
+      uploadingMedia: false,
       dragging: false,
       customToolbar: [
         // [{ 'font': [] }],
@@ -582,7 +591,6 @@ export default {
       ],
       tempMediaDescriptionEng: null,
       tempMediaDescriptionMao: null,
-      uploadedFile: null,
       selectedElement: null,
       magnifyImageElem: null,
       isGeomMedia: false,
@@ -613,6 +621,7 @@ export default {
       }else {
         enableEventListenerSingleClick()
         $('#sidePanel :button').prop('disabled', false)
+        $('#sidePanel .wait-for-media').prop('disabled', true)
         $('#sidePanel :radio').prop('disabled', false)
       }
       return this.$store.state.drawMode
@@ -624,6 +633,7 @@ export default {
       }else {
         enableEventListenerSingleClick()
         $('#sidePanel :button').prop('disabled', false)
+        $('#sidePanel .wait-for-media').prop('disabled', true)
       }
       return this.$store.state.geomMediaMode
     },
@@ -632,6 +642,7 @@ export default {
         $('#sidePanel :button').prop('disabled', true)
       }else {
         $('#sidePanel :button').prop('disabled', false)
+        $('#sidePanel .wait-for-media').prop('disabled', true)
       }
       return this.$store.state.reuseMode
     },
@@ -751,6 +762,7 @@ export default {
       $('#uploadFileModal').modal('show')
     },
     fileChange (fileList) {
+      this.uploadingMedia = true
 
       var FileSize = fileList[0].size / 1024 / 1024; // in MB
         if (FileSize > 500) {
@@ -784,7 +796,7 @@ export default {
           }
         }
         fileList = ''
-
+        this.uploadingMedia = false
       })
       .catch((err) => {
         console.log(err)

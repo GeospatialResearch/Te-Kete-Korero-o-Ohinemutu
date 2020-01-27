@@ -320,6 +320,10 @@ class UploadMediaFileView(APIView):
         print("##############")
         if ext.lower() not in img_exts and ext.lower() not in video_exts and ext.lower() not in audio_exts:
             raise ValidationError("The format of the media file " + filename + " is not supported. Please, upload a media file with one of the following extensions: " + ",".join(img_exts) + "," + ",".join(video_exts) + " and" + ",".join(audio_exts))
+        if not re.match("^[a-zA-Z0-9_-]*$", base_name):
+            raise ValidationError("The media file name " + base_name + " is invalid. Make sure the name does not have any spaces or special characters.")
+        if base_name[0].isdigit():
+            raise ValidationError("The media file name can't start with a digit. Please make sure the name starts with an alpha character.")
 
         if file_serializer.is_valid():
             file_serializer.save()
