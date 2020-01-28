@@ -67,6 +67,7 @@ const initialState = {
       year: null
     }
   },
+  uploadMediaProgress: 0,
   drawMode: false,
   storyViewMode: true,
   geomMediaMode: false,
@@ -238,6 +239,9 @@ const store = new Vuex.Store({
     RESTORE_ALL_USEDSTORIESGEOMETRIES (state) {
       EventBus.$emit('createLayer', state.allStoriesGeomsLayer.allUsedStoriesGeometries, 'allstoriesgeoms')
     },
+    SET_UPLOADMEDIA_PROGRESS (state, value) {
+      state.uploadMediaProgress = value
+    },
     // Account system
     SET_LOGIN (state, response) {
       if (!isEmpty(response.body)) {
@@ -258,9 +262,8 @@ const store = new Vuex.Store({
       state.authenticated = false
       state.user = null
       state.token = null
-      if (state.isPanelOpen) {
-        EventBus.$emit('closePanel')
-      }
+      EventBus.$emit('closePanel')
+
       // Reset state to initial values
       for (const f in initialState) {
         Vue.set(state, f, initialState[f])
@@ -272,6 +275,7 @@ const store = new Vuex.Store({
         console.log((error))
         console.error("Authentication error found. Logging user out.")
         store.commit("DEAUTHENTICATE")
+        getData()
       } else {
         console.error(error)
       }
@@ -466,11 +470,11 @@ const store = new Vuex.Store({
     },
     addMedia (store, media) {
       return api.post(apiRoot + '/upload_media_file/', media, {
-        // progress(e) {
-        //   if (e.lengthComputable) {
-        //     console.log(e.loaded / e.total * 100);
-        //   }
-        // }
+        progress(e) {
+          if (e.lengthComputable) {
+            store.commit('SET_UPLOADMEDIA_PROGRESS', Math.trunc(e.loaded / e.total * 100))
+          }
+        },
         headers: { 'Content-Type': 'multipart/form-data',
                   'Authorization': 'JWT ' + localStorage.getItem('token') }
       })
@@ -587,7 +591,7 @@ const store = new Vuex.Store({
     //
     //   })
     // },
-    
+
     // Login using rest-auth with or without jwt enabled (the response brings a generated jwt or the token stored in db)
     logIn (store, payload) {
       return api.post(process.env.API_HOST + '/auth/login/', payload)
