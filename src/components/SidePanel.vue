@@ -366,7 +366,7 @@
                   <p class="uploadmedia-loading p-4 mt-2 mb-0">
                   </p>
                   <p class="p-0">
-                    Uploading media...
+                    Uploading media... <span>{{ uploadMediaProgress }}%</span>
                   </p>
                 </div>
               </div>
@@ -662,6 +662,9 @@ export default {
         username = this.$store.state.user.username
       }
       return username
+    },
+    uploadMediaProgress () {
+      return this.$store.state.uploadMediaProgress
     }
   },
   mounted: function () {
