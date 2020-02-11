@@ -84,7 +84,8 @@ const initialState = {
   // User related attributes
   token: null, // (used for jwt or rest-auth token),
   authenticated: false,
-  user: null
+  user: null,
+  orientation: null
 }
 
 const store = new Vuex.Store({
@@ -99,6 +100,9 @@ const store = new Vuex.Store({
     },
     SET_LOADING (state, value) {
       state.isLoading = value
+    },
+    SET_ORIENTATION(state, content) {
+      state.orientation = content
     },
     TOGGLE_CONTENT (state, content) {
       state.contentToShow = content

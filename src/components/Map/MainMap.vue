@@ -1,5 +1,6 @@
 <template>
-  <div id="map" :class="[togglePanel ? 'col-md-7': 'col-md-12', 'map']">
+  <!-- <div id="map" :class="[togglePanel ? 'col-md-7': 'col-md-12', 'map']"> -->
+  <div id="map" :class="[getOrientation === 'portrait' ? {'col-sm-12 col-xs-12 map-top':togglePanel, 'col-sm-12 col-xs-12 map':!togglePanel}: {'col-sm-7 col-xs-12 map':togglePanel, 'col-sm-12 col-xs-12 map':!togglePanel}]">
     <div class="card ol-control ol-custom">
       <h6 id="legend" class="card-header pt-2 pb-2">
         <div data-toggle="collapse" href="#collapse-legend" aria-expanded="true" aria-controls="collapse-legend">
@@ -139,8 +140,10 @@
     <!-- Content of the menu -->
     <div style="display: none;">
       <div id="storygeom_overlay">
-        <div class="col-md-12">
-          <div class="row">
+        <!-- <div class="col-md-12">
+        <div class="row"> -->
+        <div class="col-sm-12">
+          <div class="d-flex flex-sm-row justify-content-between">
             <h6 class="col-md-8">
               <span v-if="isGeomMediaMode"><strong>Feature Media Manager</strong></span>
               <span v-else><strong>Story Feature Info</strong></span>
@@ -153,8 +156,9 @@
           </div>
         </div>
         <hr class="mt-0 mb-0">
-        <div class="row">
-          <div class="col-md-5">
+        <!-- <div class="row"> -->
+        <div class="d-flex flex-sm-row justify-content-between">
+          <div class="col-sm-5">
             <form id="geomAttrForm" class="ml-2">
               <p v-if="isDrawMode" class="text-muted mb-0 mt-2">
                 <font-awesome-icon icon="info-circle" />
@@ -546,9 +550,16 @@
         <div class="modal-content">
           <div class="modal-body text-center pt-5 magnify-modal">
             <img v-if="magnifyImageElem" :src="mediaRoot + magnifyImageElem.mediafile_name" class="story-elem-img mb-3" style="width:1000px;">
-            <p v-if="magnifyImageElem">
-              {{ magnifyImageElem.media_description }}
-            </p>
+            <div v-if="magnifyImageElem">
+              <div v-if="storyViewLang === 'eng'">
+                <span v-if=" magnifyImageElem.media_description.eng">{{  magnifyImageElem.media_description.eng }}</span>
+                <span v-else class="text-muted font-italic">No description defined in English</span>
+              </div>
+              <div v-if="storyViewLang === 'mao'">
+                <span v-if=" magnifyImageElem.media_description.mao">{{  magnifyImageElem.media_description.mao }}</span>
+                <span v-else class="text-muted font-italic">No description defined in Maori</span>
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
             <div class="btn btn-secondary btn-ok" data-dismiss="modal">
@@ -590,7 +601,7 @@ import Overlay from 'ol/Overlay'
 import { Fill, Stroke, Style, Circle as CircleStyle, Text } from 'ol/style'
 import { Zoom, Attribution, ScaleLine } from 'ol/control'
 // import { tile } from 'ol/loadingstrategy' // bbox as bboxStrategy,
-// import { createXYZ } from 'ol/tilegrid'
+// import { createXYZ } from *'ol/tilegrid'
 import { defaults } from 'ol/interaction'
 import { transform } from 'ol/proj'
 import Geolocation from 'ol/Geolocation'
@@ -661,6 +672,10 @@ export default {
         minZoom: 2
       })
       return view
+    },
+    getOrientation(){
+      console.log("getOrientation from MAINMAP is**************",this.$store.state.orientation);
+      return this.$store.state.orientation
     },
     mapPopup () {
       var popup = new Overlay({
@@ -776,7 +791,9 @@ export default {
     EventBus.$on('updateMapWidth', () => {
       this.fixContentWidth()
     })
-
+    EventBus.$on('updateMapHeight', () => {
+      this.fixContentHeight()
+    })
     EventBus.$on('createLayer', (layer, servType) => {
       if (servType === 'external') {
         var layerconfigs = layer
@@ -1346,6 +1363,17 @@ export default {
   methods: {
 
     initMap () {
+      // Detect and set orientation of the screen
+      // if(window.outerWidth > window.outerHeight || window.outerWidth > 1023 || window.outerHeight > 1023)
+      if(window.outerWidth > window.outerHeight)
+        {
+          console.log(" MAP ##### landscape",window.outerWidth,window.outerHeight)
+          this.$store.commit('SET_ORIENTATION', 'landscape')
+        }
+        else {
+          console.log(" MAP ##### portrait",window.outerWidth,window.outerHeight)
+          this.$store.commit('SET_ORIENTATION', 'portrait')
+        }
 
       var themap = new Map({
         target: 'map',

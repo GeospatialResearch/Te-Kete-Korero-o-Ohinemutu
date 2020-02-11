@@ -1,6 +1,7 @@
 <template>
-  <div id="sidePanel" :class="{'col-md-5':togglePanel, 'col-md-0':!togglePanel}">
-    <div class="row col-md-12 m-0 mb-3 p-0 pb-2 sticky">
+  <div id="sidePanel" :class="[getOrientation === 'portrait' ? {'col-sm-12 col-xs-12':togglePanel, 'col-sm-0 col-xs-12':!togglePanel} : {'col-sm-5 col-xs-12':togglePanel, 'col-sm-0 col-xs-12':!togglePanel}]">
+  <!-- <div id="sidePanel" :class="{'col-md-5 col-12':togglePanel, 'col-md-0 col-12':!togglePanel}"> -->
+    <div class="d-flex flex-md-row justify-content-between m-0 mb-3 p-0 pb-2 sticky">
       <div class="col-md-6 p-0">
         <div class="mt-3">
           <div class="form-check form-check-inline">
@@ -13,7 +14,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-6 p-0">
+      <div class="col-md-6 btn p-0">
         <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closeStory()" />
       </div>
     </div>
@@ -310,7 +311,8 @@
       </div>
     </div>
     <div class="clear" />
-    <div :class="[togglePanel ? 'col-md-5 visible': 'col-md-0 invisible', 'row sidepanel-footer']">
+      <!-- <div :class="[togglePanel ? 'col-md-5 visible': 'col-md-0 invisible', 'row sidepanel-footer']"> -->
+      <div :class="[getOrientation === 'portrait' ? {'col-md-12 visible':togglePanel, 'col-md-0 invisible':!togglePanel} :{'col-md-5 visible':togglePanel, 'col-md-0 invisible':!togglePanel},'row sidepanel-footer']">
       <div class="col-md-10">
         <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
           Update story
@@ -335,7 +337,7 @@
             <a class="dropdown-item" href="#">Publish story</a>
           </div>
         </div>
-        <button v-if="isStoryViewMode" type="button" class="btn btn-sm btn-secondary float-right" @click="closeStory()">
+        <button v-if="isStoryViewMode" type="button" class="btn btn-sm btn-secondary" @click="closeStory()">
           Close story
         </button>
       </div>
@@ -603,6 +605,10 @@ export default {
   computed: {
     draggingInfo() {
       return this.dragging ? "under drag" : ""
+    },
+    getOrientation(){
+      console.log("getOrientation from SIDEPANEL is**************",this.$store.state.orientation);
+      return this.$store.state.orientation
     },
     togglePanel (){
       return this.$store.state.isPanelOpen
@@ -900,6 +906,7 @@ export default {
         $('#editingWarningModal').modal('show')
       } else {
         this.closePanel()
+        EventBus.$emit("updateMapWidth")
       }
     },
     editStory: function () {
