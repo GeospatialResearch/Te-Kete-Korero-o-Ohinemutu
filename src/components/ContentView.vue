@@ -21,7 +21,6 @@
               </option>
             </select>
           </div>
-
           <button v-if="!authenticated" class="btn btn-sm btn-success" type="button" @click="showLoginModal()">
             Login
           </button>
@@ -30,9 +29,11 @@
           </button>
         </div>
         <div class="row">
-          <main-map v-show="contentToShow=='map'" />
-          <content-info v-show="contentToShow=='themes'" />
-          <side-panel v-show="contentToShow=='map'" />
+          <welcome-view v-if="contentToShow=='welcome'" />
+          <verify-email v-if="contentToShow=='verifyemail'" />
+          <main-map v-if="contentToShow=='map'" />
+          <settings-view v-if="contentToShow=='themes'" />
+          <side-panel v-if="contentToShow=='map'" />
         </div>
       </div>
     </main>
@@ -42,7 +43,8 @@
         <div class="modal-content modal-margin-top">
           <div class="modal-header" />
           <div class="modal-body">
-            <log-in @close="closeModal()" />
+            <register v-if="formToShow=='register'" @close="closeModal()" />
+            <log-in v-if="formToShow=='login'" @close="closeModal()" />
           </div>
         </div>
       </div>
@@ -78,35 +80,53 @@
   import 'utils/sidebar'
   import { EventBus } from 'store/event-bus'
   import MainMap from 'components/Map/MainMap'
-  import ContentInfo from 'components/ContentInfo'
+  import SettingsView from 'components/SettingsView'
   import SidePanel from 'components/SidePanel'
-  import LogIn from 'components/account/Login'
+  import LogIn from 'components/Account/Login'
+  import Register from 'components/Account/Register'
+  import VerifyEmail from 'components/Account/VerifyEmail'
+  import WelcomeView from 'components/Home/WelcomeView'
 
   export default {
     components: {
       MainMap,
-      ContentInfo,
+      SettingsView,
       SidePanel,
-      LogIn
+      LogIn,
+      Register,
+      VerifyEmail,
+      WelcomeView
     },
     data () {
       return {
         selectedValue: "eng",
-        showLogin: false
+        // showLogin: false,
+        formToShow: null
       }
     },
     computed: {
       contentToShow () {
         return this.$store.state.contentToShow
       },
-      username () {
-        return this.$store.state.user.username
-      },
+      // username () {
+      //   return this.$store.state.user.username
+      // },
       authenticated () {
         return this.$store.state.authenticated
       }
     },
+    mounted: function () {
+      EventBus.$on('showSignupForm', () =>{
+        this.formToShow = 'register'
+      })
+      EventBus.$on('showLoginForm', () =>{
+        this.formToShow = 'login'
+      })
+    },
     beforeCreate: function () {
+      if (this.$route.name === 'verifyemail') {
+        this.$store.commit('TOGGLE_CONTENT', 'verifyemail')
+      }
       // Check if the token is still valid, if yes set login, if not deauthenticate.
       this.$store.dispatch('getUser')
     },
@@ -116,11 +136,13 @@
         this.$store.commit('SET_LANG', this.selectedValue)
       },
       showLoginModal () {
+        this.formToShow = 'login'
         EventBus.$emit('closePanel')
-        EventBus.$emit('removeWasValidated')
         $('#loginModal').modal('show')
+        EventBus.$emit('removeWasValidated')
       },
       closeModal () {
+        EventBus.$emit('removeWasValidated')
         $('#loginModal').modal('hide')
       },
       showLogoutModal () {

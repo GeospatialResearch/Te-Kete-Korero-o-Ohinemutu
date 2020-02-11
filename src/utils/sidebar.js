@@ -6,17 +6,13 @@ $(function () {
 
   // Resize map on window resize
   $(window).on('resize', function(){
-    var w = window.outerWidth;
-    var h = window.outerHeight;
-    var txt = "Window size: width=" + w + ", height=" + h;
-    console.log(txt)
-    if(window.outerWidth > window.outerHeight)
-    {
-      console.log("larger device ^^^^^^^^^^^^ landscape",window.outerWidth,window.outerHeight)
+    // var w = window.outerWidth;
+    // var h = window.outerHeight;
+    // var txt = "Window size: width=" + w + ", height=" + h;
+    // console.log(txt)
+    if(window.outerWidth > window.outerHeight) {
       store.commit('SET_ORIENTATION', 'landscape')
-    }
-    else {
-      console.log("smaller device ^^^^^^^^^^^^ portrait",window.outerWidth,window.outerHeight)
+    } else {
       store.commit('SET_ORIENTATION', 'portrait')
     }
     EventBus.$emit("updateMapWidth")

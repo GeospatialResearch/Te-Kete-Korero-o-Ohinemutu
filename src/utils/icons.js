@@ -47,6 +47,7 @@ import { faSearchLocation } from '@fortawesome/free-solid-svg-icons/faSearchLoca
 import { faList } from '@fortawesome/free-solid-svg-icons/faList'
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser'
 import { faKey } from '@fortawesome/free-solid-svg-icons/faKey'
+import { faAt } from '@fortawesome/free-solid-svg-icons/faAt'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 library.add(
@@ -55,7 +56,7 @@ library.add(
   faBell, faLayerGroup, faBookOpen, faFolderOpen, faInfo, faInfoCircle, faEllipsisV, faChevronDown, farCircle,
   faTimes, faTimesCircle, faShareAlt, faEdit, faArrowsAlt, faMapMarkedAlt, faBan, faPaintBrush, farDotCircle,
   faSearchPlus, faImages, faChevronCircleRight, faChevronCircleLeft, faTrashAlt, faMapMarkerAlt, farNewspaper,
-  faCheckSquare, faSquare, faFilter, faSearchLocation, faList, faUser, faKey
+  faCheckSquare, faSquare, faFilter, faSearchLocation, faList, faUser, faKey, faAt
 )
 
 export {

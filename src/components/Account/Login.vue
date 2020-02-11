@@ -18,7 +18,7 @@
                   <i><font-awesome-icon icon="user" /></i>
                 </span>
               </div>
-              <input v-model="credentials.email" value="" type="text" name="" class="form-control input_user" placeholder="username" required @keyup.enter="submit()">
+              <input v-model="credentials.email" value="" type="text" name="" class="form-control input_user" placeholder="Enter your email" required @keyup.enter="submit()">
             </div>
             <div class="input-group mb-2">
               <div class="input-group-append">
@@ -26,7 +26,7 @@
                   <i><font-awesome-icon icon="key" /></i>
                 </span>
               </div>
-              <input v-model="credentials.password" value="" type="password" name="" class="form-control input_pass" placeholder="password" required @keyup.enter="submit()">
+              <input v-model="credentials.password" value="" type="password" name="" class="form-control input_pass" placeholder="Enter your password" required @keyup.enter="submit()">
             </div>
             <div class="form-group">
               <div class="custom-control custom-checkbox">
@@ -44,7 +44,7 @@
 
         <div class="mt-4">
           <div class="d-flex justify-content-center links">
-            Don't have an account? <a href="#" class="ml-2">Sign Up</a>
+            Don't have an account? <a href="#" class="ml-2" @click="showSignupForm()">Sign Up</a>
             <!-- <router-link to="/register" class="btn btn-primary" @click.native="closeModal">Register</router-link> -->
           </div>
           <div class="d-flex justify-content-center links">
@@ -73,10 +73,13 @@ export default {
   mounted: function () {
     EventBus.$on('removeWasValidated', () => {
       var loginform = document.getElementById("loginForm")
-      loginform.classList.remove("was-validated")
-      this.credentials.email = ''
-      this.credentials.password = ''
-      this.error = ''
+      if (loginform) {
+        loginform.classList.remove("was-validated")
+        this.credentials.email = ''
+        this.credentials.password = ''
+        this.error = ''
+      }
+
     })
   },
   methods: {
@@ -100,6 +103,9 @@ export default {
       } else {
         loginform.classList.add("was-validated")
       }
+    },
+    showSignupForm () {
+      EventBus.$emit('showSignupForm')
     }
   }
 }

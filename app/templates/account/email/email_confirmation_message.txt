@@ -1,0 +1,9 @@
+{% load account %}{% user_display user as username %}{% load i18n %}Thank you for your registration.
+
+To activate your account for user {{ username }}, please click on the link below:
+
+{% if is_secure %}https{% else %}http{% endif %}://{{ host }}/#/confirmation/{{ key }}
+
+Kind regards,
+
+The Bicultural Tool team

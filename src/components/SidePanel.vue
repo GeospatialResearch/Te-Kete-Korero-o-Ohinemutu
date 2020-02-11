@@ -1,9 +1,8 @@
 <template>
   <div id="sidePanel" :class="[getOrientation === 'portrait' ? {'col-sm-12 col-xs-12':togglePanel, 'col-sm-0 col-xs-12':!togglePanel} : {'col-sm-5 col-xs-12':togglePanel, 'col-sm-0 col-xs-12':!togglePanel}]">
-  <!-- <div id="sidePanel" :class="{'col-md-5 col-12':togglePanel, 'col-md-0 col-12':!togglePanel}"> -->
-    <div class="d-flex flex-md-row justify-content-between m-0 mb-3 p-0 pb-2 sticky">
+    <div class="d-flex flex-md-row justify-content-between m-0 p-0 pb-2 sticky bottom-shadow">
       <div class="col-md-6 p-0">
-        <div class="mt-3">
+        <div class="mt-3 pl-3">
           <div class="form-check form-check-inline">
             <input id="inlineRadio1" v-model="storyLang" class="form-check-input" type="radio" name="optstorylang" value="eng" @change="onChangeStoryLang()">
             <label class="form-check-label" for="inlineRadio1">English</label>
@@ -14,71 +13,73 @@
           </div>
         </div>
       </div>
-      <div class="col-md-6 btn p-0">
+      <div class="col-md-6 btn p-0 pr-3">
         <font-awesome-icon icon="times" class="float-right mt-2" size="2x" @click="closeStory()" />
       </div>
     </div>
 
-    <div v-if="isStoryViewMode" class="mt-4 mb-5">
-      <span class="badge badge-warning mb-2 p-2" title="Story status">{{ story.status }}</span>
-      <span v-if="story.story_type" class="badge badge-success mb-2 p-2 float-right" title="Story type">{{ story.story_type.type }}</span>
-      <div title="Story Date">
-        <p v-if="story.approx_time.type === 'PRECISE_DATE'" class="badge badge-light mb-2 p-2 float-right">
-          {{ story.approx_time.date }}
-        </p>
-        <div v-if="story.approx_time.type === 'YEAR_RANGE'">
-          <p v-if="story.approx_time.end_time" class="badge badge-light mb-2 p-2 float-right">
-            {{ story.approx_time.start_time }} - {{ story.approx_time.end_time }}
+    <div v-if="isStoryViewMode" class="mb-5">
+      <div class="pl-3 pr-3 pt-4 mb-5" style="background-color:#ffffff;">
+        <span class="badge badge-warning mb-2 p-2" title="Story status">{{ story.status }}</span>
+        <span v-if="story.story_type" class="badge badge-success mb-2 p-2 float-right" title="Story type">{{ story.story_type.type }}</span>
+        <div title="Story Date">
+          <p v-if="story.approx_time.type === 'PRECISE_DATE'" class="badge badge-light mb-2 p-2 float-right">
+            {{ story.approx_time.date }}
           </p>
-          <p v-else class="badge badge-light mb-2 p-2 float-right">
-            {{ story.approx_time.start_time }} - present
-          </p>
-        </div>
-        <p v-if="story.approx_time.type === 'PRECISE_YEAR'" class="badge badge-light mb-2 p-2 float-right">
-          {{ story.approx_time.year }}
-        </p>
-        <p v-if="story.approx_time.type === 'TIMELESS'" class="badge badge-light mb-2 p-2 float-right">
-          Timeless
-        </p>
-      </div>
-      <div class="mt-5">
-        <div v-if="story.title">
-          <div v-show="storyLang === 'eng'">
-            <h4 title="Story title">
-              <span v-if="story.title.eng">{{ story.title.eng }}</span>
-              <span v-else class="text-muted font-italic">No title defined in English</span>
-            </h4>
-            <p class="story-summary" title="Story summary">
-              <span v-if="story.summary.eng">{{ story.summary.eng }}</span>
-              <span v-else class="text-muted font-italic">No summary defined in English</span>
+          <div v-if="story.approx_time.type === 'YEAR_RANGE'">
+            <p v-if="story.approx_time.end_time" class="badge badge-light mb-2 p-2 float-right">
+              {{ story.approx_time.start_time }} - {{ story.approx_time.end_time }}
+            </p>
+            <p v-else class="badge badge-light mb-2 p-2 float-right">
+              {{ story.approx_time.start_time }} - present
             </p>
           </div>
-          <div v-show="storyLang === 'mao'">
-            <h4 title="Story title">
-              <span v-if="story.title.mao">{{ story.title.mao }}</span>
-              <span v-else class="text-muted font-italic">No title defined in Te Reo</span>
-            </h4>
-            <p class="story-summary" title="Story summary">
-              <span v-if="story.summary.mao">{{ story.summary.mao }}</span>
-              <span v-else class="text-muted font-italic">No summary defined in Te Reo</span>
-            </p>
+          <p v-if="story.approx_time.type === 'PRECISE_YEAR'" class="badge badge-light mb-2 p-2 float-right">
+            {{ story.approx_time.year }}
+          </p>
+          <p v-if="story.approx_time.type === 'TIMELESS'" class="badge badge-light mb-2 p-2 float-right">
+            Timeless
+          </p>
+        </div>
+        <div class="mt-5">
+          <div v-if="story.title">
+            <div v-show="storyLang === 'eng'">
+              <h4 title="Story title">
+                <span v-if="story.title.eng">{{ story.title.eng }}</span>
+                <span v-else class="text-muted font-italic">No title defined in English</span>
+              </h4>
+              <p class="story-summary" title="Story summary">
+                <span v-if="story.summary.eng">{{ story.summary.eng }}</span>
+                <span v-else class="text-muted font-italic">No summary defined in English</span>
+              </p>
+            </div>
+            <div v-show="storyLang === 'mao'">
+              <h4 title="Story title">
+                <span v-if="story.title.mao">{{ story.title.mao }}</span>
+                <span v-else class="text-muted font-italic">No title defined in Te Reo</span>
+              </h4>
+              <p class="story-summary" title="Story summary">
+                <span v-if="story.summary.mao">{{ story.summary.mao }}</span>
+                <span v-else class="text-muted font-italic">No summary defined in Te Reo</span>
+              </p>
+            </div>
           </div>
+          <p class="font-italic mb-0">
+            <small>&mdash; Story by {{ story.owner }}</small>
+          </p>
+          <div v-if="story.atua" class="float-right" style="font-size:13px;">
+            Atua:
+            <i v-for="atua in allAtuas" :key="atua.id">
+              <strong v-if="story.atua.includes(atua.id)" :key="atua.id">
+                {{ atua.name }}&nbsp;
+              </strong>
+            </i>
+          </div>
+          <hr class="mt-4">
         </div>
-        <p class="font-italic mb-0">
-          <small>&mdash; Story by {{ story.owner }}</small>
-        </p>
-        <div v-if="story.atua" class="float-right" style="font-size:13px;">
-          Atua:
-          <i v-for="atua in allAtuas" :key="atua.id">
-            <strong v-if="story.atua.includes(atua.id)" :key="atua.id">
-              {{ atua.name }}&nbsp;
-            </strong>
-          </i>
-        </div>
-        <hr class="mt-4">
       </div>
 
-      <div v-for="element in story.storyBodyElements" :key="element.id" class="col-md-12">
+      <div v-for="element in story.storyBodyElements" :key="element.id" class="col-md-12 pl-4 pr-4 pb-2">
         <font-awesome-icon v-if="element.content_type" disabled icon="info-circle" color="grey" class="pointer float-right" :title="element.content_type.type" />
         <div :class="element.content_type?'mr-4':''">
           <div v-if="element.element_type == 'TEXT'">
@@ -126,7 +127,7 @@
         </div>
       </div>
     </div>
-    <div v-else>
+    <div v-else class="pl-3 pr-3 mt-3">
       <!-- edit mode -->
       <form :id="story.id + '_storyform'">
         <div class="row col-md-12">
@@ -311,8 +312,7 @@
       </div>
     </div>
     <div class="clear" />
-      <!-- <div :class="[togglePanel ? 'col-md-5 visible': 'col-md-0 invisible', 'row sidepanel-footer']"> -->
-      <div :class="[getOrientation === 'portrait' ? {'col-md-12 visible':togglePanel, 'col-md-0 invisible':!togglePanel} :{'col-md-5 visible':togglePanel, 'col-md-0 invisible':!togglePanel},'row sidepanel-footer']">
+    <div :class="[getOrientation === 'portrait' ? {'col-md-12 visible':togglePanel, 'col-md-0 invisible':!togglePanel} :{'col-md-5 visible':togglePanel, 'col-md-0 invisible':!togglePanel},'row sidepanel-footer ml-0']">
       <div class="col-md-10">
         <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
           Update story
@@ -365,8 +365,7 @@
                   {{ uploadedFile.name }}
                 </p>
                 <div v-if="uploadingMedia">
-                  <p class="uploadmedia-loading p-4 mt-2 mb-0">
-                  </p>
+                  <p class="uploadmedia-loading p-4 mt-2 mb-0" />
                   <p class="p-0">
                     Uploading media... <span>{{ uploadMediaProgress }}%</span>
                   </p>
@@ -607,7 +606,6 @@ export default {
       return this.dragging ? "under drag" : ""
     },
     getOrientation(){
-      console.log("getOrientation from SIDEPANEL is**************",this.$store.state.orientation);
       return this.$store.state.orientation
     },
     togglePanel (){

@@ -4,7 +4,7 @@
       <div class="sidebar-content">
         <!-- sidebar-brand  -->
         <div class="sidebar-item sidebar-brand text-center">
-          <a href="#" class="app-title">{{ translationObj.culturalNarratives[lang] }}</a>
+          <a href="#" @click="$store.commit('TOGGLE_CONTENT', 'welcome')">{{ translationObj.culturalNarratives[lang] }}</a>
         </div>
 
         <!-- sidebar-header  -->
@@ -27,7 +27,7 @@
         </div>
 
         <!-- sidebar-menu  -->
-        <div class="sidebar-item sidebar-menu">
+        <div :class="[authenticated ? 'sidebar-item': '', 'sidebar-menu']">
           <ul>
             <li class="header-menu">
               <span>General</span>
@@ -36,12 +36,12 @@
               <a href="#">
                 <!-- <i class="fa fa-globe" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="globe" /></i>
-                <span class="menu-text">{{ translationObj.map[lang] }}</span>
+                <span class="menu-text">Go to {{ translationObj.map[lang] }}</span>
               </a>
             </li>
 
             <!-- sidebar import dataset  -->
-            <div class="sidebar-item sidebar-search pointer">
+            <div v-if="contentToShow=='map'" class="sidebar-item sidebar-search pointer">
               <li class="header-menu">
                 <span>Layers</span>
               </li>
@@ -58,7 +58,7 @@
                 </div>
               </div>
             </div>
-            <li v-if="authenticated" class="sidebar-dropdown">
+            <li v-if="authenticated && contentToShow=='map'" class="sidebar-dropdown">
               <a href="#" title="Data uploaded by you" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
@@ -87,7 +87,7 @@
                 </ul>
               </div>
             </li>
-            <li class="sidebar-dropdown">
+            <li v-if="contentToShow=='map'" class="sidebar-dropdown">
               <a href="#" title="Data from External Data Services" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
@@ -110,7 +110,7 @@
                 </ul>
               </div>
             </li>
-            <li class="sidebar-dropdown">
+            <li v-if="contentToShow=='map'" class="sidebar-dropdown">
               <a href="#" title="Data uploaded and managed by admin" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
@@ -135,7 +135,7 @@
             </li>
 
             <!-- sidebar open panel  -->
-            <div class="sidebar-item sidebar-search pointer">
+            <div v-if="contentToShow=='map'" class="sidebar-item sidebar-search pointer">
               <li class="header-menu">
                 <span>Narratives</span>
               </li>
@@ -152,7 +152,7 @@
                 </div>
               </div>
             </div>
-            <li v-if="authenticated" class="sidebar-dropdown">
+            <li v-if="authenticated && contentToShow=='map'" class="sidebar-dropdown">
               <a href="#" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-book-open" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="book-open" /></i>
@@ -179,7 +179,7 @@
               </div>
             </li>
 
-            <li class="sidebar-dropdown">
+            <li v-if="contentToShow=='map'" class="sidebar-dropdown">
               <a href="#" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-book-open" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="book-open" /></i>
@@ -207,7 +207,7 @@
             </li>
 
             <!-- sidebar-search  -->
-            <div class="sidebar-item sidebar-search">
+            <div v-if="contentToShow=='map'" class="sidebar-item sidebar-search">
               <div>
                 <div class="input-group input-group-sm">
                   <input v-model="filter.freeText" type="text" class="form-control search-menu" placeholder="Filter narratives..." @keyup="filterNarratives()">
@@ -672,7 +672,10 @@
           username = this.$store.state.user.username
         }
         return username
-      }
+      },
+      contentToShow () {
+        return this.$store.state.contentToShow
+      },
     },
     watch: {
       stories: function () {

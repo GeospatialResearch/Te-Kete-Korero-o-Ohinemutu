@@ -51,8 +51,15 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_gis',
+    # for authentication
     'rest_framework.authtoken',
-    'rest_auth'
+    'rest_auth',
+    # for registration
+    'django.contrib.sites',
+    'rest_auth.registration',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount'
 
 ]
 
@@ -63,6 +70,7 @@ REST_FRAMEWORK = {
         'app.permissions.IsOwnerOrReadOnly',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        # 'rest_framework.authentication.TokenAuthentication',
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         # for browsable api view usage
         'rest_framework.authentication.SessionAuthentication',
@@ -77,6 +85,25 @@ REST_USE_JWT = True
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=60)
 }
+
+SITE_ID = 1
+
+# Django allauth (account registration email flow)
+
+ACCOUNT_ADAPTER = 'app.adapter.MyAccountAdapter'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[Bicultural Tool] "
+
+# To be able to login after putting in place the registration
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    "allauth.account.auth_backends.AuthenticationBackend"
+]
 
 
 MIDDLEWARE = [
@@ -98,7 +125,7 @@ ROOT_URLCONF = 'djangoproj.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'app', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -191,3 +218,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1000000000
 DATA_UPLOAD_MAX_MEMORY_SIZE = 1000000000
 FILE_UPLOAD_PERMISSIONS=0o644
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'geospatial.gri@gmail.com'
+email_pass = os.environ.get('EMAIL_PASS')
+EMAIL_HOST_PASSWORD = email_pass

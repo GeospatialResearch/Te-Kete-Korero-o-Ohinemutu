@@ -11,6 +11,8 @@ services:
     env_file: .dockerenv
     # args:
       # EMAIL_PASS: $EMAIL_PASSWORD
+    environment:
+      EMAIL_PASS: $EMAIL_PASSWORD
     ports:
       - '8000:8000'
     depends_on:

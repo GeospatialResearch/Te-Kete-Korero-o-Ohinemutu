@@ -4,6 +4,7 @@ import api from './api.js'
 import { EventBus } from './event-bus'
 import { each, some, isEmpty } from 'underscore'
 import { info as notifyInfo, close as notifyClose } from 'utils/notify'
+import signup from './signup'
 
 Vue.use(Vuex)
 
@@ -36,7 +37,7 @@ const initialState = {
   isLoading: false,
   isUploadingData: false,
   isPanelOpen: false,
-  contentToShow: 'map',
+  contentToShow: 'welcome',
   externalLayers: null,
   internalLayers: {},
   allStoriesGeomsLayer: {
@@ -89,7 +90,10 @@ const initialState = {
 }
 
 const store = new Vuex.Store({
-  state: initialState,
+  modules: {
+    signup
+  },
+  state: $.extend(true, {}, initialState),
   mutations: {
     CHANGE (state, flavor) {
       state.flavor = flavor
@@ -106,6 +110,9 @@ const store = new Vuex.Store({
     },
     TOGGLE_CONTENT (state, content) {
       state.contentToShow = content
+      if (state.contentToShow != 'map') {
+        EventBus.$emit('closePanel')
+      }
     },
     SET_EXTERNAL_LAYERS (state, layersObj) {
       state.externalLayers = layersObj
@@ -266,12 +273,16 @@ const store = new Vuex.Store({
       state.authenticated = false
       state.user = null
       state.token = null
+      state.storyViewMode = false
+      state.drawMode = false
+      state.geomMediaMode = false
       EventBus.$emit('closePanel')
 
       // Reset state to initial values
-      for (const f in initialState) {
-        Vue.set(state, f, initialState[f])
-      }
+      // for (const f in state) {
+      //   console.log(f, initialState[f])
+      //   Vue.set(state, f, initialState[f])
+      // }
     },
     // Generic fail handling
     API_FAIL (state, error) {
@@ -598,11 +609,12 @@ const store = new Vuex.Store({
 
     // Login using rest-auth with or without jwt enabled (the response brings a generated jwt or the token stored in db)
     logIn (store, payload) {
+      console.log(payload)
       return api.post(process.env.API_HOST + '/auth/login/', payload)
         .then((response) => {
           store.commit('SET_LOGIN', response)
           getData()
-          // router.push('/')
+          store.commit('TOGGLE_CONTENT', 'map')
           return response
         })
         .catch((error) => {
@@ -612,7 +624,7 @@ const store = new Vuex.Store({
     logOut () {
       store.commit('DEAUTHENTICATE')
       getData()
-      // router.push('/')
+      store.commit('TOGGLE_CONTENT', 'welcome')
     },
     getUser (store) {
       // To check the token validation

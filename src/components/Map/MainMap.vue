@@ -552,11 +552,11 @@
             <img v-if="magnifyImageElem" :src="mediaRoot + magnifyImageElem.mediafile_name" class="story-elem-img mb-3" style="width:1000px;">
             <div v-if="magnifyImageElem">
               <div v-if="storyViewLang === 'eng'">
-                <span v-if=" magnifyImageElem.media_description.eng">{{  magnifyImageElem.media_description.eng }}</span>
+                <span v-if=" magnifyImageElem.media_description.eng">{{ magnifyImageElem.media_description.eng }}</span>
                 <span v-else class="text-muted font-italic">No description defined in English</span>
               </div>
               <div v-if="storyViewLang === 'mao'">
-                <span v-if=" magnifyImageElem.media_description.mao">{{  magnifyImageElem.media_description.mao }}</span>
+                <span v-if=" magnifyImageElem.media_description.mao">{{ magnifyImageElem.media_description.mao }}</span>
                 <span v-else class="text-muted font-italic">No description defined in Maori</span>
               </div>
             </div>
@@ -674,7 +674,6 @@ export default {
       return view
     },
     getOrientation(){
-      console.log("getOrientation from MAINMAP is**************",this.$store.state.orientation);
       return this.$store.state.orientation
     },
     mapPopup () {
@@ -758,7 +757,7 @@ export default {
     this.$store.commit('SET_EXTERNAL_LAYERS', $.extend(true, {}, extLayersObj))
     if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
      this.$store.state.isMobile = true
-     this.$store.state.hitTolerance = 20
+     this.$store.state.hitTolerance = 10
    }
     // Set internal layers and other stuff before creating the map
     Promise.all([
@@ -1365,15 +1364,11 @@ export default {
     initMap () {
       // Detect and set orientation of the screen
       // if(window.outerWidth > window.outerHeight || window.outerWidth > 1023 || window.outerHeight > 1023)
-      if(window.outerWidth > window.outerHeight)
-        {
-          console.log(" MAP ##### landscape",window.outerWidth,window.outerHeight)
-          this.$store.commit('SET_ORIENTATION', 'landscape')
-        }
-        else {
-          console.log(" MAP ##### portrait",window.outerWidth,window.outerHeight)
-          this.$store.commit('SET_ORIENTATION', 'portrait')
-        }
+      if(window.outerWidth > window.outerHeight) {
+        this.$store.commit('SET_ORIENTATION', 'landscape')
+      } else {
+        this.$store.commit('SET_ORIENTATION', 'portrait')
+      }
 
       var themap = new Map({
         target: 'map',

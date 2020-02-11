@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 from django.conf.urls import include, url
 from rest_framework import routers
 from app import views
@@ -23,6 +23,8 @@ from django.conf import settings
 from django.views.generic import RedirectView
 
 from rest_framework_jwt.views import obtain_jwt_token
+from rest_auth.registration.views import VerifyEmailView
+from allauth.account.views import confirm_email
 
 # Construct v1 API routes (it needs rest_framework installed)
 router = routers.DefaultRouter()
@@ -66,7 +68,13 @@ urlpatterns = [
 
     # registration and login with django-rest-auth package
     url(r'^auth/', include('rest_auth.urls')),
-    url(r'^auth-jwt/', obtain_jwt_token)
+    url(r'^auth/registration/', include('rest_auth.registration.urls')),
+    # The following is needed due to error Reverse for 'account_email_verification_sent' not found.
+    url(r'^account-confirm-email/', VerifyEmailView.as_view(), name='account_email_verification_sent'),
+
+
+    # in case of using only rest_framework_jwt without django-rest-auth package
+    # url(r'^auth-jwt/', obtain_jwt_token)
 
 ]
 

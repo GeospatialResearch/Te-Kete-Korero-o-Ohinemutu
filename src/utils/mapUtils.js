@@ -567,10 +567,10 @@ var defaultStoryGeomStyle = function (feature) {
                })
              }),
              text: new Text({
-               font: 'bold 13px Calibri,sans-serif',
-               fill: new Fill({ color: '#000' }),
+               font: 'bold 15px Calibri,sans-serif',
+               fill: new Fill({ color: '#2b2828' }),
                stroke: new Stroke({
-                 color: '#f2a2a2', width: 4
+                 color: '#ffffff', width: 6
                }),
                text: typeof feature == 'string' ? feature : feature.get('label'),
                offsetY:15,
