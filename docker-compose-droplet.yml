@@ -41,6 +41,7 @@ services:
       - POSTGRES_HOSTNAME=db
       - POSTGRES_USER=mapuser
       - POSTGRES_PASSWORD=developmentpassword
+      - EMAIL_PASS=$EMAIL_PASSWORD
     depends_on:
       - 'db'
     ports:
