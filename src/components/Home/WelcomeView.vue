@@ -1,5 +1,5 @@
 <template>
-  <div class="content-info" style="background-color:#f2f0f0;">
+  <div class="content-info">
     <div class="background-picture bottom-shadow text-center center-content" style="background-image: url('static/img/pictures/screenshot_marae.png')">
       <h1 class="welcome-overlay">
         <p class="welcome">
@@ -22,7 +22,7 @@
         </h6>
         <h6>
           <span v-if="!authenticated">Or</span>
-          <a href="#" @click="$store.commit('TOGGLE_CONTENT', 'map')"> Go to Map </a>
+          <a href="#" @click="goToMap()"> Go to Map </a>
           to start exploring
           <span v-if="authenticated"> narratives. </span>
           <span v-else> public narratives. </span>
@@ -38,6 +38,13 @@
     computed: {
       authenticated () {
         return this.$store.state.authenticated
+      }
+    },
+    methods: {
+      goToMap () {
+        $('.viewer-container').animate({ scrollTop: 0 }, 100, () => {
+          this.$store.commit('TOGGLE_CONTENT', 'map')
+        })
       }
     }
   }

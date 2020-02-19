@@ -25,6 +25,11 @@ const routes = [
     name: 'verifyemail',
     component: ViewerPage
   },
+  {
+    path: '/password_reset/:uid/:token',
+    name: 'passwordresetconfirm',
+    component: ViewerPage
+  },
 
   { path: '/#/404', component: NotFoundPage },
   { path: '*', redirect: '/#/404' }

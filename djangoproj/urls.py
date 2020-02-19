@@ -24,7 +24,7 @@ from django.views.generic import RedirectView
 
 from rest_framework_jwt.views import obtain_jwt_token
 from rest_auth.registration.views import VerifyEmailView
-from allauth.account.views import confirm_email
+from django.contrib.auth import views as auth_views
 
 # Construct v1 API routes (it needs rest_framework installed)
 router = routers.DefaultRouter()
@@ -52,6 +52,7 @@ v1 = router.urls + [
     url(r'^get_layer_bbox/', views.get_layer_bbox),
     url(r'^datasets/', views.dataset_list),
     url(r'^check_user/', views.GetUser.as_view()),
+    url(r'^check_email/$', views.GetEmail.as_view()),
 
 ]
 
@@ -71,7 +72,16 @@ urlpatterns = [
     url(r'^auth/registration/', include('rest_auth.registration.urls')),
     # The following is needed due to error Reverse for 'account_email_verification_sent' not found.
     url(r'^account-confirm-email/', VerifyEmailView.as_view(), name='account_email_verification_sent'),
-
+    # The following is needed due to error NoReverseMatch: Reverse for 'password_reset_confirm' not found.
+    # Note: django-rest-auth relies on django.contrib.auth for password resets, but doesn't include the relevant URLs.
+    # Rather than including all of the django.contrib.auth.urls, I only included the ones I needed for password resets. When these are defined, the rest_auth URLs work as expected.
+    url(r'^password_reset/$', auth_views.PasswordResetView, name='password_reset'),
+    url(
+        regex=r'^password_reset/(?P<uidb64>[0-9A-Za-z_\-]+)'
+              r'/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        view=auth_views.PasswordResetConfirmView,
+        name='password_reset_confirm'
+    ),
 
     # in case of using only rest_framework_jwt without django-rest-auth package
     # url(r'^auth-jwt/', obtain_jwt_token)

@@ -1,6 +1,6 @@
 <template>
   <!-- <div id="map" :class="[togglePanel ? 'col-md-7': 'col-md-12', 'map']"> -->
-  <div id="map" :class="[getOrientation === 'portrait' ? {'col-sm-12 col-xs-12 map-top':togglePanel, 'col-sm-12 col-xs-12 map':!togglePanel}: {'col-sm-7 col-xs-12 map':togglePanel, 'col-sm-12 col-xs-12 map':!togglePanel}]">
+  <div id="map" :class="[getOrientation === 'portrait' ? {'col-sm-12 col-xs-12 map-top':togglePanel, 'col-sm-12 col-xs-12 map':!togglePanel}: {'col-sm-7 col-xs-7 map':togglePanel, 'col-sm-12 col-xs-12 map':!togglePanel}]">
     <div class="card ol-control ol-custom">
       <h6 id="legend" class="card-header pt-2 pb-2">
         <div data-toggle="collapse" href="#collapse-legend" aria-expanded="true" aria-controls="collapse-legend">
@@ -775,7 +775,6 @@ export default {
     })
   },
   mounted: function () {
-
     // ------------------
     // EventBus events
     // ------------------
@@ -1454,22 +1453,22 @@ export default {
       this.$store.state.map.updateSize()
     },
     fixContentHeight () {
-      var viewHeight = $(window).height()
       var navBarHeight = $("#navbar").outerHeight()
-      var contentHeight = viewHeight - navBarHeight
-      $("#map").height(contentHeight)
+      $("#map").height($(window)[0].innerHeight - navBarHeight)
       this.$store.state.map.updateSize()
     },
     fixContentWidth () {
-      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        if (screen.width >= 768) {
-            $("#map").width(100)
-            delay(this.updateSizeMap, 100)
-        }
-      } else {
-        $("#map").width(100)
-        delay(this.updateSizeMap, 100)
-      }
+      // if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+      //   // if (screen.width >= 768) {
+      //   //   $("#map").width(100)
+      //   //   delay(this.updateSizeMap, 100)
+      //   // }
+      // } else {
+      //   $("#map").width(100)
+      //   delay(this.updateSizeMap, 100)
+      // }
+      $("#map").css({'width': '100%'})
+      delay(this.updateSizeMap, 200)
     },
     createSLD () {
       setSLDstyle(this.layerStyle)

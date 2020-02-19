@@ -31,8 +31,9 @@
         <div class="row">
           <welcome-view v-if="contentToShow=='welcome'" />
           <verify-email v-if="contentToShow=='verifyemail'" />
-          <main-map v-if="contentToShow=='map'" />
+          <password-reset-confirm v-if="contentToShow=='passwordresetconfirm'" />
           <settings-view v-if="contentToShow=='themes'" />
+          <main-map v-if="contentToShow=='map'" />
           <side-panel v-if="contentToShow=='map'" />
         </div>
       </div>
@@ -43,8 +44,9 @@
         <div class="modal-content modal-margin-top">
           <div class="modal-header" />
           <div class="modal-body">
-            <register v-if="formToShow=='register'" @close="closeModal()" />
+            <register v-if="formToShow=='register'" />
             <log-in v-if="formToShow=='login'" @close="closeModal()" />
+            <password-reset v-if="formToShow=='resetpassword'" />
           </div>
         </div>
       </div>
@@ -85,6 +87,8 @@
   import LogIn from 'components/Account/Login'
   import Register from 'components/Account/Register'
   import VerifyEmail from 'components/Account/VerifyEmail'
+  import PasswordReset from 'components/Account/PasswordReset'
+  import PasswordResetConfirm from 'components/Account/PasswordResetConfirm'
   import WelcomeView from 'components/Home/WelcomeView'
 
   export default {
@@ -95,12 +99,13 @@
       LogIn,
       Register,
       VerifyEmail,
+      PasswordReset,
+      PasswordResetConfirm,
       WelcomeView
     },
     data () {
       return {
         selectedValue: "eng",
-        // showLogin: false,
         formToShow: null
       }
     },
@@ -108,9 +113,6 @@
       contentToShow () {
         return this.$store.state.contentToShow
       },
-      // username () {
-      //   return this.$store.state.user.username
-      // },
       authenticated () {
         return this.$store.state.authenticated
       }
@@ -122,10 +124,16 @@
       EventBus.$on('showLoginForm', () =>{
         this.formToShow = 'login'
       })
+      EventBus.$on('showResetPasswordForm', () =>{
+        this.formToShow = 'resetpassword'
+      })
     },
     beforeCreate: function () {
       if (this.$route.name === 'verifyemail') {
         this.$store.commit('TOGGLE_CONTENT', 'verifyemail')
+      }
+      if (this.$route.name === 'passwordresetconfirm') {
+        this.$store.commit('TOGGLE_CONTENT', 'passwordresetconfirm')
       }
       // Check if the token is still valid, if yes set login, if not deauthenticate.
       this.$store.dispatch('getUser')

@@ -5,6 +5,7 @@ import { EventBus } from './event-bus'
 import { each, some, isEmpty } from 'underscore'
 import { info as notifyInfo, close as notifyClose } from 'utils/notify'
 import signup from './signup'
+import router from '../router'
 
 Vue.use(Vuex)
 
@@ -609,11 +610,11 @@ const store = new Vuex.Store({
 
     // Login using rest-auth with or without jwt enabled (the response brings a generated jwt or the token stored in db)
     logIn (store, payload) {
-      console.log(payload)
       return api.post(process.env.API_HOST + '/auth/login/', payload)
         .then((response) => {
           store.commit('SET_LOGIN', response)
           getData()
+          router.push('/')
           store.commit('TOGGLE_CONTENT', 'map')
           return response
         })

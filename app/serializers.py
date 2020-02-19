@@ -2,6 +2,7 @@ from rest_framework.serializers import ModelSerializer, ListField, SerializerMet
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType
 from django.contrib.gis.geos import GEOSGeometry
+from rest_auth.serializers import PasswordResetSerializer
 
 
 class DatasetSerializer(ModelSerializer):
@@ -221,3 +222,19 @@ class WebsiteTranslationSerializer(ModelSerializer):
     class Meta:
         model = WebsiteTranslation
         fields = '__all__'
+
+
+# used to replace django contrib admin template of email message
+class CustomPasswordResetSerializer(PasswordResetSerializer):
+
+    # password_reset_form_class = CustomResetPasswordForm
+
+    def get_email_options(self):
+        request = self.context.get('request')
+        host = str(request.get_host()).split(":", 1)[0]
+        if 'api' in host:
+            host = host.replace("api", "www")
+        return {
+            'domain_override': host,
+            'html_email_template_name': 'account/email/password_reset_html_email.html'
+        }

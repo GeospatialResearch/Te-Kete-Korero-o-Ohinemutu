@@ -1,5 +1,5 @@
 <template>
-  <div class="page-wrapper default-theme sidebar-bg bg1 viewer-container">
+  <div class="page-wrapper default-theme sidebar-bg bg1 viewer-container" :style="contentToShow=='map'?'overflow-y: hidden;':'overflow-y: auto;'">
     <!-- toggled -->
     <side-bar />
     <content-view />
@@ -15,6 +15,11 @@ export default {
   components: {
     SideBar,
     ContentView
-  }
+  },
+  computed: {
+    contentToShow () {
+      return this.$store.state.contentToShow
+    }
+  },
 }
 </script>

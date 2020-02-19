@@ -1,5 +1,5 @@
 <template>
-  <div id="sidePanel" :class="[getOrientation === 'portrait' ? {'col-sm-12 col-xs-12':togglePanel, 'col-sm-0 col-xs-12':!togglePanel} : {'col-sm-5 col-xs-12':togglePanel, 'col-sm-0 col-xs-12':!togglePanel}]">
+  <div id="sidePanel" :class="[getOrientation === 'portrait' ? {'col-sm-12 col-xs-12':togglePanel, 'col-sm-0 col-xs-0':!togglePanel} : {'col-sm-5 col-xs-5':togglePanel, 'col-sm-0 col-xs-0':!togglePanel}]">
     <div class="d-flex flex-md-row justify-content-between m-0 p-0 pb-2 sticky bottom-shadow">
       <div class="col-md-6 p-0">
         <div class="mt-3 pl-3">

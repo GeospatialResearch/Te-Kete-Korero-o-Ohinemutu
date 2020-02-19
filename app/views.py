@@ -9,6 +9,7 @@ from rest_framework import viewsets
 from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer
 from django.http import JsonResponse
 from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType
+from django.contrib.auth.models import User
 from tempfile import TemporaryDirectory
 import zipfile
 import os
@@ -501,3 +502,14 @@ class GetUser(APIView):
             return Response({'user': {'email': request.user.email, 'username': request.user.username}})
         else:
             return Response({})
+
+
+class GetEmail(APIView):
+    def get(self, request):
+        email = request.GET.get('email')
+        if email is not None:
+            users = User.objects.all().values_list('email', flat=True)
+            if email in users:
+                return Response({'emailExists': True})
+            else:
+                return Response({'emailExists': False})

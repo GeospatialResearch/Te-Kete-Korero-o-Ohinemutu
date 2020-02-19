@@ -24,7 +24,7 @@
                     <i><font-awesome-icon icon="user" /></i>
                   </span>
                 </div>
-                <input v-model="inputs.username" value="" type="text" name="" class="form-control input_user" placeholder="Enter username" required @keyup.enter="submit()">
+                <input v-model="inputs.username" value="" type="text" name="" class="form-control input_user" placeholder="Enter username" required @keyup.enter="createAccount()">
               </div>
               <div class="input-group mb-2">
                 <div class="input-group-append">
@@ -32,7 +32,7 @@
                     <i><font-awesome-icon icon="at" /></i>
                   </span>
                 </div>
-                <input v-model="inputs.email" value="" type="text" name="" class="form-control input_user" placeholder="Enter email" required @keyup.enter="submit()">
+                <input v-model="inputs.email" value="" type="text" name="" class="form-control input_user" placeholder="Enter email" required @keyup.enter="createAccount()">
               </div>
               <div class="input-group mb-2">
                 <div class="input-group-append">
@@ -40,7 +40,7 @@
                     <i><font-awesome-icon icon="key" /></i>
                   </span>
                 </div>
-                <input v-model="inputs.password1" value="" type="password" name="" class="form-control input_pass" placeholder="Enter password" required @keyup.enter="submit()">
+                <input v-model="inputs.password1" value="" type="password" name="" class="form-control input_pass" placeholder="Enter password" required @keyup.enter="createAccount()">
               </div>
               <div class="input-group mb-4">
                 <div class="input-group-append">
@@ -48,7 +48,7 @@
                     <i><font-awesome-icon icon="key" /></i>
                   </span>
                 </div>
-                <input v-model="inputs.password2" value="" type="password" name="" class="form-control input_pass" placeholder="Confirm password" required @keyup.enter="submit()">
+                <input v-model="inputs.password2" value="" type="password" name="" class="form-control input_pass" placeholder="Confirm password" required @keyup.enter="createAccount()">
               </div>
               <div class="d-flex justify-content-center login_container">
                 <button type="button" name="button" class="btn login_btn" @click="createAccount()">
@@ -107,6 +107,13 @@ export default {
     'registrationError',
     'registrationLoading',
   ]),
+  beforeDestroy() {
+    this.$store.dispatch('signup/clearRegistrationStatus')
+    var signupform = document.getElementById("signupForm")
+    if (signupform) {
+      signupform.classList.remove("was-validated")
+    }
+  },
   methods: {
     showLoginForm () {
       EventBus.$emit('showLoginForm')
@@ -127,13 +134,6 @@ export default {
         })
       } else {
         signupform.classList.add("was-validated")
-      }
-    },
-    beforeDestroy() {
-      this.$store.dispatch('signup/clearRegistrationStatus')
-      var signupform = document.getElementById("signupForm")
-      if (signupform) {
-        signupform.classList.remove("was-validated")
       }
     }
   }

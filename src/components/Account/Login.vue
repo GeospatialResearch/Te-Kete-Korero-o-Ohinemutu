@@ -45,11 +45,9 @@
         <div class="mt-4">
           <div class="d-flex justify-content-center links">
             Don't have an account? <a href="#" class="ml-2" @click="showSignupForm()">Sign Up</a>
-            <!-- <router-link to="/register" class="btn btn-primary" @click.native="closeModal">Register</router-link> -->
           </div>
           <div class="d-flex justify-content-center links">
-            <a href="#">Forgot your password?</a>
-            <!-- <router-link to="/password_reset" class="pull-left" @click.native="closeModal"><small>Forgot Password?</small></router-link> -->
+            <a href="#" @click="showResetPasswordForm()">Forgot your password?</a>
           </div>
         </div>
       </div>
@@ -106,6 +104,9 @@ export default {
     },
     showSignupForm () {
       EventBus.$emit('showSignupForm')
+    },
+    showResetPasswordForm () {
+      EventBus.$emit('showResetPasswordForm')
     }
   }
 }

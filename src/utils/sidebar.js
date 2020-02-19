@@ -15,8 +15,10 @@ $(function () {
     } else {
       store.commit('SET_ORIENTATION', 'portrait')
     }
-    EventBus.$emit("updateMapWidth")
-    EventBus.$emit("updateMapHeight")
+    _.delay(() => {
+      EventBus.$emit("updateMapWidth")
+      EventBus.$emit("updateMapHeight")
+    }, 100)
   })
 
   //toggle sidebar
