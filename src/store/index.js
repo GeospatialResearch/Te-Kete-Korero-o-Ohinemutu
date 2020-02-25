@@ -150,6 +150,7 @@ const store = new Vuex.Store({
     SET_PANEL_OPEN (state, open) {
       state.isPanelOpen = open
       EventBus.$emit('adjustMap', 10)
+      EventBus.$emit('scrollStoryTop')
     },
     SET_STORIES (state, response) {
       state.stories = response.body
@@ -252,7 +253,12 @@ const store = new Vuex.Store({
       EventBus.$emit('createLayer', state.allStoriesGeomsLayer.allUsedStoriesGeometries, 'allstoriesgeoms')
     },
     SET_UPLOADMEDIA_PROGRESS (state, value) {
-      state.uploadMediaProgress = value
+      if (value == 100) {
+        state.uploadMediaProgress = 99.9
+      } else {
+        state.uploadMediaProgress = value
+      }
+
     },
     // Account system
     SET_LOGIN (state, response) {
@@ -633,6 +639,13 @@ const store = new Vuex.Store({
         .then( (response) => {
           store.commit('SET_LOGIN', response)
           getData()
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    addComment (store, comment) {
+      return api.post(apiRoot + '/comments/', comment, { headers: getAuthHeader() })
+        .then(() => {
+          store.dispatch('getStoryContent', comment.story)
         })
         .catch((error) => store.commit('API_FAIL', error))
     }

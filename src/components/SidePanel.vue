@@ -18,8 +18,9 @@
       </div>
     </div>
 
-    <div v-if="isStoryViewMode" class="mb-5">
-      <div class="pl-3 pr-3 pt-4 mb-5" style="background-color:#ffffff;">
+    <div v-if="isStoryViewMode" class="mb-3">
+      <!-- view mode -->
+      <div class="pl-3 pr-3 pt-4" style="background-color:#ffffff;">
         <span class="badge badge-warning mb-2 p-2" title="Story status">{{ story.status }}</span>
         <span v-if="story.story_type" class="badge badge-success mb-2 p-2 float-right" title="Story type">{{ story.story_type.type }}</span>
         <div title="Story Date">
@@ -75,7 +76,13 @@
               </strong>
             </i>
           </div>
-          <hr class="mt-4">
+          <p v-if="isStoryViewMode && story.comments" class="text-muted mt-4 pointer" style="font-size:13px;">
+            <span @click="seeComments()">
+              <font-awesome-icon icon="comments" />
+              Comments ({{ story.comments.length }})
+            </span>
+          </p>
+          <hr class="mt-1">
         </div>
       </div>
 
@@ -87,8 +94,8 @@
             <div v-show="storyLang === 'mao'" class="ql-text mb-4" v-html="element.textmao" />
           </div>
           <div v-if="element.element_type == 'GEOM'">
-            <div :id="element.geom_attr.id" class="text-center m-4">
-              <i><font-awesome-icon icon="map-marked-alt" size="lg" class="pointer" title="Zoom to geometry" @click="zoomToGeometry(element)" /></i>&nbsp;
+            <div :id="element.geom_attr.id" class="story-elem-geom pointer text-center m-4 p-1" title="Zoom to geometry" @click="zoomToGeometry(element)">
+              <i><font-awesome-icon icon="map-marked-alt" size="lg" class="pointer" /></i>&nbsp;
               <strong v-show="storyLang === 'eng'">
                 <span v-if="element.geom_attr.name.eng">{{ element.geom_attr.name.eng }}</span>
                 <span v-else class="text-muted font-italic">No name defined in English</span>
@@ -106,7 +113,6 @@
                 <i class="fa fa-circle fa-stack-2x icon-background" />
                 <i class="fa fa-search-plus fa-stack-1x" />
               </span>
-              <!-- <i><font-awesome-icon icon="search-plus" size="lg" color="#97ee19" class="positioner-magnify" @click="magnifyImage(element)" /></i> -->
             </div>
 
             <video v-if="element.element_type == 'VIDEO'" controls controlsList="nodownload" class="story-elem-video">
@@ -311,38 +317,60 @@
         </draggable>
       </div>
     </div>
-    <div class="clear" />
-    <div :class="[getOrientation === 'portrait' ? {'col-md-12 visible':togglePanel, 'col-md-0 invisible':!togglePanel} :{'col-md-5 visible':togglePanel, 'col-md-0 invisible':!togglePanel},'row sidepanel-footer ml-0']">
-      <div class="col-md-10">
-        <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
-          Update story
-        </button>
-        <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
-          Save story
-        </button>
-        <button v-if="!isStoryViewMode" type="button" class="btn btn-sm btn-danger ml-2" @click="showCancelStorySavingModal()">
-          Cancel
-        </button>
-        <button v-if="story.hasOwnProperty('id') && isStoryViewMode && (story.owner === username || username === 'admin')" type="button" class="btn btn-sm btn-primary" @click="editStory()">
-          Edit story
-        </button>
-        <div v-if="isStoryViewMode && (story.owner === username || username === 'admin')" class="btn-group btn-group-sm dropup ml-3">
-          <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <font-awesome-icon icon="share-alt" class="mr-2" />
-          </button>
-          <div class="dropdown-menu">
-            <a class="dropdown-item" href="#">Co-create story</a>
-            <a class="dropdown-item" href="#">Share story</a>
-            <a class="dropdown-item" href="#">Submit story</a>
-            <a class="dropdown-item" href="#">Publish story</a>
-          </div>
-        </div>
-        <button v-if="isStoryViewMode" type="button" class="btn btn-sm btn-secondary" @click="closeStory()">
-          Close story
-        </button>
+
+    <div class="row mr-2 mb-4">
+      <div class="col-md-12">
+        <p class="scrollStoryTop float-right" @click="scrollStoryTop()">
+          Scroll top
+        </p>
       </div>
     </div>
 
+    <hr v-if="isStoryViewMode" class="m-0">
+    <comments-view v-if="isStoryViewMode" id="comments" />
+
+    <div class="clear" :style="isStoryViewMode? 'background-color:#ffffff;' : ''" />
+
+    <div :class="[getOrientation === 'portrait' ? {'col-md-12 visible':togglePanel, 'col-md-0 invisible':!togglePanel} :{'col-md-5 visible':togglePanel, 'col-md-0 invisible':!togglePanel},'row sidepanel-footer ml-0']">
+      <div class="row m-0">
+        <div class="col-xs-10">
+          <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
+            Update story
+          </button>
+          <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
+            Save story
+          </button>
+          <button v-if="!isStoryViewMode" type="button" class="btn btn-sm btn-danger ml-2" @click="showCancelStorySavingModal()">
+            Cancel
+          </button>
+          <button v-if="story.hasOwnProperty('id') && isStoryViewMode && (story.owner === username || username === 'admin')" type="button" class="btn btn-sm btn-primary" @click="editStory()">
+            <font-awesome-icon icon="pen" />
+            Edit story
+          </button>
+          <div v-if="isStoryViewMode && (story.owner === username || username === 'admin')" class="btn-group btn-group-sm dropup">
+            <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <font-awesome-icon icon="share-alt" class="mr-2" />
+            </button>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="#">Co-create story</a>
+              <a class="dropdown-item" href="#">Share story</a>
+              <a class="dropdown-item" href="#">Submit story</a>
+              <a class="dropdown-item" href="#">Publish story</a>
+            </div>
+          </div>
+          <button v-if="isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="seeComments()">
+            <font-awesome-icon icon="comments" />
+            Comments
+          </button>
+          <button v-if="isStoryViewMode" type="button" class="btn btn-sm btn-secondary" @click="closeStory()">
+            <font-awesome-icon icon="times" />
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- modals -->
     <div id="uploadFileModal" class="modal">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -374,7 +402,6 @@
               <h6 class="mb-1 mt-3">
                 Media description (optional)
               </h6>
-              <!-- <textarea v-model="tempMediaDescription" class="form-control form-control-sm" title="Media description" placeholder="Media description (optional)"/> -->
               <div v-show="storyLang === 'eng'" class="container">
                 <textarea v-model="tempMediaDescriptionEng" class="form-control form-control-sm" title="Media description" placeholder="Media description (optional)" />
               </div>
@@ -520,7 +547,7 @@
           <div class="modal-header">
             <h3 class="mb-0">
               Features in Cultural Narratives
-              <p class="mb-0 mt-2" style="font-size:18px;">
+              <p class="mb-0 mt-2 modal-header-description">
                 Check out the features you clicked on and the related cultural narratives
               </p>
             </h3>
@@ -565,11 +592,13 @@ import { imgFormats, videoFormats, audioFormats } from 'utils/objectUtils'
 import { some, each, delay } from 'underscore'
 import { EventBus } from 'store/event-bus'
 import { disableEventListenerSingleClick, enableEventListenerSingleClick } from 'utils/mapUtils'
+import CommentsView from 'components/Comments'
 
 export default {
   components: {
     draggable,
-    VueEditor
+    VueEditor,
+    CommentsView
   },
   data() {
     return {
@@ -719,6 +748,10 @@ export default {
       this.closePanel()
     })
 
+    EventBus.$on('scrollStoryTop', () => {
+      this.scrollStoryTop()
+    })
+
   },
   methods: {
     onChange (e) {
@@ -728,16 +761,6 @@ export default {
         start_time: null,
         end_time: null
       }
-    },
-    containsMao:function(){
-      some(this.story.storyBodyElements, function (el) {
-        // checks if it has Maori text
-        if (el.element_type === 'TEXT' && (el.textmao !== undefined || el.textmao !== null || el.textmao !== ""))
-        {
-          return true
-        }
-        return false
-      })
     },
     onChangeStoryLang:function(){
       // Update the store with the new Story view language
@@ -1033,7 +1056,14 @@ export default {
 
         })
       }
-
+    },
+    seeComments () {
+      $('#sidePanel').animate({
+                    scrollTop: $("#comments").offset().top
+                }, '1000')
+    },
+    scrollStoryTop () {
+      $('#sidePanel').animate({ scrollTop: 0 }, 'fast')
     }
   }
 };

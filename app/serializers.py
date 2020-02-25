@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer, ListField, SerializerMethodField, JSONField, PrimaryKeyRelatedField, ReadOnlyField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType
+from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment
 from django.contrib.gis.geos import GEOSGeometry
 from rest_auth.serializers import PasswordResetSerializer
 
@@ -37,7 +37,7 @@ class StorySerializer(ModelSerializer):
     atua_temp = PrimaryKeyRelatedField(write_only=True,many=True,queryset=Atua.objects.all())
     story_type_id = PrimaryKeyRelatedField(source="StoryType",queryset=StoryType.objects.all(),required=False)
     owner = ReadOnlyField(source='owner.username')
-
+    comments = SerializerMethodField()
     storyBodyElements = SerializerMethodField()
     story_type = StoryTypeSerializer(read_only=True)
 
@@ -45,6 +45,11 @@ class StorySerializer(ModelSerializer):
         model = Story
         fields = '__all__'
         read_only_fields = ('atua',)
+
+    def get_comments(self, story):
+        c = Comment.objects.filter(story=story).order_by('-date')
+        serializer = CommentSerializer(instance=c, many=True)
+        return serializer.data
 
     def get_storyBodyElements(self, story):
         sb = StoryBodyElement.objects.filter(story=story)
@@ -134,6 +139,15 @@ class StorySerializer(ModelSerializer):
         return instance
 
 
+class StorySimpleSerializer(ModelSerializer):
+    owner = ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = Story
+        fields = ('id', 'title', 'summary', 'story_type', 'owner')
+        depth = 1
+
+
 class MediaFileSerializer(ModelSerializer):
 
     size = SerializerMethodField()
@@ -210,11 +224,11 @@ class StoryGeomAttribSerializer(ModelSerializer):
 
 class StoryBodyElementSerializer(ModelSerializer):
     geom_attr = StoryGeomAttribSerializer()
+    story = StorySimpleSerializer()
 
     class Meta:
         model = StoryBodyElement
         fields = '__all__'
-        depth = 3
 
 
 class WebsiteTranslationSerializer(ModelSerializer):
@@ -238,3 +252,11 @@ class CustomPasswordResetSerializer(PasswordResetSerializer):
             'domain_override': host,
             'html_email_template_name': 'account/email/password_reset_html_email.html'
         }
+
+
+class CommentSerializer(ModelSerializer):
+    user = ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = Comment
+        fields = '__all__'

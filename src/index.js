@@ -10,6 +10,10 @@ import 'malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js'
 import 'malihu-custom-scrollbar-plugin'
 import 'bootstrap'
 
+// import vue-moment
+import vueMoment from 'vue-moment'
+Vue.use(vueMoment)
+
 // import fontawesome icons
 import { FontAwesomeIcon } from './utils/icons.js'
 Vue.component('font-awesome-icon', FontAwesomeIcon)

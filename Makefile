@@ -12,6 +12,9 @@ run:
 stop:
 	docker-compose $(DEV) stop
 
+restart-www:
+	docker-compose $(DEV) restart www
+
 run-prod:
 	docker-compose $(PROD) up
 

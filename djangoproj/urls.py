@@ -38,6 +38,7 @@ router.register(r'contenttypes', views.ContentTypeViewSet)
 router.register(r'storygeomsattrib', views.StoryGeomAttribViewSet)
 router.register(r'storygeomsattribmedia', views.StoryGeomAttribMediaViewSet)
 router.register(r'websitetranslation', views.WebsiteTranslationViewSet)
+router.register(r'comments', views.CommentViewSet)
 # router.register(r'storygeometries', views.StoryGeometryViewSet)
 
 v1 = router.urls + [

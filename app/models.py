@@ -161,3 +161,12 @@ class WebsiteTranslation(models.Model):
     field_name = models.CharField(max_length=300,unique=True)
     eng = models.CharField(max_length=300)
     mao = models.CharField(max_length=300)
+
+
+class Comment(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    story = models.ForeignKey(Story, on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', related_name='comments', on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    comment = models.TextField(blank=True, null=True)
+    

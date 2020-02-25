@@ -6,9 +6,9 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer
+from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer, CommentSerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType
+from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment
 from django.contrib.auth.models import User
 from tempfile import TemporaryDirectory
 import zipfile
@@ -455,6 +455,16 @@ class WebsiteTranslationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = WebsiteTranslationSerializer
     queryset = WebsiteTranslation.objects.all()
 
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    queryset = Comment.objects.all()
+
+    def get_queryset(self):
+        return self.queryset.order_by('-date')
+
+    def perform_create(self,serializer):
+        serializer.save(user=self.request.user)
+
 
 def dataset_list(request):
     if request.method == 'GET':
@@ -498,8 +508,7 @@ def get_layer_bbox(request):
 class GetUser(APIView):
     def get(self, request):
         if request.user is not None and not request.user.is_anonymous:
-            print(request.user)
-            return Response({'user': {'email': request.user.email, 'username': request.user.username}})
+            return Response({'user': {'email': request.user.email, 'username': request.user.username, 'id' : request.user.pk}})
         else:
             return Response({})
 

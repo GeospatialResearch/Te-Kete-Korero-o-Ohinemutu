@@ -3,7 +3,7 @@
     <div class="background-picture bottom-shadow text-center center-content" style="background-image: url('static/img/pictures/screenshot_marae.png')">
       <h1 class="welcome-overlay">
         <p class="welcome">
-          Welcome
+          Nau mai, Haere mai
         </p>
         <p class="proverb">
           <i>Titiro whakamuri, kōkiri whakamua</i>

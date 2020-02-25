@@ -38,6 +38,7 @@ import { faImages } from '@fortawesome/free-solid-svg-icons/faImages'
 import { faChevronCircleRight } from '@fortawesome/free-solid-svg-icons/faChevronCircleRight'
 import { faChevronCircleLeft } from '@fortawesome/free-solid-svg-icons/faChevronCircleLeft'
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt'
+import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash'
 import { faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons/faMapMarkerAlt'
 import { faNewspaper as farNewspaper } from '@fortawesome/free-regular-svg-icons/faNewspaper'
 import { faCheckSquare } from '@fortawesome/free-solid-svg-icons/faCheckSquare'
@@ -48,6 +49,8 @@ import { faList } from '@fortawesome/free-solid-svg-icons/faList'
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser'
 import { faKey } from '@fortawesome/free-solid-svg-icons/faKey'
 import { faAt } from '@fortawesome/free-solid-svg-icons/faAt'
+import { faComments } from '@fortawesome/free-solid-svg-icons/faComments'
+import { faPen } from '@fortawesome/free-solid-svg-icons/faPen'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 library.add(
@@ -55,8 +58,8 @@ library.add(
   faPowerOff, faEllipsisH, faGlobe, faBook, faEnvelope, faExclamation, faExclamationTriangle, faCheck,
   faBell, faLayerGroup, faBookOpen, faFolderOpen, faInfo, faInfoCircle, faEllipsisV, faChevronDown, farCircle,
   faTimes, faTimesCircle, faShareAlt, faEdit, faArrowsAlt, faMapMarkedAlt, faBan, faPaintBrush, farDotCircle,
-  faSearchPlus, faImages, faChevronCircleRight, faChevronCircleLeft, faTrashAlt, faMapMarkerAlt, farNewspaper,
-  faCheckSquare, faSquare, faFilter, faSearchLocation, faList, faUser, faKey, faAt
+  faSearchPlus, faImages, faChevronCircleRight, faChevronCircleLeft, faTrashAlt, faTrash, faMapMarkerAlt, farNewspaper,
+  faCheckSquare, faSquare, faFilter, faSearchLocation, faList, faUser, faKey, faAt, faComments, faPen
 )
 
 export {
