@@ -1,0 +1,17 @@
+
+<p>Kia ora {{ comment.story.owner.username}},</p>
+
+<span>You have a new comment in your following narrative:</span></br>
+{% if comment.story.title.eng %} <span>"{{ comment.story.title.eng }}"</span></br>{% endif %}
+{% if comment.story.title.mao %} <span>"{{ comment.story.title.mao }}"</span></br>{% endif %}
+
+</br>
+
+<u>New comment:</u></br>
+<b>By user: </b>{{ comment.user.username }}</br>
+<b>Comment: </b>{{ comment.comment }}</br>
+
+</br>
+<p>Kind regards,</p>
+
+<p>The Bicultural Tool team</p>

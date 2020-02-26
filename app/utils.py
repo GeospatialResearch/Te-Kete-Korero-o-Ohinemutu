@@ -3,7 +3,11 @@ import os
 import tarfile
 from zipfile import ZipFile
 from rest_framework.exceptions import ValidationError
+
 from geoserver.catalog import Catalog
+
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
 
 shp_exts = ['.shp', ]
 csv_exts = ['.csv']
@@ -40,3 +44,15 @@ def get_catalog():
     gs_pass = os.environ.get('GEOSERVER_PASSWORD', 'geoserver')
     cat = Catalog("http://geoserver:8080/geoserver/rest/", gs_user, gs_pass)
     return cat
+
+
+def send_email(emaildata ,emailtype):
+
+    text_content = ''
+    htmly = get_template('../templates/app/' + emailtype + '.html')
+    html_content = htmly.render(emaildata)
+    subject = 'New comment in your narrative'
+
+    msg = EmailMultiAlternatives(subject, text_content, 'geospatial.gri@gmail.com', emaildata['mailing_list'])
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()

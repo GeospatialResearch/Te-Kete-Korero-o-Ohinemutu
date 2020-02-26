@@ -16,7 +16,8 @@
               <textarea v-model="comment" class="form-control form-control-sm" type="text" placeholder="Your comment" />
             </div>
             <div class="form-group">
-              <button class="btn btn-sm btn-success float-right" @click="addComment()">
+              <font-awesome-icon v-if="isLoadingComment" icon="spinner" spin size="lg" />
+              <button v-else class="btn btn-sm btn-success float-right" @click="addComment()">
                 Add
               </button>
             </div>
@@ -53,7 +54,8 @@
 export default {
   data () {
     return {
-      comment: null
+      comment: null,
+      isLoadingComment: false
     }
   },
   computed: {
@@ -69,6 +71,7 @@ export default {
   },
   methods: {
     addComment () {
+      this.isLoadingComment = true
       var comment = {
         'comment': this.comment,
         'story': this.story.id,
@@ -76,6 +79,7 @@ export default {
       this.$store.dispatch('addComment', comment)
       .then(() => {
         this.comment = null
+        this.isLoadingComment = false
       })
     }
   }

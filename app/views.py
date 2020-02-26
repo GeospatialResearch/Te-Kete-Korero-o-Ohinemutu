@@ -462,6 +462,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return self.queryset.order_by('-date')
 
+    @transaction.atomic
     def perform_create(self,serializer):
         serializer.save(user=self.request.user)
 
