@@ -764,6 +764,7 @@ export default {
       this.$store.dispatch('getDatasets'),
       this.$store.dispatch('getStories'),
       this.$store.dispatch('getAtuas'),
+      this.$store.dispatch('getUsers'),
       this.$store.dispatch('getStoryTypes'),
       this.$store.dispatch('getElementContentTypes'),
       this.$store.dispatch('getWebsiteTranslation')
@@ -1099,7 +1100,6 @@ export default {
 
 
     EventBus.$on('addStoryGeomsToMap', (storyBodyElements) => {
-
       EventBus.$emit('removeLayer', 'storyGeomsLayer')
       EventBus.$emit('resetDrawnFeature')
       this.hideStoryGeomInfo()

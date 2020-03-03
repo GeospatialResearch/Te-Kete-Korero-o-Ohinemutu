@@ -67,6 +67,13 @@
           </div>
           <p class="font-italic mb-0">
             <small>&mdash; Story by {{ story.owner }}</small>
+            <span v-if="story.co_authors && story.co_authors.length">
+              <small>, Co-created with</small>
+              <small v-for="(auth, i) in storyCoAuthors" :key="auth.id">
+                <span v-if="i!=0">,</span>
+                {{ auth.username }}
+              </small>
+            </span>
           </p>
           <div v-if="story.atua" class="float-right" style="font-size:13px;">
             Atua:
@@ -343,7 +350,7 @@
           <button v-if="!isStoryViewMode" type="button" class="btn btn-sm btn-danger ml-2" @click="showCancelStorySavingModal()">
             Cancel
           </button>
-          <button v-if="story.hasOwnProperty('id') && isStoryViewMode && (story.owner === username || username === 'admin')" type="button" class="btn btn-sm btn-primary" @click="editStory()">
+          <button v-if="story.hasOwnProperty('id') && isStoryViewMode && (story.owner === username || username === 'admin' || story.co_authors.indexOf(userPK) >= 0)" type="button" class="btn btn-sm btn-primary" @click="editStory()">
             <font-awesome-icon icon="pen" />
             Edit story
           </button>
@@ -352,7 +359,7 @@
               <font-awesome-icon icon="share-alt" class="mr-2" />
             </button>
             <div class="dropdown-menu">
-              <a class="dropdown-item" href="#">Co-create story</a>
+              <a class="dropdown-item" href="#" @click="inviteCoAuthorModal()">Co-create story</a>
               <a class="dropdown-item" href="#">Share story</a>
               <a class="dropdown-item" href="#">Submit story</a>
               <a class="dropdown-item" href="#">Publish story</a>
@@ -432,6 +439,39 @@
       </div>
     </div>
 
+    <div id="inviteCoAuthorModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4>Invite Co-authors</h4>
+          </div>
+          <div class="modal-body">
+            <!-- <div v-if="story.length > 0"> -->
+            <h5 v-if="allOtherUsers" class="mb-0">
+              Users
+            </h5>
+            <select v-model="coAuthors" class="form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Co-authors">
+              <option key="SELECT" value="" selected disabled>
+                Select co-authors
+              </option>
+              <option v-for="item in allOtherUsers" :key="item.id" :value="item.id">
+                {{ item.username }}
+              </option>
+            </select>
+            <!-- </div> -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Cancel
+            </button>
+            <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="setCoAuthors()">
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="settingsElementModal" class="modal fade">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -444,7 +484,7 @@
               Content Type
             </h5>
             <select v-model="elementContentType" class="form-control form-control-sm">
-              <option key="SELECT" value="" selected>
+              <option key="SELECT" value="" selected disabled>
                 Select content type
               </option>
               <option v-for="item in allElementContentTypes" :key="item.id" :value="item.id">
@@ -589,7 +629,7 @@
 import draggable from "vuedraggable"
 import { VueEditor } from "vue2-editor"
 import { imgFormats, videoFormats, audioFormats } from 'utils/objectUtils'
-import { some, each, delay } from 'underscore'
+import { some, each, delay} from 'underscore'
 import { EventBus } from 'store/event-bus'
 import { disableEventListenerSingleClick, enableEventListenerSingleClick } from 'utils/mapUtils'
 import CommentsView from 'components/Comments'
@@ -627,6 +667,7 @@ export default {
       mediaForGeomAttr: null,
       geomsUsage: null,
       elementContentType: null,
+      coAuthors: [],
       storyLang: 'eng'
     }
   },
@@ -679,9 +720,18 @@ export default {
       }
       return this.$store.state.reuseMode
     },
-    allAtuas()
-    {
+    allAtuas() {
       return this.$store.state.allAtuas
+    },
+    allUsers() {
+      return this.$store.state.allUsers
+    },
+    allOtherUsers() {
+      var users
+      if (this.$store.state.user) {
+        users = this.$store.state.allUsers.filter(user=>(user.id!=this.$store.state.user.pk && user.id!=1))
+      }
+      return users
     },
     allStoryTypes(){
       return this.$store.state.allStoryTypes
@@ -696,9 +746,31 @@ export default {
       }
       return username
     },
+    userPK () {
+      var userpk
+      if (this.$store.state.user) {
+        userpk = this.$store.state.user.pk
+      }
+      return userpk
+    },
     uploadMediaProgress () {
       return this.$store.state.uploadMediaProgress
+    },
+    storyCoAuthors () {
+      var coauthors = []
+      each(this.$store.state.allUsers, (auth) => {
+        if (this.$store.state.storyContent.co_authors.includes(auth.id)) {
+          coauthors.push(auth)
+        }
+      })
+      return coauthors
     }
+  },
+  created () {
+    window.addEventListener('beforeunload', this.removeEditor)
+  },
+  beforeDestroy() {
+    window.removeEventListener('beforeunload', this.removeEditor)
   },
   mounted: function () {
     EventBus.$on('addGeometryElement', (geomAttr) => {
@@ -762,6 +834,13 @@ export default {
         end_time: null
       }
     },
+    removeEditor(event){
+      event.preventDefault()
+      if(!this.isStoryViewMode && this.story.id)
+      {
+        this.$store.dispatch('updateEditor', {'story_id': this.story.id,'editor': this.userPK,"action":"unset"})
+      }
+    },
     onChangeStoryLang:function(){
       // Update the store with the new Story view language
       this.$store.commit('SET_STORY_VIEW_LANG', this.storyLang)
@@ -775,6 +854,7 @@ export default {
       this.$store.state.allStoriesGeomsLayer.visible = true
     },
     reset () {
+      $('input[type="file"]').val(null);
       this.uploadError = null
       this.uploadedFile = null
       this.tempMediaDescriptionEng = null
@@ -907,15 +987,14 @@ export default {
     cancelStorySaving: function () {
       this.cleanUnusedMediaFiles()
       this.cleanUnusedGeomAttrs()
-
       this.$store.commit('SET_STORY_VIEW_MODE', true)
       this.$store.commit('SET_DRAW_MODE', false)
       this.$store.commit('SET_GEOM_MEDIA_MODE', false)
       this.$store.commit('SET_REUSE_MODE', false)
-
       if (this.story.hasOwnProperty('id')) {
         this.$store.dispatch('getStoryContent', this.story.id)
         .then((story) => {
+          this.$store.dispatch('updateEditor', {'story_id': this.story.id,'editor': this.userPK,"action":"unset"})
           EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
         })
       } else {
@@ -926,16 +1005,33 @@ export default {
       if (!this.isStoryViewMode) {
         $('#editingWarningModal').modal('show')
       } else {
+        this.$store.dispatch('updateEditor', {'story_id': this.story.id,'editor': this.userPK,"action":"unset"})
         this.closePanel()
         EventBus.$emit("updateMapWidth")
       }
     },
     editStory: function () {
-      if (this.story.story_type) {
-        this.story.story_type_id = this.story.story_type.id
+      this.$store.dispatch('getStoryContent', this.story.id)
+      .then(() => {
+        if (!this.story.being_edited_by || this.story.being_edited_by.id ==  this.userPK) {
+          this.$store.dispatch('updateEditor', {'story_id': this.story.id,'editor': this.userPK,"action":"set"})
+          if (this.story.story_type) {
+            this.story.story_type_id = this.story.story_type.id
+          }
+          this.$store.commit('SET_STORY_VIEW_MODE', false)
+          EventBus.$emit('resetDrawnFeature')
+          }
+        else{
+          EventBus.$emit('showStoryIsBeingEditedByWarning',this.story.being_edited_by)
+        }
+      })
+    },
+    inviteCoAuthorModal: function () {
+      if(this.story.co_authors)
+      {
+        this.coAuthors = this.story.co_authors
       }
-      this.$store.commit('SET_STORY_VIEW_MODE', false)
-      EventBus.$emit('resetDrawnFeature')
+      $('#inviteCoAuthorModal').modal('show')
     },
     settingsElementModal: function (element) {
       if (!this.isDrawMode) {
@@ -956,6 +1052,15 @@ export default {
     },
     setElementContentType: function () {
       this.selectedElement.content_type = this.elementContentType
+    },
+    setCoAuthors: function () {
+      if (this.story.hasOwnProperty('id')) {
+        var obj = {
+          story_id: this.story.id,
+          co_author: this.coAuthors
+        }
+        this.$store.dispatch('addCoAuthors', obj)
+      }
     },
     deleteElementModal: function (element) {
       if (!this.isDrawMode) {

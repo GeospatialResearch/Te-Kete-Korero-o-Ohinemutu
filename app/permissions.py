@@ -1,6 +1,6 @@
 from rest_framework import permissions
-from .models import StoryBodyElement, StoryGeomAttrib, StoryGeomAttribMedia
-
+from .models import StoryBodyElement, StoryGeomAttrib, StoryGeomAttribMedia, CoAuthor
+# from django.contrib.auth.models import User
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
@@ -8,7 +8,6 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-
         # Read permissions are allowed for any request
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -24,7 +23,6 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
-
         # Read permissions are allowed for any request
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -35,6 +33,12 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
         # Admins can update and delete
         if request.user.is_superuser:
+            return True
+
+        # CoAuthors can update and delete
+        coauths = CoAuthor.objects.filter(story = obj.id).values_list("co_author", flat=True)
+        coauths = list(coauths)
+        if request.user.id in coauths:
             return True
 
         # Finally, if the user owns the thing, he can do update and delete.

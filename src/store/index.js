@@ -25,8 +25,9 @@ var getAuthHeader = function () {
 
 var getData = function () {
   store.dispatch('getDatasets')
-  store.dispatch('getStories')
+  store.dispatch('getStories'),
   store.dispatch('getAtuas'),
+  store.dispatch('getUsers'),
   store.dispatch('getStoryTypes'),
   store.dispatch('getElementContentTypes'),
   store.dispatch('getWebsiteTranslation')
@@ -78,6 +79,7 @@ const initialState = {
   websiteTranslObj: null,
   lang: 'eng',
   storyViewLang: 'eng',
+  allUsers: [],
   allAtuas: [],
   allStoryTypes: [],
   allElementContentTypes: [],
@@ -157,6 +159,9 @@ const store = new Vuex.Store({
     },
     SET_ALLATUAS (state, response) {
       state.allAtuas = response.body
+    },
+    SET_ALLUSERS (state, response) {
+      state.allUsers = response.body
     },
     SET_ALLSTORYTYPES (state, response) {
       state.allStoryTypes = response.body
@@ -272,6 +277,7 @@ const store = new Vuex.Store({
           localStorage.setItem('token', response.body.key)
         }
         state.authenticated = true
+        state.storyViewMode = true
         // store.dispatch('checkAdmin')
       }
     },
@@ -280,7 +286,7 @@ const store = new Vuex.Store({
       state.authenticated = false
       state.user = null
       state.token = null
-      state.storyViewMode = false
+      //state.storyViewMode = false
       state.drawMode = false
       state.geomMediaMode = false
       EventBus.$emit('closePanel')
@@ -345,6 +351,13 @@ const store = new Vuex.Store({
         })
         .catch((error) => store.commit('API_FAIL', error))
     },
+    updateEditor (store, payload) {
+      return api.post(apiRoot + '/update_being_edited_by/',payload, { headers: getAuthHeader() })
+        .then((response) => {
+          return response
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
     renameLayer (store, payload) {
       return api.post(apiRoot + '/rename_layer/', payload, { headers: getAuthHeader() })
         .then(() => {
@@ -373,6 +386,14 @@ const store = new Vuex.Store({
       return api.get(apiRoot + '/atuas', { headers: getAuthHeader() })
         .then((response) => {
           store.commit('SET_ALLATUAS', response)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    getUsers () {
+      // To getall users
+      return api.get(apiRoot + '/users', { headers: getAuthHeader() })
+        .then((response) => {
+          store.commit('SET_ALLUSERS', response)
         })
         .catch((error) => store.commit('API_FAIL', error))
     },
@@ -549,6 +570,13 @@ const store = new Vuex.Store({
         drawnfeature.geometry = drawnfeature.geometry.geometry
       }
       return api.patch(apiRoot + '/storygeomsattrib/' + drawnfeature.id + '/', drawnfeature, { headers: getAuthHeader() })
+        .then((response) => {
+          return response
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    addCoAuthors (store, obj) {
+      return api.post(apiRoot + '/coauthors/', obj, { headers: getAuthHeader() })
         .then((response) => {
           return response
         })

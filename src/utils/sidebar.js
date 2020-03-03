@@ -3,7 +3,6 @@ var _ = require('underscore')
 const store = require('store').default
 
 $(function () {
-
   // Resize map on window resize
   $(window).on('resize', function(){
     // var w = window.outerWidth;
@@ -148,13 +147,32 @@ $(function () {
     }
   })
   $(document.body).on('click', "[id*='_edit']" ,function(){
-    var story_id = $(this).attr('id').replace("_edit", "")
-    store.dispatch('getStoryContent', story_id)
-    .then((story) => {
-      store.commit('SET_STORY_VIEW_MODE', false)
-      store.commit('SET_PANEL_OPEN', true)
-      EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
-    })
+    if (!store.state.storyViewMode) {
+      EventBus.$emit('storyIsBeingEditedWarning')
+    } else {
+      var story_id = $(this).attr('id').replace("_edit", "")
+      store.dispatch('getStoryContent',story_id)
+      .then((story) => {
+        if (!story.being_edited_by || story.being_edited_by.id == store.state.user.pk) {
+          store.dispatch('updateEditor', {'story_id': story_id,'editor': store.state.user.pk,"action":"set"})
+          //story.being_edited_by = store.state.user.pk
+          if (story.story_type) {
+            story.story_type_id = story.story_type.id
+          }
+
+          store.commit('SET_STORY_VIEW_MODE', false)
+          store.commit('SET_PANEL_OPEN', true)
+          EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
+
+        }
+        else {
+          store.commit('SET_STORY_VIEW_MODE', true)
+          store.commit('SET_PANEL_OPEN', true)
+          EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
+          EventBus.$emit('showStoryIsBeingEditedByWarning',story.being_edited_by)
+        }
+      })
+    }
   })
   $(document.body).on('click', "[id*='_deleteStory']" ,function(){
     var storyid = $(this).attr('id').replace("_deleteStory", "")

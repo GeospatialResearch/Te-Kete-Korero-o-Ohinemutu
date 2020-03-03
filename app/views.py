@@ -2,13 +2,14 @@
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.decorators import detail_route
+from rest_framework.permissions import AllowAny
 from rest_framework.parsers import FileUploadParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer, CommentSerializer
+from .serializers import UserSerializer, CoAuthorSerializer, DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer, CommentSerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment
+from .models import Dataset, Story, CoAuthor, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment
 from django.contrib.auth.models import User
 from tempfile import TemporaryDirectory
 import zipfile
@@ -20,6 +21,7 @@ import re
 from .utils import layer_type, get_catalog
 import requests
 from django.utils import timezone
+
 
 # Util Functions
 def get_layer_from_file(file_obj, directory):
@@ -236,6 +238,21 @@ def createGeoserverCoverageLayer(layer):
 
 
 @transaction.atomic
+def update_editor(editor_id, story_id, action):
+    story = Story.objects.get(pk = story_id)
+    if editor_id is not None:
+        editor = User.objects.get(pk = editor_id)
+
+    if action == 'set':
+        story.being_edited_by = editor
+        story.save()
+    else:
+        story.being_edited_by = None
+        story.save()
+
+
+
+@transaction.atomic
 def delete_layer(layername):
     # Remove from database
     Dataset.objects.get(name=layername).delete()
@@ -392,12 +409,19 @@ class StoryViewSet(viewsets.ModelViewSet):
     queryset = Story.objects.all()
 
     def get_queryset(self):
+        # print(self.request.user.id)
+        # if 'pk' in self.kwargs:
+        #     story = Story.objects.get(pk = self.kwargs['pk'])
+        #     if not story.being_edited_by:
+        #         story.being_edited_by = self.request.user
+        #         story.save()
+
         return self.queryset.for_user(self.request.user).order_by('-created_date')
 
     def perform_create(self,serializer):
         serializer.save(owner=self.request.user)
     def perform_update(self,serializer):
-        serializer.save()
+        serializer.save(being_edited_by = None)
 
 
 class StoryBodyElementViewSet(viewsets.ModelViewSet):
@@ -419,11 +443,20 @@ class AtuaViewSet(viewsets.ModelViewSet):
     serializer_class = AtuaSerializer
     queryset = Atua.objects.all()
 
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
 
 class StoryTypeViewSet(viewsets.ModelViewSet):
     serializer_class = StoryTypeSerializer
     queryset = StoryType.objects.all()
 
+class CoAuthorViewSet(viewsets.ModelViewSet):
+    serializer_class = CoAuthorSerializer
+    queryset = CoAuthor.objects.all()
+
+    def perform_update(self,serializer):
+        serializer.save()
 
 class ContentTypeViewSet(viewsets.ModelViewSet):
     serializer_class = ContentTypeSerializer
@@ -474,6 +507,23 @@ def dataset_list(request):
         return JsonResponse(datasets_list, safe=False)
 
 
+class UpdateBeingEditedBy(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        story_id = request.data['story_id']
+        action = request.data["action"]
+
+        if action == 'set':
+            editor = request.data["editor"]
+        else:
+            editor = None
+
+        update_editor(editor, story_id, action)
+
+        return Response({'result': "ok"})
+
+
 class DeleteLayer(APIView):
     def post(self, request):
         layername = request.data['layername']
@@ -509,7 +559,7 @@ def get_layer_bbox(request):
 class GetUser(APIView):
     def get(self, request):
         if request.user is not None and not request.user.is_anonymous:
-            return Response({'user': {'email': request.user.email, 'username': request.user.username, 'id' : request.user.pk}})
+            return Response({'user': {'email': request.user.email, 'username': request.user.username, 'pk' : request.user.pk}})
         else:
             return Response({})
 

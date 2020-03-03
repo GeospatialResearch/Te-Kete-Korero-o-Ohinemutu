@@ -1,12 +1,11 @@
 from rest_framework.serializers import ModelSerializer, ListField, SerializerMethodField, JSONField, PrimaryKeyRelatedField, ReadOnlyField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment
+from .models import Dataset, CoAuthor, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment
 from django.contrib.gis.geos import GEOSGeometry
 from rest_auth.serializers import PasswordResetSerializer
-
+from django.contrib.auth.models import User
 
 class DatasetSerializer(ModelSerializer):
-
     class Meta:
         model = Dataset
         fields = '__all__'
@@ -18,12 +17,16 @@ class AtuaSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class UserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'id')
+
 
 class StoryTypeSerializer(ModelSerializer):
     class Meta:
         model = StoryType
         fields = '__all__'
-
 
 
 class ContentTypeSerializer(ModelSerializer):
@@ -37,9 +40,11 @@ class StorySerializer(ModelSerializer):
     atua_temp = PrimaryKeyRelatedField(write_only=True,many=True,queryset=Atua.objects.all())
     story_type_id = PrimaryKeyRelatedField(source="StoryType",queryset=StoryType.objects.all(),required=False)
     owner = ReadOnlyField(source='owner.username')
+    being_edited_by = ReadOnlyField(source='being_edited_by.id')
     comments = SerializerMethodField()
     storyBodyElements = SerializerMethodField()
     story_type = StoryTypeSerializer(read_only=True)
+    co_authors = SerializerMethodField()
 
     class Meta:
         model = Story
@@ -55,6 +60,10 @@ class StorySerializer(ModelSerializer):
         sb = StoryBodyElement.objects.filter(story=story)
         serializer = StoryBodyElementSerializer(instance=sb, many=True)
         return serializer.data
+
+    def get_co_authors(self, obj):
+        authors=  CoAuthor.objects.filter(story=obj)
+        return [author.co_author.id for author in authors]
 
     def create(self, validated_data):
         elements = validated_data.pop('storyBodyElements_temp')
@@ -146,7 +155,6 @@ class StorySimpleSerializer(ModelSerializer):
         model = Story
         fields = ('id', 'title', 'summary', 'story_type', 'owner')
         depth = 1
-
 
 class MediaFileSerializer(ModelSerializer):
 
@@ -260,3 +268,20 @@ class CommentSerializer(ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
+
+
+class CoAuthorSerializer(ModelSerializer):
+    story_id = PrimaryKeyRelatedField(source="story",queryset=Story.objects.all(),required=False)
+    co_author = ListField(write_only=True)
+
+    class Meta:
+        model = CoAuthor
+        fields = ('id', 'story_id', 'co_author')
+
+    def create(self, validated_data):
+        story = validated_data.pop('story')
+        authors =  validated_data.pop('co_author')
+        CoAuthor.objects.filter(story=story).delete()
+        for author in authors:
+            CoAuthor.objects.create(story=story,co_author_id=author)
+        return CoAuthor.objects.filter(story=story).all()

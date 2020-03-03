@@ -165,7 +165,7 @@
                 </div>
                 <ul v-else>
                   <li v-for="story in myNarratives" :key="story.id">
-                    <a href="#" class="sidebar-line" :title="story.title.eng">
+                    <a href="#" class="justify-content-between" :title="story.title.eng">
                       <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
                       <span class="inline-text">
                         <span class="ml-2 ellipsis-text"> {{ story.title.eng }}</span>
@@ -192,7 +192,7 @@
                 </div>
                 <ul v-else>
                   <li v-for="story in otherNarratives" :key="story.id">
-                    <a href="#" class="sidebar-line" :title="story.title.eng">
+                    <a href="#" class="justify-content-between" :title="story.title.eng">
                       <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
                       <span class="inline-text">
                         <span class="ml-2 ellipsis-text"> {{ story.title.eng }}</span>
@@ -251,7 +251,7 @@
                 <div v-else>
                   <ul>
                     <li v-for="story in filteredStories" :key="story.id">
-                      <a href="#" class="sidebar-line" :title="story.title">
+                      <a href="#" class="justify-content-between" :title="story.title">
                         <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
                         <span class="inline-text">
                           <span class="ml-2 ellipsis-text"> {{ story.title.eng }}</span>
@@ -553,6 +553,23 @@
         </div>
       </div>
     </div>
+    <div id="BeingEditedByWarningModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content modal-margin-top">
+          <div class="modal-header">
+            <h5>Attention</h5>
+          </div>
+          <div class="modal-body text-center">
+            <h6>Currently this story is being edited by {{ editor?editor.username:'' }}, so please close this story for now and come back later.</h6>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="storyIsBeingEditedWarningModal" class="modal fade">
       <div class="modal-dialog">
         <div class="modal-content modal-margin-top">
@@ -617,6 +634,7 @@
         layerName: null,
         layerToDelete: null,
         storyToDelete: null,
+        editor: null,
         filter: {
           atua: [],
           storyType: [],
@@ -673,6 +691,13 @@
         }
         return username
       },
+      userPK () {
+        var userpk
+        if (this.$store.state.user) {
+          userpk = this.$store.state.user.pk
+        }
+        return userpk
+      },
       contentToShow () {
         return this.$store.state.contentToShow
       },
@@ -685,7 +710,7 @@
         this.otherNarratives = []
         if (this.authenticated) {
           each(this.stories, (story) => {
-            if (story.owner == this.username) {
+            if (story.owner == this.username ||  story.co_authors.indexOf(this.userPK)>=0) {
               this.myNarratives.push(story)
             } else {
               this.otherNarratives.push(story)
@@ -712,6 +737,11 @@
       EventBus.$on('deleteStoryModalOpen', (storyid) => {
         this.storyToDelete = storyid
         $('#deleteStoryModal').modal('show')
+      })
+
+      EventBus.$on('showStoryIsBeingEditedByWarning', (editorid) => {
+        this.editor = editorid
+        $('#BeingEditedByWarningModal').modal('show')
       })
 
       EventBus.$on('storyIsBeingEditedWarning', () => {
@@ -864,7 +894,7 @@
       },
       createPopoverStoryOptions (story) {
         var storyOptions
-        if (story.owner === this.username || this.username === 'admin') {
+        if (story.owner === this.username || this.username === 'admin' || story.co_authors.indexOf(this.userPK)>=0) {
           storyOptions = `<div class="layer-options">
                             <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
                             <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit narrative</a>

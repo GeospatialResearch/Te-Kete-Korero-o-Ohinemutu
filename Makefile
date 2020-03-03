@@ -103,7 +103,7 @@ load-contenttypes:
 # 	make initialise-db
 #
 db-backup:
-	docker exec <container-name> pg_dump -a -T public.django_migrations -T public.django_content_type -T public.auth_permission -U mapuser <database-name> > db_backup.sql
+	docker exec <container-name> pg_dump -a -T public.django_migrations -T public.django_content_type -T public.auth_permission -T public.spatial_ref_sys -U mapuser <database-name> > db_backup.sql
 
 db-restore:
 	docker exec -i <container-name> psql -U mapuser -d <database-name> < db_backup.sql

@@ -7,6 +7,7 @@ from django.db.models import Q
 
 # QuerySets
 class StoryQuerySet(models.QuerySet):
+
     def for_user(self, user):
         # Not logged in? Only public data or data created by admin
         if not user.is_authenticated:
@@ -15,7 +16,8 @@ class StoryQuerySet(models.QuerySet):
         if user.is_superuser:
             return self.all()
         else:
-            return self.filter(Q(owner=user)) | self.filter(Q(owner=1))
+            stories = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
+            return self.filter(Q(owner=user)) | self.filter(Q(owner=1)) | self.filter(id__in=stories)
 
 class StoryBodyElementQuerySet(models.QuerySet):
     def for_user(self, user):
@@ -26,7 +28,8 @@ class StoryBodyElementQuerySet(models.QuerySet):
         if user.is_superuser:
             return self.all()
         else:
-            return self.filter(Q(story__owner=user)) | self.filter(Q(story__owner=1))
+            stories = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
+            return self.filter(Q(story__owner=user)) | self.filter(Q(story__owner=1)) | self.filter(story__id__in=stories)
 
 
 # Create your models here.
@@ -93,8 +96,13 @@ class Story(models.Model):
     atua =  models.ManyToManyField("Atua")
     story_type = models.ForeignKey(StoryType, blank=True, null=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='stories', on_delete=models.CASCADE)
-
+    being_edited_by = models.ForeignKey('auth.User', blank=True, null=True, on_delete=models.CASCADE)
     objects = StoryQuerySet.as_manager()
+
+class CoAuthor(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    story = models.ForeignKey(Story,related_name='coauthers', on_delete=models.CASCADE)
+    co_author = models.ForeignKey('auth.User', related_name='coauthors', on_delete=models.CASCADE)
 
 
 class MediaFile(models.Model):
@@ -169,4 +177,3 @@ class Comment(models.Model):
     user = models.ForeignKey('auth.User', related_name='comments', on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     comment = models.TextField(blank=True, null=True)
-    

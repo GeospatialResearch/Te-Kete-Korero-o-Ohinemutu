@@ -33,6 +33,8 @@ router.register(r'stories', views.StoryViewSet)
 router.register(r'mediafiles', views.MediaFileViewSet)
 router.register(r'storybodyelements', views.StoryBodyElementViewSet)
 router.register(r'atuas', views.AtuaViewSet)
+router.register(r'users', views.UserViewSet)
+router.register(r'coauthors', views.CoAuthorViewSet)
 router.register(r'storytypes', views.StoryTypeViewSet)
 router.register(r'contenttypes', views.ContentTypeViewSet)
 router.register(r'storygeomsattrib', views.StoryGeomAttribViewSet)
@@ -43,6 +45,7 @@ router.register(r'comments', views.CommentViewSet)
 
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),
+    url(r'^update_being_edited_by/', views.UpdateBeingEditedBy.as_view()),
     url(r'^upload_media_file/', views.UploadMediaFileView.as_view()),
     url(r'^delete_unused_media/', views.CleanMediaFilesView.as_view()),
     url(r'^delete_unused_geoms/', views.CleanGeomsView.as_view()),
