@@ -46,6 +46,7 @@ router.register(r'comments', views.CommentViewSet)
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),
     url(r'^update_being_edited_by/', views.UpdateBeingEditedBy.as_view()),
+    url(r'^get_being_edited_by/', views.GetBeingEditedBy.as_view()),
     url(r'^upload_media_file/', views.UploadMediaFileView.as_view()),
     url(r'^delete_unused_media/', views.CleanMediaFilesView.as_view()),
     url(r'^delete_unused_geoms/', views.CleanGeomsView.as_view()),

@@ -523,6 +523,13 @@ class UpdateBeingEditedBy(APIView):
 
         return Response({'result': "ok"})
 
+class GetBeingEditedBy(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        story_id = request.data['story_id']
+        story = Story.objects.get(id=story_id)
+        return Response({'result': "ok",'being_edited_by':story.being_edited_by.id if story and story.being_edited_by else None})
 
 class DeleteLayer(APIView):
     def post(self, request):

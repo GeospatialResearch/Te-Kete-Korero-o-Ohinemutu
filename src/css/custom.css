@@ -25,6 +25,29 @@ h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, span, small, label {
   align-items: center;
 }
 
+.coauth-li-padding {
+  padding-top: 10px;
+}
+
+.no_bullet {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.userimage-div {
+  width:25px;
+  margin-right:5px;
+  height:100%;
+  float:left;
+}
+
+.userimage-div img {
+  width:100%;
+  border-radius:50%;
+  margin-right: 10px;
+}
+
 /* sidepanel drag and drop */
 .scroll-div{
   max-height: 900px;

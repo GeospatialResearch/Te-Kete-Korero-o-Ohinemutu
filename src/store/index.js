@@ -351,6 +351,13 @@ const store = new Vuex.Store({
         })
         .catch((error) => store.commit('API_FAIL', error))
     },
+    getEditor (store, payload) {
+      return api.post(apiRoot + '/get_being_edited_by/',payload, { headers: getAuthHeader() })
+        .then((response) => {
+          return response.body
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
     updateEditor (store, payload) {
       return api.post(apiRoot + '/update_being_edited_by/',payload, { headers: getAuthHeader() })
         .then((response) => {
@@ -577,8 +584,8 @@ const store = new Vuex.Store({
     },
     addCoAuthors (store, obj) {
       return api.post(apiRoot + '/coauthors/', obj, { headers: getAuthHeader() })
-        .then((response) => {
-          return response
+        .then(() => {
+          store.dispatch('getStoryContent', obj.story_id)
         })
         .catch((error) => store.commit('API_FAIL', error))
     },

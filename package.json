@@ -36,6 +36,7 @@
     "proj4": "^2.5.0",
     "underscore": "^1.9.1",
     "vue": "^2.6.6",
+    "vue-bootstrap-typeahead": "^0.2.6",
     "vue-moment": "^4.1.0",
     "vue-resource": "^1.5.1",
     "vue-router": "^3.0.2",

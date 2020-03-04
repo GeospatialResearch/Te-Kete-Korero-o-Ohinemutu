@@ -140,6 +140,7 @@ $(function () {
       var story_id = $(this).attr('id').replace("_view", "")
       store.dispatch('getStoryContent', story_id)
       .then((story) => {
+        console.log("from view story ",story);
         store.commit('SET_STORY_VIEW_MODE', true)
         store.commit('SET_PANEL_OPEN', true)
         EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)

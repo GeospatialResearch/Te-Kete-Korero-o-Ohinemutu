@@ -450,28 +450,65 @@
             <h5 v-if="allOtherUsers" class="mb-0">
               Users
             </h5>
-            <select v-model="coAuthors" class="form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Co-authors">
-              <option key="SELECT" value="" selected disabled>
-                Select co-authors
-              </option>
-              <option v-for="item in allOtherUsers" :key="item.id" :value="item.id">
-                {{ item.username }}
-              </option>
-            </select>
-            <!-- </div> -->
+            <div v-if="userPK">
+              <vue-bootstrap-typeahead ref="usersAutocomplete" v-model="query" :serializer="s => s.username" :data="allOtherUsers.filter(user=>!coAuthors.includes(user.id))" placeholder="Type a co-author's name" @hit="setCoAuthors($event)" />
+              <ul class="no_bullet">
+                <li v-for="item in coAuthors" :key="item" class="coauth-li-padding">
+                  <div class="userimage-div">
+                    <img src="static/img/user.jpg">
+                  </div>
+                  {{ allOtherUsers.filter(user=>user.id === item)[0].username }}
+                  <font-awesome-icon disabled icon="times-circle" size="lg" color="grey" class="float-right" @click="deleteCoAuthorModalOpen(item)" />
+                </li>
+              </ul>
+            </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">
-              Cancel
-            </button>
-            <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="setCoAuthors()">
-              Done
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="onClose()">
+              Close
             </button>
           </div>
         </div>
       </div>
     </div>
 
+    <div id="deleteCoAuthorModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Delete Co-author</h5>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete co-author {{ coauthorToDelete?allOtherUsers.filter(user=>user.id === coauthorToDelete)[0].username:'' }}?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Cancel
+            </button>
+            <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="removeCoAuthor(coauthorToDelete)">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="cantdeleteCoauthorWarningModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content modal-margin-top">
+          <div class="modal-header">
+            <h5>Attention</h5>
+          </div>
+          <div class="modal-body text-center">
+            <h6>Currently this story is being edited by {{ editor?allUsers.filter(user=>user.id === editor)[0].username:'' }}, so you can't delete now, please come back later.</h6>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="settingsElementModal" class="modal fade">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -629,16 +666,18 @@
 import draggable from "vuedraggable"
 import { VueEditor } from "vue2-editor"
 import { imgFormats, videoFormats, audioFormats } from 'utils/objectUtils'
-import { some, each, delay} from 'underscore'
+import { some, each, delay, without} from 'underscore'
 import { EventBus } from 'store/event-bus'
 import { disableEventListenerSingleClick, enableEventListenerSingleClick } from 'utils/mapUtils'
 import CommentsView from 'components/Comments'
+import VueBootstrapTypeahead from 'vue-bootstrap-typeahead'
 
 export default {
   components: {
     draggable,
     VueEditor,
-    CommentsView
+    CommentsView,
+    VueBootstrapTypeahead
   },
   data() {
     return {
@@ -668,7 +707,10 @@ export default {
       geomsUsage: null,
       elementContentType: null,
       coAuthors: [],
-      storyLang: 'eng'
+      storyLang: 'eng',
+      query: '',
+      coauthorToDelete: '',
+      editor: null
     }
   },
   computed: {
@@ -726,10 +768,17 @@ export default {
     allUsers() {
       return this.$store.state.allUsers
     },
+    userPK () {
+      var userpk
+      if (this.$store.state.user) {
+        userpk = this.$store.state.user.pk
+      }
+      return userpk
+    },
     allOtherUsers() {
       var users
       if (this.$store.state.user) {
-        users = this.$store.state.allUsers.filter(user=>(user.id!=this.$store.state.user.pk && user.id!=1))
+        users = this.$store.state.allUsers.filter(user=>(user.id!=this.userPK && user.id!=1))
       }
       return users
     },
@@ -745,13 +794,6 @@ export default {
         username = this.$store.state.user.username
       }
       return username
-    },
-    userPK () {
-      var userpk
-      if (this.$store.state.user) {
-        userpk = this.$store.state.user.pk
-      }
-      return userpk
     },
     uploadMediaProgress () {
       return this.$store.state.uploadMediaProgress
@@ -1027,11 +1069,25 @@ export default {
       })
     },
     inviteCoAuthorModal: function () {
+      this.$store.dispatch('getEditor', {'story_id': this.story.id})
+      .then((response) => {
+        this.editor = response.being_edited_by
+      })
       if(this.story.co_authors)
       {
         this.coAuthors = this.story.co_authors
       }
       $('#inviteCoAuthorModal').modal('show')
+    },
+    deleteCoAuthorModalOpen: function (value) {
+      if(value == this.editor)
+      {
+        $('#cantdeleteCoauthorWarningModal').modal('show')
+      }
+      else {
+        this.coauthorToDelete = value
+        $('#deleteCoAuthorModal').modal('show')
+      }
     },
     settingsElementModal: function (element) {
       if (!this.isDrawMode) {
@@ -1053,8 +1109,24 @@ export default {
     setElementContentType: function () {
       this.selectedElement.content_type = this.elementContentType
     },
-    setCoAuthors: function () {
+    onClose: function () {
+      this.$refs.usersAutocomplete.inputValue = ''
+    },
+    removeCoAuthor: function (value) {
+      this.$refs.usersAutocomplete.inputValue = ''
       if (this.story.hasOwnProperty('id')) {
+        this.coAuthors=without(this.coAuthors,value)
+        var obj = {
+          story_id: this.story.id,
+          co_author: this.coAuthors
+        }
+        this.$store.dispatch('addCoAuthors', obj)
+      }
+    },
+    setCoAuthors: function (value) {
+      this.$refs.usersAutocomplete.inputValue = ''
+      if (this.story.hasOwnProperty('id')) {
+        this.coAuthors.push(value.id)
         var obj = {
           story_id: this.story.id,
           co_author: this.coAuthors
