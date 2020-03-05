@@ -34,6 +34,9 @@ var singleClickCallbackFunction = function (evt) {
   EventBus.$emit('closeMapPopup')
   EventBus.$emit('resetSelectedFeatures')
 
+  // console.log(map.getView().getZoom())
+  // console.log(evt.coordinate)
+
   // Attempt to find a marker from the map layers
   var layers = map.getLayers()
   var viewResolution = map.getView().getResolution()
