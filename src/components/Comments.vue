@@ -1,8 +1,8 @@
 <template>
   <div id="comments" class="row">
     <div class="col-md-12 pl-4 pr-4" style="background-color:#ffffff;">
-      <div class="detailBox">
-        <div class="titleBox">
+      <div class="detail-box">
+        <div class="title-box">
           <font-awesome-icon icon="comments" class="mr-2" />
           <label>Comments
             <span v-if="story.comments">
@@ -10,7 +10,7 @@
             </span>
           </label>
         </div>
-        <div v-if="authenticated" class="commentBox">
+        <div v-if="authenticated" class="comment-box">
           <form class="form-inline" role="form">
             <div class="form-group pr-3">
               <textarea v-model="comment" class="form-control form-control-sm" type="text" placeholder="Your comment" />
@@ -23,18 +23,18 @@
             </div>
           </form>
         </div>
-        <div class="actionBox">
-          <ul class="commentList">
+        <div class="action-box">
+          <ul class="comment-list">
             <li v-if="story.comments && story.comments.length==0" class="text-center text-muted">
               <p>
                 There are no comments
               </p>
             </li>
             <li v-for="comm in story.comments" v-else :key="comm.id">
-              <div class="commenterImage">
+              <div class="commenter-image">
                 <img src="static/img/user.jpg">
               </div>
-              <div class="commentText">
+              <div class="comment-text">
                 <p>
                   {{ comm.comment }}
                 </p>

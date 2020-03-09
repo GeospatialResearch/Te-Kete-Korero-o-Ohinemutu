@@ -147,7 +147,7 @@ def getEPSG(layer):
 
 
 @transaction.atomic
-def insertDB(layer):
+def insertDB(layer, request):
     filename = layer['filename']
     geomtype = layer['geomtype']
 
@@ -162,7 +162,7 @@ def insertDB(layer):
         geomtypecode = Dataset.RASTER
 
     # create dataset record
-    dataset = Dataset.objects.create(name=filename, geomtype=geomtypecode)
+    dataset = Dataset.objects.create(name=filename, geomtype=geomtypecode, uploaded_by=request.user)
     dataset.save()
     print("######### Created dataset record #########")
 
@@ -317,7 +317,7 @@ class UploadFileView(APIView):
             layer = get_layer_from_file(file_obj, directory)
 
             if layer is not None:
-                insertDB(layer)
+                insertDB(layer, request)
 
         return Response(layer)
 
@@ -409,13 +409,6 @@ class StoryViewSet(viewsets.ModelViewSet):
     queryset = Story.objects.all()
 
     def get_queryset(self):
-        # print(self.request.user.id)
-        # if 'pk' in self.kwargs:
-        #     story = Story.objects.get(pk = self.kwargs['pk'])
-        #     if not story.being_edited_by:
-        #         story.being_edited_by = self.request.user
-        #         story.save()
-
         return self.queryset.for_user(self.request.user).order_by('-created_date')
 
     def perform_create(self,serializer):
@@ -499,12 +492,21 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self,serializer):
         serializer.save(user=self.request.user)
 
+### I had to turn the following method into an APIView in order to the request.user don't be AnonymousUser
+# def dataset_list(request):
+#     if request.method == 'GET':
+#         datasets = Dataset.objects.for_user(request.user).values('name', 'geomtype', 'assigned_name', 'uploaded_by')
+#
+#         datasets_list = list(datasets)
+#         return JsonResponse(datasets_list, safe=False)
 
-def dataset_list(request):
-    if request.method == 'GET':
-        datasets = Dataset.objects.all().values('name', 'geomtype', 'assigned_name')
+class DatasetList(APIView):
+    def get(self, request):
+        datasets = Dataset.objects.for_user(request.user).values('name', 'geomtype', 'assigned_name', 'uploaded_by')
+
         datasets_list = list(datasets)
         return JsonResponse(datasets_list, safe=False)
+
 
 
 class UpdateBeingEditedBy(APIView):
@@ -580,3 +582,12 @@ class GetEmail(APIView):
                 return Response({'emailExists': True})
             else:
                 return Response({'emailExists': False})
+
+
+class IsAdmin(APIView):
+    def get(self, request):
+        isAdmin = request.user is not None \
+            and not request.user.is_anonymous\
+            and request.user.is_superuser
+
+        return Response({'isAdmin': isAdmin})

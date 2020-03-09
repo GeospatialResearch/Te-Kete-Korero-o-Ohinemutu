@@ -11,25 +11,37 @@ class StoryQuerySet(models.QuerySet):
     def for_user(self, user):
         # Not logged in? Only public data or data created by admin
         if not user.is_authenticated:
-            return self.filter(Q(owner=1)) # those the admin is the owner
+            return self.filter(Q(owner__is_superuser=True))
         # Super user? All the data!
         if user.is_superuser:
             return self.all()
         else:
             stories = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
-            return self.filter(Q(owner=user)) | self.filter(Q(owner=1)) | self.filter(id__in=stories)
+            return self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=stories)
 
 class StoryBodyElementQuerySet(models.QuerySet):
     def for_user(self, user):
         # Not logged in? Only public data or data created by admin
         if not user.is_authenticated:
-            return self.filter(Q(story__owner=1)) # those stories the admin is the owner
+            return self.filter(Q(story__owner__is_superuser=True)) # those stories the admin is the owner
         # Super user? All the data!
         if user.is_superuser:
             return self.all()
         else:
             stories = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
-            return self.filter(Q(story__owner=user)) | self.filter(Q(story__owner=1)) | self.filter(story__id__in=stories)
+            return self.filter(Q(story__owner=user)) | self.filter(Q(story__owner__is_superuser=True)) | self.filter(story__id__in=stories)
+
+
+class DatasetQuerySet(models.QuerySet):
+    def for_user(self, user):
+        # Not logged in? Only public data or data created by admin
+        if not user.is_authenticated:
+            return self.filter(Q(uploaded_by__is_superuser=True)) # those datasets uploaded by the admin
+        # Super user? All the data!
+        if user.is_superuser:
+            return self.all()
+        else:
+            return self.filter(Q(uploaded_by=user)) | self.filter(Q(uploaded_by__is_superuser=True))
 
 
 # Create your models here.
@@ -54,16 +66,18 @@ class Dataset(models.Model):
                                 default=POINT,
                                 choices=GEOMTYPES)
     assigned_name = models.CharField(max_length=200, default=None, blank=True, null=True)
+    uploaded_by = models.ForeignKey('auth.User', related_name='datasets', on_delete=models.CASCADE)
+    objects = DatasetQuerySet.as_manager()
 
 
 class StoryType(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=100)
     description = models.TextField(max_length=200,blank=True, null=True)
 
 
 class Atua(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
 
     class Meta:
@@ -138,7 +152,7 @@ class StoryGeomAttribMedia(models.Model):
 
 
 class ContentType(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=100)
 
 
@@ -165,7 +179,7 @@ class StoryBodyElement(models.Model):
 
 
 class WebsiteTranslation(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, editable=False,unique=True, primary_key=True)
+    id = models.AutoField(primary_key=True)
     field_name = models.CharField(max_length=300,unique=True)
     eng = models.CharField(max_length=300)
     mao = models.CharField(max_length=300)

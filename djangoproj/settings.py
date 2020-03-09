@@ -229,3 +229,10 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'geospatial.gri@gmail.com'
 email_pass = os.environ.get('EMAIL_PASS')
 EMAIL_HOST_PASSWORD = email_pass
+
+
+# Local time zone
+TIME_ZONE = "UTC"
+USE_TZ = True
+USE_I18N = True
+USE_L10N = True

@@ -1,7 +1,7 @@
 <template>
   <div class="container h-100">
     <div class="d-flex justify-content-center h-100">
-      <div class="user_card pt-5">
+      <div class="user-card pt-5">
         <div class="text-center pt-5 pb-4">
           <h2>Reset Password Confirm</h2>
         </div>

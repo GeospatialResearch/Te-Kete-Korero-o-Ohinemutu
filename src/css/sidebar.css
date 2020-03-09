@@ -81,7 +81,8 @@
     .sidebar-wrapper .sidebar-content.desktop {
       overflow-y: hidden; }
   .sidebar-wrapper .badge {
-    border-radius: 0; }
+    /* border-radius: 0; */
+  }
 
 .sidebar-bg .sidebar-wrapper {
   background-size: cover;
@@ -486,8 +487,8 @@ body {
 .boder-radius-on .sidebar-header .user-pic {
   border-radius: 12px; }
 
-.boder-radius-on .badge {
-  border-radius: 8px; }
+/* .boder-radius-on .badge {
+  border-radius: 8px; } */
 
 .boder-radius-on .sidebar-menu ul li i {
   border-radius: 4px; }

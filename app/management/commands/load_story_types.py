@@ -15,10 +15,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        storyTypeObj = {'Traditional Narrative','Planning Narrative','Lived Experience', 'Historical Narrative', 'Scientific Narrative'}
+        storyTypeObj = ['Traditional Narrative','Planning Narrative', 'Treaty narrative', 'Lived Experience', 'Historical Narrative', 'Scientific Narrative']
 
         try:
             for k in storyTypeObj:
                 StoryType.objects.create(type=k,description=k)
+
+            print('The StoryType table was filled up.')
+
         except Exception as e:
             print("Failed to create add StoryType with error: {}".format(e))

@@ -1,10 +1,10 @@
 <template>
   <div class="container h-100">
     <div class="d-flex justify-content-center h-100">
-      <div class="user_card pt-5" :style="emailError ? 'height:400px': 'height:350px'">
+      <div class="user-card pt-5" :style="emailError ? 'height:400px': 'height:350px'">
         <div class="d-flex justify-content-center">
-          <div class="brand_logo_container">
-            <img src="static/img/weaveLogo.png" class="brand_logo" alt="Logo">
+          <div class="brand-logo-container">
+            <img src="static/img/weaveLogo.png" class="brand-logo" alt="Logo">
           </div>
         </div>
         <h4 class="text-center pb-4">
@@ -29,8 +29,8 @@
                 </div>
                 <input v-model="inputs.email" value="" type="text" name="" class="form-control input_user" placeholder="Enter email" required @keyup.enter="sendPasswordResetEmail(inputs)">
               </div>
-              <div class="d-flex justify-content-center login_container">
-                <button type="button" name="button" class="btn login_btn" @click="sendPasswordResetEmail(inputs)">
+              <div class="d-flex justify-content-center login-container">
+                <button type="button" name="button" class="btn login-btn" @click="sendPasswordResetEmail(inputs)">
                   Send email
                 </button>
               </div>

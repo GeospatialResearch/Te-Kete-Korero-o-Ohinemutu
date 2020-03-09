@@ -325,10 +325,21 @@
       </div>
     </div>
 
-    <div class="row mr-2 mb-4">
+    <div class="row mr-2">
       <div class="col-md-12">
-        <p class="scrollStoryTop float-right" @click="scrollStoryTop()">
+        <p class="scroll-story-top float-right" @click="scrollStoryTop()">
           Scroll top
+        </p>
+      </div>
+    </div>
+
+    <div v-if="story.id" class="row">
+      <div class="col-md-12 ml-3 mb-2">
+        <p class="date sub-text-grey mb-0">
+          Story added on {{ story.created_date | moment("MMMM Do, YYYY") }}
+        </p>
+        <p class="date sub-text-grey mb-0">
+          Last edit on {{ story.modified_date | moment("MMMM Do, YYYY") }}
         </p>
       </div>
     </div>
@@ -350,11 +361,11 @@
           <button v-if="!isStoryViewMode" type="button" class="btn btn-sm btn-danger ml-2" @click="showCancelStorySavingModal()">
             Cancel
           </button>
-          <button v-if="story.hasOwnProperty('id') && isStoryViewMode && (story.owner === username || username === 'admin' || story.co_authors.indexOf(userPK) >= 0)" type="button" class="btn btn-sm btn-primary" @click="editStory()">
+          <button v-if="story.hasOwnProperty('id') && isStoryViewMode && (story.owner === username || isAdmin || story.co_authors.indexOf(userPK) >= 0)" type="button" class="btn btn-sm btn-primary" @click="editStory()">
             <font-awesome-icon icon="pen" />
             Edit story
           </button>
-          <div v-if="isStoryViewMode && (story.owner === username || username === 'admin')" class="btn-group btn-group-sm dropup">
+          <div v-if="isStoryViewMode && (story.owner === username || isAdmin)" class="btn-group btn-group-sm dropup">
             <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <font-awesome-icon icon="share-alt" class="mr-2" />
             </button>
@@ -452,15 +463,21 @@
             </h5>
             <div v-if="userPK">
               <vue-bootstrap-typeahead ref="usersAutocomplete" v-model="query" :serializer="s => s.username" :data="allOtherUsers.filter(user=>!coAuthors.includes(user.id))" placeholder="Type a co-author's name" @hit="setCoAuthors($event)" />
-              <ul class="no_bullet">
-                <li v-for="item in coAuthors" :key="item" class="coauth-li-padding">
-                  <div class="userimage-div">
-                    <img src="static/img/user.jpg">
-                  </div>
-                  {{ allOtherUsers.filter(user=>user.id === item)[0].username }}
-                  <font-awesome-icon disabled icon="times-circle" size="lg" color="grey" class="float-right" @click="deleteCoAuthorModalOpen(item)" />
-                </li>
-              </ul>
+              <div class="coauthor-box">
+                <ul class="coauthor-list">
+                  <li v-for="item in coAuthors" :key="item" class="coauthor col-md-12">
+                    <div class="col-md-10">
+                      <div class="user-image">
+                        <img src="static/img/user.jpg">
+                      </div>
+                      {{ allOtherUsers.filter(user=>user.id === item)[0].username }}
+                    </div>
+                    <div class="col-md-2 vertical-align-middle">
+                      <font-awesome-icon icon="times-circle" size="lg" color="grey" class="float-right" @click="deleteCoAuthorModalOpen(item)" />
+                    </div>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
           <div class="modal-footer">
@@ -474,7 +491,7 @@
 
     <div id="deleteCoAuthorModal" class="modal fade">
       <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content delete-coauthor-modal">
           <div class="modal-header">
             <h5>Delete Co-author</h5>
           </div>
@@ -775,6 +792,16 @@ export default {
       }
       return userpk
     },
+    isAdmin () {
+      return this.$store.state.isAdmin
+    },
+    username () {
+      var username
+      if (this.$store.state.user) {
+        username = this.$store.state.user.username
+      }
+      return username
+    },
     allOtherUsers() {
       var users
       if (this.$store.state.user) {
@@ -787,13 +814,6 @@ export default {
     },
     allElementContentTypes(){
       return this.$store.state.allElementContentTypes
-    },
-    username () {
-      var username
-      if (this.$store.state.user) {
-        username = this.$store.state.user.username
-      }
-      return username
     },
     uploadMediaProgress () {
       return this.$store.state.uploadMediaProgress

@@ -15,10 +15,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        contentTypeObj = {'Waiata','Pepeha','Whakatauki','Pūrākau','Mōteatea','Mahitoi'}
+        contentTypeObj = ['Waiata','Pepeha','Whakatauki','Pūrākau','Mōteatea','Mahitoi']
 
         try:
             for k in contentTypeObj:
                 ContentType.objects.create(type=k)
+
+            print('The ContentType table was filled up.')
+
         except Exception as e:
             print("Failed to create add ContentType with error: {}".format(e))

@@ -11,5 +11,5 @@ def notify_about_comment(sender, instance, **kwargs):
         'mailing_list': [instance.story.owner.email]
     }
 
-    if not instance.story.owner.is_superuser:
+    if instance.story.owner.email != 'admin@example.com':
         send_email(emaildata, 'comment_email')

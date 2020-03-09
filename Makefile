@@ -116,6 +116,8 @@ reset-db:
 
 initialise-db: create-superuser load-translations load-atua load-storytypes load-contenttypes
 
+load-db: load-translations load-atua load-storytypes load-contenttypes
+
 # Code checking
 check: flake8 eslint
 

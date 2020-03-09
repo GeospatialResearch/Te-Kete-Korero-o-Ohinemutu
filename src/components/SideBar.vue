@@ -65,8 +65,11 @@
                 <span class="menu-text">{{ translationObj.myLayers[lang] }}</span>
               </a>
               <div class="sidebar-submenu">
-                <ul>
-                  <li v-for="(layer, layerkey) in internalLayers" :key="layerkey">
+                <div v-if="Object.keys(myLayers).length === 0" class="text-center">
+                  <span class="no-data-available text-muted">No layers available</span>
+                </div>
+                <ul v-else>
+                  <li v-for="(layer, layerkey) in myLayers" :key="layerkey">
                     <a href="#" class="sidebar-line">
                       <span @click="changeLayerVisibility_intServ(layer, layerkey)">
                         <!-- :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" -->
@@ -114,7 +117,8 @@
               <a href="#" title="Data uploaded and managed by admin" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
-                <span class="menu-text">Default layers</span>
+                <span v-if="isAdmin" class="menu-text">Other layers</span>
+                <span v-else class="menu-text">Default layers</span>
               </a>
               <div class="sidebar-submenu">
                 <ul>
@@ -126,6 +130,24 @@
                       </span>
                       &emsp;{{ allStoriesGeomsLayer.layername }}
                       <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(allStoriesGeomsLayer)">
+                        <font-awesome-icon icon="ellipsis-v" />
+                      </span>
+                    </a>
+                  </li>
+                  <li v-for="(layer, layerkey) in defaultLayers" :key="layerkey">
+                    <a href="#" class="sidebar-line">
+                      <span @click="changeLayerVisibility_intServ(layer, layerkey)">
+                        <!-- :class="layer.visible ? 'fa fa-check-square': 'fa fa-square'" -->
+                        <span v-if="layer.visible"><font-awesome-icon icon="check-square" /></span>
+                        <span v-else><font-awesome-icon icon="square" /></span>
+                      </span>
+                      <span v-if="layer.assigned_name">
+                        &emsp;{{ layer.assigned_name }}
+                      </span>
+                      <span v-else>
+                        &emsp;{{ layer.name }}
+                      </span>
+                      <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(layer)">
                         <font-awesome-icon icon="ellipsis-v" />
                       </span>
                     </a>
@@ -161,7 +183,7 @@
               </a>
               <div class="sidebar-submenu">
                 <div v-if="!myNarratives.length" class="text-center">
-                  <span>No narratives available</span>
+                  <span class="no-data-available text-muted">No narratives available</span>
                 </div>
                 <ul v-else>
                   <li v-for="story in myNarratives" :key="story.id">
@@ -170,8 +192,11 @@
                       <span class="inline-text">
                         <span class="ml-2 ellipsis-text"> {{ story.title.eng }}</span>
                       </span>
-                      <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Narrative Options" :data-content="createPopoverStoryOptions(story)">
-                        <font-awesome-icon icon="ellipsis-v" />
+                      <span class="float-right">
+                        <span v-if="story.owner != username" class="badge badge-secondary" title="You are a co-author">C</span>
+                        <span data-toggle="popover" data-placement="right" data-trigger="click" title="Narrative Options" :data-content="createPopoverStoryOptions(story)">
+                          <font-awesome-icon icon="ellipsis-v" />
+                        </span>
                       </span>
                     </a>
                   </li>
@@ -188,7 +213,7 @@
               </a>
               <div class="sidebar-submenu">
                 <div v-if="!otherNarratives.length" class="text-center">
-                  <span>No narratives available</span>
+                  <span class="no-data-available text-muted">No narratives available</span>
                 </div>
                 <ul v-else>
                   <li v-for="story in otherNarratives" :key="story.id">
@@ -642,7 +667,9 @@
         },
         filteredStories: [],
         myNarratives: [],
-        otherNarratives: []
+        otherNarratives: [],
+        myLayers: [],
+        defaultLayers: []
       }
     },
     computed: {
@@ -701,6 +728,9 @@
         }
         return userpk
       },
+      isAdmin () {
+        return this.$store.state.isAdmin
+      },
       contentToShow () {
         return this.$store.state.contentToShow
       },
@@ -722,7 +752,30 @@
         } else {
           this.otherNarratives = this.stories
         }
+      },
+      internalLayers: {
+        handler: function () {
+          try {
+            this.myLayers = {}
+            this.defaultLayers = {}
+            if (this.authenticated) {
+              each(this.internalLayers, (layer, layerkey) => {
+                if (layer.uploaded_by == this.userPK) {
+                  this.myLayers[layerkey] = layer
+                } else {
+                  this.defaultLayers[layerkey] = layer
+                }
+              })
+            } else {
+              this.defaultLayers =  $.extend(true, {}, this.internalLayers)
+            }
 
+            this.reinitialisePopups()
+          } catch (err) {
+            // Do nothing, this is fine.
+          }
+        },
+        deep: true
       }
     },
     mounted: function () {
@@ -865,13 +918,19 @@
                                 <a class="dropdown-item` + disabled +`" id="` + this.allStoriesGeomsLayer.name + `_zoomto" href="#">Zoom to layer</a>
                               </div>`
         } else {
-          layerOptions = `<div class="layer-options">
-                                <a class="dropdown-item` + disabled +`" id="` + layer.name + `_zoomto" href="#">Zoom to layer</a>
-                                <a class="dropdown-item` + disabled +`" id="` + layer.name + `_rename" href="#">Rename layer</a>
-                                <a class="dropdown-item` + disabled +`" id="` + layer.name + `_restyle" href="#">Edit style</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item` + disabled +`" id="` + layer.name + `_deleteLayer" href="#">Delete layer</a>
-                              </div>`
+          if (layer.uploaded_by == this.userPK || this.isAdmin) {
+            layerOptions = `<div class="layer-options">
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.name + `_zoomto" href="#">Zoom to layer</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.name + `_rename" href="#">Rename layer</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.name + `_restyle" href="#">Edit style</a>
+                                  <div class="dropdown-divider"></div>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.name + `_deleteLayer" href="#">Delete layer</a>
+                                </div>`
+          } else {
+            layerOptions = `<div class="layer-options">
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.name + `_zoomto" href="#">Zoom to layer</a>
+                                </div>`
+          }
         }
 
         return layerOptions
@@ -897,7 +956,7 @@
       },
       createPopoverStoryOptions (story) {
         var storyOptions
-        if (story.owner === this.username || this.username === 'admin' || story.co_authors.indexOf(this.userPK)>=0) {
+        if (story.owner === this.username || this.isAdmin || story.co_authors.indexOf(this.userPK)>=0) {
           storyOptions = `<div class="layer-options">
                             <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
                             <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit narrative</a>

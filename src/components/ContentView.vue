@@ -29,10 +29,10 @@
           </button>
         </div>
         <div class="row">
-          <welcome-view v-if="contentToShow=='welcome'" />
-          <verify-email v-if="contentToShow=='verifyemail'" />
-          <password-reset-confirm v-if="contentToShow=='passwordresetconfirm'" />
-          <settings-view v-if="contentToShow=='themes'" />
+          <welcome-view v-show="contentToShow=='welcome'" />
+          <verify-email v-show="contentToShow=='verifyemail'" />
+          <password-reset-confirm v-show="contentToShow=='passwordresetconfirm'" />
+          <settings-view v-show="contentToShow=='themes'" />
           <main-map v-if="contentToShow=='map'" />
           <side-panel v-if="contentToShow=='map'" />
         </div>

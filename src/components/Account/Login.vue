@@ -1,13 +1,13 @@
 <template>
   <div class="container h-100">
     <div class="d-flex justify-content-center h-100">
-      <div class="user_card" :style="error ? 'height:450px': 'height:400px'">
+      <div class="user-card" :style="error ? 'height:450px': 'height:400px'">
         <div class="d-flex justify-content-center">
-          <div class="brand_logo_container">
-            <img src="static/img/weaveLogo.png" class="brand_logo" alt="Logo">
+          <div class="brand-logo-container">
+            <img src="static/img/weaveLogo.png" class="brand-logo" alt="Logo">
           </div>
         </div>
-        <div class="d-flex justify-content-center form_container">
+        <div class="d-flex justify-content-center form-container">
           <form id="loginForm">
             <div v-if="error" class="alert alert-danger text-center">
               <span>{{ error }}</span>
@@ -34,8 +34,8 @@
                 <label class="custom-control-label" for="customControlInline">Remember me</label>
               </div>
             </div>
-            <div class="d-flex justify-content-center mt-3 login_container">
-              <button type="button" name="button" class="btn login_btn" @click="submit()">
+            <div class="d-flex justify-content-center mt-3 login-container">
+              <button type="button" name="button" class="btn login-btn" @click="submit()">
                 Login
               </button>
             </div>

@@ -89,6 +89,7 @@ const initialState = {
   token: null, // (used for jwt or rest-auth token),
   authenticated: false,
   user: null,
+  isAdmin: false,
   orientation: null
 }
 
@@ -121,6 +122,7 @@ const store = new Vuex.Store({
       state.externalLayers = layersObj
     },
     SET_INTERNAL_LAYERS (state, layersArray) {
+      state.internalLayers = {}
       each(layersArray, (obj) => {
         obj.visible = false
         obj.legendURL = process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + obj.name + "&myData:" + Math.random()
@@ -133,7 +135,8 @@ const store = new Vuex.Store({
         visible: true,
         legendURL: process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + payload.filename + "&myData:" + Math.random(),
         geomtype: ['POINT', 'MULTIPOINT'].includes(payload.geomtype) ? 0 : ['LINESTRING', 'MULTILINESTRING'].includes(payload.geomtype) ? 1 : ['POLYGON', 'MULTIPOLYGON'].includes(payload.geomtype) ? 2 : 3,
-        assigned_name: null
+        assigned_name: null,
+        uploaded_by: state.user.pk
       }
       Vue.set(state.internalLayers, payload.filename, obj) // so the new property is also reactive
     },
@@ -142,6 +145,14 @@ const store = new Vuex.Store({
     },
     RENAME_INTERNAL_LAYER (state, payload) {
       state.internalLayers[payload.layername].assigned_name = payload.assignedName
+    },
+    UNCHECK_INTERNAL_LAYERS (state) {
+      each(state.internalLayers, (layer, layerkey) => {
+        layer.visible = false
+        Vue.set(state.internalLayers, layer.name, layer)
+        EventBus.$emit('removeLayer', layerkey)
+      })
+      EventBus.$emit('resetSelectedFeatures')
     },
     SET_MAP_RESOLUTION (state, resolution) {
       state.map_resolution = resolution
@@ -278,7 +289,7 @@ const store = new Vuex.Store({
         }
         state.authenticated = true
         state.storyViewMode = true
-        // store.dispatch('checkAdmin')
+        store.dispatch('checkAdmin')
       }
     },
     DEAUTHENTICATE (state) {
@@ -290,6 +301,7 @@ const store = new Vuex.Store({
       state.drawMode = false
       state.geomMediaMode = false
       EventBus.$emit('closePanel')
+      store.commit("SET_ADMIN", false)
 
       // Reset state to initial values
       // for (const f in state) {
@@ -297,13 +309,17 @@ const store = new Vuex.Store({
       //   Vue.set(state, f, initialState[f])
       // }
     },
+    SET_ADMIN (state, value) {
+      state.isAdmin = value
+      getData()
+      store.commit("UNCHECK_INTERNAL_LAYERS")
+    },
     // Generic fail handling
     API_FAIL (state, error) {
       if (error.status === 401 || error.status === 403) {
         console.log((error))
         console.error("Authentication error found. Logging user out.")
         store.commit("DEAUTHENTICATE")
-        getData()
       } else {
         console.error(error)
       }
@@ -316,6 +332,7 @@ const store = new Vuex.Store({
     uploadFile (store, datafile) {
       return api.post(apiRoot + '/upload_file/', datafile, { headers: getAuthHeader() })
         .then((response) => {
+          store.commit('ADD_INTERNAL_LAYER', response.body)
           return response
         })
         .catch((error) => {
@@ -654,7 +671,6 @@ const store = new Vuex.Store({
       return api.post(process.env.API_HOST + '/auth/login/', payload)
         .then((response) => {
           store.commit('SET_LOGIN', response)
-          getData()
           router.push('/')
           store.commit('TOGGLE_CONTENT', 'map')
           return response
@@ -665,7 +681,6 @@ const store = new Vuex.Store({
     },
     logOut () {
       store.commit('DEAUTHENTICATE')
-      getData()
       store.commit('TOGGLE_CONTENT', 'welcome')
     },
     getUser (store) {
@@ -673,8 +688,12 @@ const store = new Vuex.Store({
       return api.get(apiRoot + '/check_user/', { headers: getAuthHeader() })
         .then( (response) => {
           store.commit('SET_LOGIN', response)
-          getData()
         })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    checkAdmin (store) {
+      return api.get(apiRoot + '/is_admin/', { headers: getAuthHeader() })
+        .then((response) => store.commit('SET_ADMIN', response.body.isAdmin))
         .catch((error) => store.commit('API_FAIL', error))
     },
     addComment (store, comment) {

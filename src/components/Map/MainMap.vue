@@ -838,7 +838,7 @@ export default {
 
       if (geoserverLayer) {
         EventBus.$emit('createLayer', layername, 'internal')
-        this.$store.commit('ADD_INTERNAL_LAYER', payload)
+        // this.$store.commit('ADD_INTERNAL_LAYER', payload)
         if (payload.geomtype != 'raster') {
           zoomToGeoserverVectorLayer(layername)
         } else {

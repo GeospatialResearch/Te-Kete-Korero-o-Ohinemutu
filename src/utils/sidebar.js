@@ -59,45 +59,45 @@ $(function () {
   //switch between themes
   var themes = "default-theme legacy-theme chiller-theme ice-theme cool-theme light-theme";
   $('[data-theme]').click(function () {
-      $('[data-theme]').removeClass("selected");
-      $(this).addClass("selected");
-      $('.page-wrapper').removeClass(themes);
-      $('.page-wrapper').addClass($(this).attr('data-theme'));
+    $('[data-theme]').removeClass("selected");
+    $(this).addClass("selected");
+    $('.page-wrapper').removeClass(themes);
+    $('.page-wrapper').addClass($(this).attr('data-theme'));
   });
 
   // switch between background images
   var bgs = "bg1 bg2 bg3 bg4";
   $('[data-bg]').click(function () {
-      $('[data-bg]').removeClass("selected");
-      $(this).addClass("selected");
-      $('.page-wrapper').removeClass(bgs);
-      $('.page-wrapper').addClass($(this).attr('data-bg'));
+    $('[data-bg]').removeClass("selected");
+    $(this).addClass("selected");
+    $('.page-wrapper').removeClass(bgs);
+    $('.page-wrapper').addClass($(this).attr('data-bg'));
   });
 
   // toggle background image
   $("#toggle-bg").change(function (e) {
-      e.preventDefault();
-      $('.page-wrapper').toggleClass("sidebar-bg");
+    e.preventDefault();
+    $('.page-wrapper').toggleClass("sidebar-bg");
   });
 
   // toggle border radius
   $("#toggle-border-radius").change(function (e) {
-      e.preventDefault();
-      $('.page-wrapper').toggleClass("boder-radius-on");
+    e.preventDefault();
+    $('.page-wrapper').toggleClass("boder-radius-on");
   });
 
   // custom scroll bar is only used on desktop
   if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-      $(".sidebar-content").mCustomScrollbar({
-          axis: "y",
-          autoHideScrollbar: true,
-          scrollInertia: 300,
-          mouseWheel:{
-          enable:true,
-          scrollAmount:50
-          }
-      });
-      $(".sidebar-content").addClass("desktop");
+    $(".sidebar-content").mCustomScrollbar({
+      axis: "y",
+      autoHideScrollbar: true,
+      scrollInertia: 300,
+      mouseWheel:{
+      enable:true,
+      scrollAmount:50
+      }
+    });
+    $(".sidebar-content").addClass("desktop");
   }
 
   // Hide any open sidebar layer popover when the anywhere else in the body is clicked
@@ -140,7 +140,6 @@ $(function () {
       var story_id = $(this).attr('id').replace("_view", "")
       store.dispatch('getStoryContent', story_id)
       .then((story) => {
-        console.log("from view story ",story);
         store.commit('SET_STORY_VIEW_MODE', true)
         store.commit('SET_PANEL_OPEN', true)
         EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)

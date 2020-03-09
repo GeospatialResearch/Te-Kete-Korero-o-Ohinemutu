@@ -1,19 +1,19 @@
 <template>
   <div class="container h-100">
     <div class="d-flex justify-content-center h-100">
-      <div class="user_card" :style="error ? 'height:500px': 'height:450px'">
+      <div class="user-card" :style="error ? 'height:500px': 'height:450px'">
         <div class="d-flex justify-content-center">
-          <div class="brand_logo_container">
-            <img src="static/img/weaveLogo.png" class="brand_logo" alt="Logo">
+          <div class="brand-logo-container">
+            <img src="static/img/weaveLogo.png" class="brand-logo" alt="Logo">
           </div>
         </div>
-        <div v-if="registrationLoading" class="d-flex justify-content-center form_container">
+        <div v-if="registrationLoading" class="d-flex justify-content-center form-container">
           <p class="text-center">
             loading...
           </p>
         </div>
         <div v-else-if="!registrationCompleted">
-          <div class="d-flex justify-content-center form_container">
+          <div class="d-flex justify-content-center form-container">
             <form id="signupForm">
               <div v-if="error" class="alert alert-danger text-center">
                 <span>{{ error }}</span>
@@ -50,8 +50,8 @@
                 </div>
                 <input v-model="inputs.password2" value="" type="password" name="" class="form-control input_pass" placeholder="Confirm password" required @keyup.enter="createAccount()">
               </div>
-              <div class="d-flex justify-content-center login_container">
-                <button type="button" name="button" class="btn login_btn" @click="createAccount()">
+              <div class="d-flex justify-content-center login-container">
+                <button type="button" name="button" class="btn login-btn" @click="createAccount()">
                   Create account
                 </button>
               </div>
@@ -66,7 +66,7 @@
             </div>
           </div>
         </div>
-        <div v-else class="d-flex justify-content-center form_container">
+        <div v-else class="d-flex justify-content-center form-container">
           <div>
             <h4 class="text-center mb-4">
               Registration complete.
