@@ -76,11 +76,11 @@
                         <span v-if="layer.visible"><font-awesome-icon icon="check-square" /></span>
                         <span v-else><font-awesome-icon icon="square" /></span>
                       </span>
-                      <span v-if="layer.assigned_name">
-                        &emsp;{{ layer.assigned_name }}
+                      <span v-if="layer.assigned_name" class="inline-text">
+                        <span class="ml-2 ellipsis-text"> {{ layer.assigned_name }}</span>
                       </span>
-                      <span v-else>
-                        &emsp;{{ layer.name }}
+                      <span v-else class="inline-text">
+                        <span class="ml-2 ellipsis-text"> {{ layer.name }}</span>
                       </span>
                       <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(layer)">
                         <font-awesome-icon icon="ellipsis-v" />
@@ -104,7 +104,9 @@
                         <span v-if="layer.visible"><font-awesome-icon icon="check-square" /></span>
                         <span v-else><font-awesome-icon icon="square" /></span>
                       </span>
-                      &emsp;{{ layer.layername }}
+                      <span class="inline-text">
+                        <span class="ml-2 ellipsis-text"> {{ layer.layername }}</span>
+                      </span>
                       <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Information" :data-content="createPopoverInfo(layer)">
                         <font-awesome-icon icon="info" class="layer-info" />
                       </span>
@@ -128,7 +130,9 @@
                         <span v-if="allStoriesGeomsLayer.visible"><font-awesome-icon icon="check-square" /></span>
                         <span v-else><font-awesome-icon icon="square" /></span>
                       </span>
-                      &emsp;{{ allStoriesGeomsLayer.layername }}
+                      <span class="inline-text">
+                        <span class="ml-2 ellipsis-text"> {{ allStoriesGeomsLayer.layername }}</span>
+                      </span>
                       <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(allStoriesGeomsLayer)">
                         <font-awesome-icon icon="ellipsis-v" />
                       </span>
@@ -803,6 +807,14 @@
       EventBus.$on('storyIsBeingEditedWarning', () => {
         $('#storyIsBeingEditedWarningModal').modal('show')
       })
+
+      EventBus.$on('closeSidebar', () => {
+        if($(".page-wrapper").hasClass("toggled"))
+        {
+          $(".page-wrapper").toggleClass("toggled")
+        }
+
+      })
     },
     methods: {
       openPanel (){
@@ -825,6 +837,7 @@
         }
       },
       reset () {
+        $('input[type="file"]').val(null);
         this.uploadError = null
       },
       fileChange (fileList) {

@@ -1075,7 +1075,7 @@ export default {
     editStory: function () {
       this.$store.dispatch('getStoryContent', this.story.id)
       .then(() => {
-        if (!this.story.being_edited_by || this.story.being_edited_by.id ==  this.userPK) {
+        if (!this.story.being_edited_by || this.story.being_edited_by ==  this.userPK) {
           this.$store.dispatch('updateEditor', {'story_id': this.story.id,'editor': this.userPK,"action":"set"})
           if (this.story.story_type) {
             this.story.story_type_id = this.story.story_type.id

@@ -813,14 +813,17 @@ export default {
 
     EventBus.$on('removeLayer', (layername) => {
       var lyr_list = []
-      this.map.getLayers().forEach(function (layer) {
-        if (layer.get('name') === layername) {
-          lyr_list.push(layer)
-        }
-      })
-      each(lyr_list, (l) => {
-        this.map.removeLayer(l)
-      })
+      if (this.map) {
+        this.map.getLayers().forEach(function (layer) {
+          if (layer.get('name') === layername) {
+            lyr_list.push(layer)
+          }
+        })
+        each(lyr_list, (l) => {
+          this.map.removeLayer(l)
+        })
+      }
+
     })
 
     EventBus.$on('refreshLayer', (layername) => {

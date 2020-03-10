@@ -117,6 +117,9 @@ const store = new Vuex.Store({
       if (state.contentToShow != 'map') {
         EventBus.$emit('closePanel')
       }
+      if (state.contentToShow == 'welcome') {
+        EventBus.$emit('closeSidebar')
+      }
     },
     SET_EXTERNAL_LAYERS (state, layersObj) {
       state.externalLayers = layersObj
@@ -682,6 +685,7 @@ const store = new Vuex.Store({
     logOut () {
       store.commit('DEAUTHENTICATE')
       store.commit('TOGGLE_CONTENT', 'welcome')
+      location.reload()
     },
     getUser (store) {
       // To check the token validation

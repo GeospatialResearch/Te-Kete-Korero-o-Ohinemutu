@@ -153,7 +153,7 @@ $(function () {
       var story_id = $(this).attr('id').replace("_edit", "")
       store.dispatch('getStoryContent',story_id)
       .then((story) => {
-        if (!story.being_edited_by || story.being_edited_by.id == store.state.user.pk) {
+        if (!story.being_edited_by || story.being_edited_by == store.state.user.pk) {
           store.dispatch('updateEditor', {'story_id': story_id,'editor': store.state.user.pk,"action":"set"})
           //story.being_edited_by = store.state.user.pk
           if (story.story_type) {

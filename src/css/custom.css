@@ -91,6 +91,11 @@ h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, span, small, label {
   -moz-box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   -webkit-box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
+
+#gcd-input-query{
+  margin-left: 8px !important;
+}
+
 /* } */
 .content-info {
   /* height:100vh; */

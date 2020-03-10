@@ -49,7 +49,9 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         if isinstance(obj, StoryGeomAttrib):
             try:
                 storybodyelem = StoryBodyElement.objects.filter(geom_attr=obj)[0]
-                return storybodyelem.story.owner == request.user
+                coauths = CoAuthor.objects.filter(story = obj.story.id).values_list("co_author", flat=True)
+                coauths = list(coauths)
+                return storybodyelem.story.owner == request.user or request.user.id in coauths
             except Exception as e:
                 return True
 
@@ -57,7 +59,9 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             geom_attr = StoryGeomAttrib.objects.filter(id=obj.geom_attr.id)[0]
             try:
                 storybodyelem = StoryBodyElement.objects.filter(geom_attr=geom_attr)[0]
-                return storybodyelem.story.owner == request.user
+                coauths = CoAuthor.objects.filter(story = obj.story.id).values_list("co_author", flat=True)
+                coauths = list(coauths)
+                return storybodyelem.story.owner == request.user or request.user.id in coauths
             except Exception as e:
                 return True
 
