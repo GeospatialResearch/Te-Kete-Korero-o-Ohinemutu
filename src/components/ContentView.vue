@@ -21,6 +21,19 @@
               </option>
             </select>
           </div>
+          <div class="dropdown">
+            <span id="navbarDropdownAbout" class="dropdown-toggle navbar-elem" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              About
+            </span>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownAbout">
+              <div class="dropdown-item text-muted" @click="showAtuaModal()">
+                Atua
+              </div>
+              <div class="dropdown-item text-muted">
+                Story types
+              </div>
+            </div>
+          </div>
           <button v-if="!authenticated" class="btn btn-sm btn-success" type="button" @click="showLoginModal()">
             Login
           </button>
@@ -75,6 +88,25 @@
         </div>
       </div>
     </div>
+    <div id="atuaModal" class="modal fade">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="mb-0">
+              Atua & Narratives
+            </h4>
+          </div>
+          <div class="modal-body">
+            <atua-view />
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -90,6 +122,7 @@
   import PasswordReset from 'components/Account/PasswordReset'
   import PasswordResetConfirm from 'components/Account/PasswordResetConfirm'
   import WelcomeView from 'components/Home/WelcomeView'
+  import AtuaView from 'components/AtuaView'
 
   export default {
     components: {
@@ -101,7 +134,8 @@
       VerifyEmail,
       PasswordReset,
       PasswordResetConfirm,
-      WelcomeView
+      WelcomeView,
+      AtuaView
     },
     data () {
       return {
@@ -126,6 +160,9 @@
       })
       EventBus.$on('showResetPasswordForm', () =>{
         this.formToShow = 'resetpassword'
+      })
+      EventBus.$on('showAtuaModal', () =>{
+        this.showAtuaModal()
       })
     },
     beforeCreate: function () {
@@ -155,6 +192,9 @@
       },
       showLogoutModal () {
         $('#logoutModal').modal('show')
+      },
+      showAtuaModal () {
+        $('#atuaModal').modal('show')
       }
     }
   }

@@ -165,6 +165,7 @@
           <h5 v-if="story.atua" class="mb-0">
             Atua
           </h5>
+          <span class="text-muted pl-1" @click="showAtuaModal()"><font-awesome-icon icon="info-circle" class="pointer" /></span>
           <select v-model="story.atua" required class="form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Atua">
             <option v-for="item in allAtuas" :key="item.id" :value="item.id">
               {{ item.name }}
@@ -1261,6 +1262,9 @@ export default {
     },
     scrollStoryTop () {
       $('#sidePanel').animate({ scrollTop: 0 }, 'fast')
+    },
+    showAtuaModal() {
+      EventBus.$emit('showAtuaModal')
     }
   }
 };

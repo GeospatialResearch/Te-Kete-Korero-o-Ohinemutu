@@ -172,6 +172,12 @@ h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, span, small, label {
   align-content: center;
 }
 
+.navbar-elem {
+  color: #e4e4e4;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
 .uploadmedia-loading {
     background-image: url(../../static/img/loading.gif);
     background-size: 30px 30px;
@@ -634,11 +640,11 @@ h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, span, small, label {
 .carousel-item-welcome {
   height: 60vh;
   /* min-height: 350px; */
-  background: no-repeat center center scroll;
+  background: no-repeat center top scroll;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
-  background-size: cover;
+  max-width: 100%;
 }
 
 .carousel-caption-welcome {
@@ -807,6 +813,14 @@ h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, span, small, label {
   font-style: italic;
   font-size: 12px;
   color: #ffffff;
+}
+
+.atua-img {
+  max-width: 100%;
+  height: auto;
+  max-height: 120px;
+  width: auto;
+  padding: 5px 5px;
 }
 
 /* @media sizes  */
