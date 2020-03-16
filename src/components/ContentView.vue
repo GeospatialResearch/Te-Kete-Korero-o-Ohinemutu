@@ -22,7 +22,7 @@
             </select>
           </div>
           <div class="dropdown">
-            <span id="navbarDropdownAbout" class="dropdown-toggle navbar-elem" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span id="navbarDropdownAbout" class="dropdown-toggle navbar-elem ml-3 ml-md-5" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               About
             </span>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownAbout">
@@ -34,12 +34,16 @@
               </div>
             </div>
           </div>
-          <button v-if="!authenticated" class="btn btn-sm btn-success" type="button" @click="showLoginModal()">
-            Login
-          </button>
-          <button v-else class="btn btn-sm btn-outline-danger" type="button" @click="showLogoutModal()">
-            Logout
-          </button>
+          <div class="col p-0">
+            <div class="float-right">
+              <button v-if="!authenticated" class="btn btn-sm btn-success" type="button" @click="showLoginModal()">
+                Login
+              </button>
+              <button v-else class="btn btn-sm btn-outline-danger" type="button" @click="showLogoutModal()">
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
         <div class="row">
           <welcome-view v-show="contentToShow=='welcome'" />

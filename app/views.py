@@ -502,11 +502,9 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class DatasetList(APIView):
     def get(self, request):
-        datasets = Dataset.objects.for_user(request.user).values('name', 'geomtype', 'assigned_name', 'uploaded_by')
-
+        datasets = Dataset.objects.for_user(request.user).values('name', 'geomtype', 'assigned_name', 'uploaded_by', 'uploaded_by__username', 'shared_with')
         datasets_list = list(datasets)
         return JsonResponse(datasets_list, safe=False)
-
 
 
 class UpdateBeingEditedBy(APIView):
@@ -551,6 +549,19 @@ class RenameLayer(APIView):
         if layername is not None and assignedname is not None:
             dataset = Dataset.objects.get(name=layername)
             dataset.assigned_name = assignedname
+            dataset.save()
+
+        return Response({'result': None})
+
+
+class SetLayerSharedWith(APIView):
+    def post(self, request):
+        layername = request.data['layername']
+        sharedwith = request.data['shared_with']
+
+        if layername is not None and sharedwith is not None:
+            dataset = Dataset.objects.get(name=layername)
+            dataset.shared_with = sharedwith
             dataset.save()
 
         return Response({'result': None})

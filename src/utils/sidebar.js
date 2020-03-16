@@ -131,6 +131,10 @@ $(function () {
     var layer_name = $(this).attr('id').replace("_rename", "")
     EventBus.$emit('assignLayerNameModalOpen', layer_name)
   })
+  $(document.body).on('click', "[id*='_share']" ,function(){
+    var layer_name = $(this).attr('id').replace("_share", "")
+    EventBus.$emit('shareLayerModalOpen', layer_name)
+  })
 
   // Send EventBus on story click option
   $(document.body).on('click', "[id*='_view']" ,function(){

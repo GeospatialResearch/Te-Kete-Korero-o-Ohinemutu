@@ -139,7 +139,9 @@ const store = new Vuex.Store({
         legendURL: process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + payload.filename + "&myData:" + Math.random(),
         geomtype: ['POINT', 'MULTIPOINT'].includes(payload.geomtype) ? 0 : ['LINESTRING', 'MULTILINESTRING'].includes(payload.geomtype) ? 1 : ['POLYGON', 'MULTIPOLYGON'].includes(payload.geomtype) ? 2 : 3,
         assigned_name: null,
-        uploaded_by: state.user.pk
+        uploaded_by: state.user.pk,
+        uploaded_by__username: state.user.username,
+        shared_with: null
       }
       Vue.set(state.internalLayers, payload.filename, obj) // so the new property is also reactive
     },
@@ -371,6 +373,21 @@ const store = new Vuex.Store({
         })
         .catch((error) => store.commit('API_FAIL', error))
     },
+    renameLayer (store, payload) {
+      return api.post(apiRoot + '/rename_layer/', payload, { headers: getAuthHeader() })
+        .then(() => {
+          store.commit('RENAME_INTERNAL_LAYER', payload)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    setLayerSharing (store, payload) {
+      return api.post(apiRoot + '/set_layer_shared_with/', payload, { headers: getAuthHeader() })
+        .then((response) => {
+          store.state.internalLayers[payload.layername].shared_with = payload.shared_with
+          return response
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
     getEditor (store, payload) {
       return api.post(apiRoot + '/get_being_edited_by/',payload, { headers: getAuthHeader() })
         .then((response) => {
@@ -382,13 +399,6 @@ const store = new Vuex.Store({
       return api.post(apiRoot + '/update_being_edited_by/',payload, { headers: getAuthHeader() })
         .then((response) => {
           return response
-        })
-        .catch((error) => store.commit('API_FAIL', error))
-    },
-    renameLayer (store, payload) {
-      return api.post(apiRoot + '/rename_layer/', payload, { headers: getAuthHeader() })
-        .then(() => {
-          store.commit('RENAME_INTERNAL_LAYER', payload)
         })
         .catch((error) => store.commit('API_FAIL', error))
     },

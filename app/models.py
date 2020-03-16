@@ -1,5 +1,5 @@
 from django.contrib.gis.db import models
-from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.fields import JSONField, ArrayField
 import uuid
 from model_utils import Choices
 from rest_framework.exceptions import ValidationError
@@ -41,7 +41,7 @@ class DatasetQuerySet(models.QuerySet):
         if user.is_superuser:
             return self.all()
         else:
-            return self.filter(Q(uploaded_by=user)) | self.filter(Q(uploaded_by__is_superuser=True))
+            return self.filter(Q(uploaded_by=user)) | self.filter(Q(uploaded_by__is_superuser=True)) | self.filter(Q(shared_with__contains=[user.id]))
 
 
 # Create your models here.
@@ -67,6 +67,7 @@ class Dataset(models.Model):
                                 choices=GEOMTYPES)
     assigned_name = models.CharField(max_length=200, default=None, blank=True, null=True)
     uploaded_by = models.ForeignKey('auth.User', related_name='datasets', on_delete=models.CASCADE)
+    shared_with = ArrayField(models.IntegerField(), default=None, blank=True, null=True)
     objects = DatasetQuerySet.as_manager()
 
 

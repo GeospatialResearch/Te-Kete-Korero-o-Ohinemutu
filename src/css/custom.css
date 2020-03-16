@@ -170,6 +170,7 @@ h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, span, small, label {
   padding: 1rem 1.2rem;
   height: 55px;
   align-content: center;
+  justify-content: flex-start;
 }
 
 .navbar-elem {
@@ -763,7 +764,7 @@ h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, span, small, label {
 }
 
 .modal-header-description {
-  font-size: 18px;
+  font-size: 17px;
 }
 
 /* co-author */
@@ -853,6 +854,9 @@ h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, span, small, label {
   }
   .welcome-overlay {
     padding: 1rem 2rem;
+  }
+  .navbar-elem {
+    font-size: 0.8rem;
   }
 }
 

@@ -494,10 +494,13 @@
       <div class="modal-dialog">
         <div class="modal-content delete-coauthor-modal">
           <div class="modal-header">
-            <h5>Delete Co-author</h5>
+            <h5>Remove Co-author</h5>
           </div>
           <div class="modal-body">
-            <p>Are you sure you want to delete co-author {{ coauthorToDelete?allOtherUsers.filter(user=>user.id === coauthorToDelete)[0].username:'' }}?</p>
+            <p>Are you sure you want to remove co-author {{ coauthorToDelete?allOtherUsers.filter(user=>user.id === coauthorToDelete)[0].username:'' }}?</p>
+            <p>
+              This user will no longer be able to edit your narrative.
+            </p>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">

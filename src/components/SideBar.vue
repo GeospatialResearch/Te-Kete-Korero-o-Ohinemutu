@@ -82,9 +82,19 @@
                       <span v-else class="inline-text">
                         <span class="ml-2 ellipsis-text"> {{ layer.name }}</span>
                       </span>
-                      <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(layer)">
-                        <font-awesome-icon icon="ellipsis-v" />
+                      <span class="float-right">
+                        <span v-if="layer.uploaded_by != userPK" class="badge badge-secondary vertical-align-middle" :title="'Layer shared with you by user '+layer.uploaded_by__username">S</span>
+                        <span data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(layer)">
+                          <font-awesome-icon icon="ellipsis-v" />
+                        </span>
                       </span>
+
+                      <!-- <span class="float-right">
+                        <span v-if="story.owner != username" class="badge badge-secondary" title="You are a co-author">C</span>
+                        <span data-toggle="popover" data-placement="right" data-trigger="click" title="Narrative Options" :data-content="createPopoverStoryOptions(story)">
+                          <font-awesome-icon icon="ellipsis-v" />
+                        </span>
+                      </span> -->
                     </a>
                   </li>
                 </ul>
@@ -197,7 +207,7 @@
                         <span class="ml-2 ellipsis-text"> {{ story.title.eng }}</span>
                       </span>
                       <span class="float-right">
-                        <span v-if="story.owner != username" class="badge badge-secondary" title="You are a co-author">C</span>
+                        <span v-if="story.owner != username" class="badge badge-secondary vertical-align-middle" title="You are a co-author">C</span>
                         <span data-toggle="popover" data-placement="right" data-trigger="click" title="Narrative Options" :data-content="createPopoverStoryOptions(story)">
                           <font-awesome-icon icon="ellipsis-v" />
                         </span>
@@ -644,6 +654,71 @@
         </div>
       </div>
     </div>
+    <div id="shareLayerModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="mb-0">
+              Share layer
+              <p class="mb-0 mt-2 modal-header-description">
+                Share this layer with other users and they will be able to see it
+              </p>
+            </h4>
+          </div>
+          <div class="modal-body">
+            <h5 v-if="allOtherUsers" class="mb-0">
+              Users
+            </h5>
+            <div v-if="userPK">
+              <vue-bootstrap-typeahead ref="usersAutocomplete" v-model="user_query" :serializer="s => s.username" :data="allOtherUsers.filter(user=>!layerSharedWith.includes(user.id))" placeholder="Type a username" @hit="setLayerSharedWith($event)" />
+              <div class="coauthor-box">
+                <ul class="coauthor-list">
+                  <li v-for="userid in layerSharedWith" :key="userid" class="coauthor col-md-12">
+                    <div class="col-md-10">
+                      <div class="user-image">
+                        <img src="static/img/user.jpg">
+                      </div>
+                      {{ allOtherUsers.filter(user=>user.id === userid)[0].username }}
+                    </div>
+                    <div class="col-md-2 vertical-align-middle">
+                      <font-awesome-icon icon="times-circle" size="lg" color="grey" class="float-right" @click="stopSharingLayerModalOpen(userid)" />
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="onClose()">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="stopSharingLayerModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content delete-coauthor-modal">
+          <div class="modal-header">
+            <h5>Stop sharing layer</h5>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to stop sharing this layer with user {{ userToRemoveFromLayerSharing?allOtherUsers.filter(user=>user.id === userToRemoveFromLayerSharing)[0].username:'' }}?</p>
+            <p>
+              This user will no longer be able to see this layer.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Cancel
+            </button>
+            <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="setLayerSharedWithout(userToRemoveFromLayerSharing)">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <!-- page-wrapper -->
 </template>
@@ -652,9 +727,13 @@
   import 'utils/sidebar'
   import { EventBus } from 'store/event-bus'
   import { langObj } from 'utils/initialTranslObj'
-  import { each, intersection, some } from 'underscore'
+  import { each, intersection, some, without } from 'underscore'
+  import VueBootstrapTypeahead from 'vue-bootstrap-typeahead'
 
   export default {
+    components: {
+      VueBootstrapTypeahead
+    },
     data () {
       return {
         uploadFieldName: 'file',
@@ -673,7 +752,11 @@
         myNarratives: [],
         otherNarratives: [],
         myLayers: [],
-        defaultLayers: []
+        defaultLayers: [],
+        user_query:'',
+        layerSharedWith: [],
+        layerToShare: null,
+        userToRemoveFromLayerSharing: null
       }
     },
     computed: {
@@ -738,6 +821,13 @@
       contentToShow () {
         return this.$store.state.contentToShow
       },
+      allOtherUsers() {
+        var users
+        if (this.$store.state.user) {
+          users = this.$store.state.allUsers.filter(user=>(user.id!=this.userPK && user.id!=1))
+        }
+        return users
+      }
     },
     watch: {
       stories: function () {
@@ -764,7 +854,7 @@
             this.defaultLayers = {}
             if (this.authenticated) {
               each(this.internalLayers, (layer, layerkey) => {
-                if (layer.uploaded_by == this.userPK) {
+                if (layer.uploaded_by == this.userPK ||  layer.shared_with.indexOf(this.userPK)>=0) {
                   this.myLayers[layerkey] = layer
                 } else {
                   this.defaultLayers[layerkey] = layer
@@ -813,7 +903,14 @@
         {
           $(".page-wrapper").toggleClass("toggled")
         }
+      })
 
+      EventBus.$on('shareLayerModalOpen', (layername) => {
+        this.layerToShare = layername
+        console.log(layername)
+        console.log(this.internalLayers)
+        this.layerSharedWith = this.internalLayers[layername].shared_with
+        $('#shareLayerModal').modal('show')
       })
     },
     methods: {
@@ -936,6 +1033,7 @@
                                   <a class="dropdown-item` + disabled +`" id="` + layer.name + `_zoomto" href="#">Zoom to layer</a>
                                   <a class="dropdown-item` + disabled +`" id="` + layer.name + `_rename" href="#">Rename layer</a>
                                   <a class="dropdown-item` + disabled +`" id="` + layer.name + `_restyle" href="#">Edit style</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.name + `_share" href="#">Share layer</a>
                                   <div class="dropdown-divider"></div>
                                   <a class="dropdown-item` + disabled +`" id="` + layer.name + `_deleteLayer" href="#">Delete layer</a>
                                 </div>`
@@ -969,13 +1067,20 @@
       },
       createPopoverStoryOptions (story) {
         var storyOptions
-        if (story.owner === this.username || this.isAdmin || story.co_authors.indexOf(this.userPK)>=0) {
+        if (story.owner === this.username || this.isAdmin) {
           storyOptions = `<div class="layer-options">
                             <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
                             <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit narrative</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">Delete narrative</a>
                           </div>`
+
+        } else if (story.co_authors.indexOf(this.userPK)>=0) {
+          storyOptions = `<div class="layer-options">
+                            <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
+                            <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit narrative</a>
+                          </div>`
+
         } else {
           storyOptions = `<div class="layer-options">
                             <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
@@ -1067,7 +1172,26 @@
           $(event.target).next(".sidebar-submenu").slideDown(200)
           $(event.target).parent().addClass("active")
         }
-      }
+      },
+      setLayerSharedWith (value) {
+        this.$refs.usersAutocomplete.inputValue = ''
+        this.layerSharedWith.push(value.id)
+        console.log(this.layerSharedWith)
+        this.$store.dispatch('setLayerSharing', { 'layername': this.layerToShare, 'shared_with': this.layerSharedWith })
+      },
+      stopSharingLayerModalOpen (userid) {
+        this.userToRemoveFromLayerSharing = userid
+        $('#stopSharingLayerModal').modal('show')
+      },
+      setLayerSharedWithout (userid) {
+        this.$refs.usersAutocomplete.inputValue = ''
+        this.layerSharedWith=without(this.layerSharedWith, userid)
+        console.log(this.layerSharedWith)
+        this.$store.dispatch('setLayerSharing', { 'layername': this.layerToShare, 'shared_with': this.layerSharedWith })
+      },
+      onClose () {
+        this.$refs.usersAutocomplete.inputValue = ''
+      },
     }
   }
 
