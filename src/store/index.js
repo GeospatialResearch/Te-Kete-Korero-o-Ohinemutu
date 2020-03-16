@@ -128,6 +128,7 @@ const store = new Vuex.Store({
       state.internalLayers = {}
       each(layersArray, (obj) => {
         obj.visible = false
+        obj.shared_with = obj.shared_with || []
         obj.legendURL = process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + obj.name + "&myData:" + Math.random()
         Vue.set(state.internalLayers, obj.name, obj)
       })
@@ -141,7 +142,7 @@ const store = new Vuex.Store({
         assigned_name: null,
         uploaded_by: state.user.pk,
         uploaded_by__username: state.user.username,
-        shared_with: null
+        shared_with: []
       }
       Vue.set(state.internalLayers, payload.filename, obj) // so the new property is also reactive
     },

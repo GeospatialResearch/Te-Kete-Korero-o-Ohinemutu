@@ -907,8 +907,6 @@
 
       EventBus.$on('shareLayerModalOpen', (layername) => {
         this.layerToShare = layername
-        console.log(layername)
-        console.log(this.internalLayers)
         this.layerSharedWith = this.internalLayers[layername].shared_with
         $('#shareLayerModal').modal('show')
       })
@@ -1176,7 +1174,6 @@
       setLayerSharedWith (value) {
         this.$refs.usersAutocomplete.inputValue = ''
         this.layerSharedWith.push(value.id)
-        console.log(this.layerSharedWith)
         this.$store.dispatch('setLayerSharing', { 'layername': this.layerToShare, 'shared_with': this.layerSharedWith })
       },
       stopSharingLayerModalOpen (userid) {
@@ -1186,7 +1183,6 @@
       setLayerSharedWithout (userid) {
         this.$refs.usersAutocomplete.inputValue = ''
         this.layerSharedWith=without(this.layerSharedWith, userid)
-        console.log(this.layerSharedWith)
         this.$store.dispatch('setLayerSharing', { 'layername': this.layerToShare, 'shared_with': this.layerSharedWith })
       },
       onClose () {

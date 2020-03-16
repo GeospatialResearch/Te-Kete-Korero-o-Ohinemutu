@@ -156,7 +156,7 @@ WSGI_APPLICATION = 'djangoproj.wsgi.application'
 
 db_user = os.environ.get('POSTGRES_USER', 'mapuser')
 db_pass = os.environ.get('POSTGRES_PASSWORD', 'password')
-db_name = os.environ.get('POSTGRES_DATABASE', db_user)
+db_name = os.environ.get('POSTGRES_DB', db_user)
 db_host = os.environ.get('POSTGRES_HOSTNAME', 'localhost')
 db_port = os.environ.get('POSTGRES_PORT', '5432')
 

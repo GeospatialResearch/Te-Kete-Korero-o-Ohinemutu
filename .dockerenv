@@ -1,6 +1,7 @@
 POSTGRES_HOSTNAME=db
+POSTGRES_DB=rotorua
 POSTGRES_USER=mapuser
-POSTGRES_PASSWORD=developmentpassword
+POSTGRES_PASSWORD=rotorua
 
 GEOSERVER_USERNAME=admin
 GEOSERVER_PASSWORD=geoserver
@@ -8,6 +9,6 @@ GEOSERVER_WORKSPACE=storyapp
 GEOSERVER_DATASTORE=user_data
 
 PG_HOST=db
-PG_DATABASE=mapuser
+PG_DATABASE=rotorua
 PG_USERNAME=mapuser
-PG_PASSWORD=developmentpassword
+PG_PASSWORD=rotorua

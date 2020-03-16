@@ -7,7 +7,7 @@ python3 manage.py collectstatic --clear --noinput
 # We probably should refactor this...
 export PGPASSWORD=${POSTGRES_PASSWORD}
 # Wait for Postgres to set up the PostGIS tables and accept connections.
-CHECK_CMD="psql -h ${POSTGRES_HOSTNAME} -d ${POSTGRES_USER} -U ${POSTGRES_USER} -c \dt"
+CHECK_CMD="psql -h ${POSTGRES_HOSTNAME} -d ${POSTGRES_DB} -U ${POSTGRES_USER} -c \dt"
 
 echo "Starting PostGIS to import data..."
 n=0
