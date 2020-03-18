@@ -6,24 +6,26 @@ volumes:
 services:
   db:
     image: mdillon/postgis:9.6
-    environment:
-      - POSTGRES_HOSTNAME=db
-      - POSTGRES_USER=mapuser
-      - POSTGRES_PASSWORD=developmentpassword
+    env_file: .dockerenv
+    # environment:
+    #   - POSTGRES_HOSTNAME=db
+    #   - POSTGRES_USER=mapuser
+    #   - POSTGRES_PASSWORD=developmentpassword
     ports:
       - '5432:5432'
 
   geoserver:
     image: geospatialri/geoserver-postgis:2.15.0
+    env_file: .dockerenv
     environment:
-      - GEOSERVER_USERNAME=admin
-      - GEOSERVER_PASSWORD=geoserver
-      - GEOSERVER_WORKSPACE=storyapp
-      - GEOSERVER_DATASTORE=user_data
-      - PG_HOST=db
-      - PG_DATABASE=mapuser
-      - PG_USERNAME=mapuser
-      - PG_PASSWORD=developmentpassword
+      # - GEOSERVER_USERNAME=admin
+      # - GEOSERVER_PASSWORD=geoserver
+      # - GEOSERVER_WORKSPACE=storyapp
+      # - GEOSERVER_DATASTORE=user_data
+      # - PG_HOST=db
+      # - PG_DATABASE=mapuser
+      # - PG_USERNAME=mapuser
+      # - PG_PASSWORD=developmentpassword
       - VIRTUAL_HOST=geoserver.maptool.test.geospatial.ac.nz
       - LETSENCRYPT_HOST=geoserver.maptool.test.geospatial.ac.nz
       - LETSENCRYPT_EMAIL=geospatial.gri@gmail.com
@@ -37,10 +39,11 @@ services:
 
   api:
     image: geospatialri/bicultool-django:develop
+    env_file: .dockerenv
     environment:
-      - POSTGRES_HOSTNAME=db
-      - POSTGRES_USER=mapuser
-      - POSTGRES_PASSWORD=developmentpassword
+      # - POSTGRES_HOSTNAME=db
+      # - POSTGRES_USER=mapuser
+      # - POSTGRES_PASSWORD=developmentpassword
       - EMAIL_PASS=$EMAIL_PASSWORD
     depends_on:
       - 'db'

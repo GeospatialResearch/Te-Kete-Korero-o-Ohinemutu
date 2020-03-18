@@ -30,7 +30,7 @@
                 Atua
               </div>
               <div class="dropdown-item text-muted">
-                Story types
+                Types of Narratives
               </div>
             </div>
           </div>
