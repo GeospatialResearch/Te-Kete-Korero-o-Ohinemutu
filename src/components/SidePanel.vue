@@ -22,7 +22,7 @@
       <!-- view mode -->
       <div class="pl-3 pr-3 pt-4" style="background-color:#ffffff;">
         <span class="badge badge-warning mb-2 p-2" title="Story status">{{ story.status }}</span>
-        <span v-if="story.story_type" class="badge badge-success mb-2 p-2 float-right" title="Story type">{{ story.story_type.type }}</span>
+        <span v-if="story.story_type" class="badge badge-success mb-2 p-2 float-right" title="Type of Narrative">{{ story.story_type.type }}</span>
         <div title="Story Date">
           <p v-if="story.approx_time.type === 'PRECISE_DATE'" class="badge badge-light mb-2 p-2 float-right">
             {{ story.approx_time.date }}
@@ -172,11 +172,11 @@
             </option>
           </select>
           <h5 class="mb-0">
-            Story Type
+            Type of Narrative
           </h5>
           <select v-model="story.story_type_id" required class="form-control form-control-sm mb-3">
             <option key="SELECT" value="" selected disabled>
-              Select story type
+              Select type of narrative
             </option>
             <option v-for="item in allStoryTypes" :key="item.id" :value="item.id">
               {{ item.type }}
@@ -658,7 +658,7 @@
               <div class="row">
                 <div class="col-sm-9 geom-usage">
                   <h6 class="text-muted">
-                    <span title="Narrative title"><i><font-awesome-icon icon="book-open" /></i>&nbsp;&nbsp;{{ usage.story.title.eng }}</span> &mdash; <small title="Story type"><i>{{ usage.story.storytype }}</i></small>
+                    <span title="Narrative title"><i><font-awesome-icon icon="book-open" /></i>&nbsp;&nbsp;{{ usage.story.title.eng }}</span> &mdash; <small title="Type of Narrative"><i>{{ usage.story.storytype }}</i></small>
                   </h6>
                   <h6 title="Narrative summary" class="ml-4">
                     <i>{{ usage.story.summary.eng }}</i>

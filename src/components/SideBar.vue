@@ -264,7 +264,7 @@
 
                 <div class="m-2">
                   <span v-for="atua in filter.atua" :key="atua" class="badge badge-pill badge-light m-1" title="Atua">{{ allAtuas.find(x => x.id == atua).name }}</span>
-                  <span v-for="type in filter.storyType" :key="type" class="badge badge-pill badge-light m-1" title="Story Type">{{ allStoryTypes.find(x => x.id == type).type }}</span>
+                  <span v-for="type in filter.storyType" :key="type" class="badge badge-pill badge-light m-1" title="Type of Narrative">{{ allStoryTypes.find(x => x.id == type).type }}</span>
                 </div>
               </div>
             </div>
@@ -639,8 +639,8 @@
                 {{ item.name }}
               </option>
             </select>
-            <h6>By Story Type</h6>
-            <select v-model="filter.storyType" class="form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Story Type" @change="filterNarratives()">
+            <h6>By Type of Narrative</h6>
+            <select v-model="filter.storyType" class="form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Type of Narrative" @change="filterNarratives()">
               <option v-for="item in allStoryTypes" :key="item.id" :value="item.id">
                 {{ item.type }}
               </option>
