@@ -6,7 +6,7 @@ html, body {
 }
 
 h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, span, small, label {
-  font-family: 'Heebo', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 300;
 }
 
