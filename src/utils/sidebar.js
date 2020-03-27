@@ -120,20 +120,21 @@ $(function () {
     }
   })
   $(document.body).on('click', "[id*='_restyle']" ,function(){
-    var layer_name = $(this).attr('id').replace("_restyle", "")
-    EventBus.$emit('restyleLayer', {layerName:layer_name, layerType:'internal'})
+    var layer_id = $(this).attr('id').replace("_restyle", "")
+    EventBus.$emit('restyleLayer', layer_id)
   })
   $(document.body).on('click', "[id*='_deleteLayer']" ,function(){
-    var layer_name = $(this).attr('id').replace("_deleteLayer", "")
-    EventBus.$emit('deleteLayerModalOpen', layer_name)
+    var layer_id = $(this).attr('id').replace("_deleteLayer", "")
+    EventBus.$emit('deleteLayerModalOpen', layer_id)
   })
   $(document.body).on('click', "[id*='_rename']" ,function(){
-    var layer_name = $(this).attr('id').replace("_rename", "")
-    EventBus.$emit('assignLayerNameModalOpen', layer_name)
+    var layer_id = $(this).attr('id').replace("_rename", "")
+    EventBus.$emit('assignLayerNameModalOpen', layer_id)
   })
   $(document.body).on('click', "[id*='_share']" ,function(){
-    var layer_name = $(this).attr('id').replace("_share", "")
-    EventBus.$emit('shareLayerModalOpen', layer_name)
+    console.log($(this).attr('id'))
+    var layer_id = $(this).attr('id').replace("_share", "")
+    EventBus.$emit('shareLayerModalOpen', layer_id)
   })
 
   // Send EventBus on story click option

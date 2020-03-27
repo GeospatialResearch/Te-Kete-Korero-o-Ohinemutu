@@ -123,7 +123,7 @@ var singleClickCallbackFunction = function (evt) {
             EventBus.$emit('showLayersFeaturesPopup', {
               'features': response.features,
               'coordinate': evt.coordinate,
-              'layername': layername
+              'layername': layername.split("__")[0]
             })
           } else {
             EventBus.$emit('showLayersFeaturesPopup', {
@@ -442,12 +442,14 @@ var addSelectedFeaturesLayer = function (features) {
       feature.getProperties()
       featuresToAdd.push(feature) // external services (OL feature from forEachFeatureAtPixel)
     } catch (e) {
-      var ol_geom = olFeatureFromJsonGeom(feature) // internal services (json geometry from getGetFeatureInfoUrl)
-      featuresToAdd.push(new Feature({
-          geometry: ol_geom,
-          // id: geom.id,
-          // label: geom.name
-      }))
+      if (feature.geometry) {
+        var ol_geom = olFeatureFromJsonGeom(feature) // internal services (json geometry from getGetFeatureInfoUrl)
+        featuresToAdd.push(new Feature({
+            geometry: ol_geom,
+            // id: geom.id,
+            // label: geom.name
+        }))
+      }
     }
   })
 

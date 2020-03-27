@@ -69,7 +69,7 @@
               <p v-if="layer.visible" class="mb-1">
                 <img :src="layer.legendURL">
                 <span v-if="layer.assigned_name">{{ layer.assigned_name }}</span>
-                <span v-else>{{ layerkey }}</span>
+                <span v-else>{{ layer.name }}</span>
               </p>
             </small>
             <small v-if="allStoriesGeomsLayer">
@@ -372,6 +372,18 @@
                       <label class="col-form-label col-form-label-sm ml-1">px</label>
                     </div>
                   </div>
+                  <!-- <div class="form-check">
+                    <input id="classifyByProperty" v-model="layerStyle.classifyby" type="checkbox" class="form-check-input">
+                    <label class="form-check-label" for="classifyByProperty">Classify by property</label>
+                  </div>
+                  <select v-if="layerStyle.classifyby" v-model="layerStyle.classifybyproperty" required class="form-control form-control-sm mb-3">
+                    <option key="SELECT" value="" selected disabled>
+                      Select layer property
+                    </option>
+                    <option v-for="(property, index) in layerProperties" :key="`property-${index}`" :value="property">
+                      {{ property }}
+                    </option>
+                  </select> -->
                 </div>
               </form>
             </div>
@@ -581,7 +593,7 @@ import { enableEventListeners, getCorrectExtent, createGeojsonLayer, createGeojs
   addSelectedFeaturesLayer } from 'utils/mapUtils'
 import { extLayersObj } from 'utils/objects'
 import { hexToRgba, hexToRgb } from 'utils/objectUtils'
-import { delay, each, isString, some } from 'underscore'
+import { delay, each, isString, some, difference } from 'underscore'
 // Import everything from ol
 import Map from 'ol/Map'
 import View from 'ol/View'
@@ -630,7 +642,7 @@ export default {
       features_info: '',
       layersFeaturesPopupCount: 0,
       nExpectedCount: null,
-
+      layerProperties: [],
       layerStyle: {
          color: '#ffffff',
          opacity: 1,
@@ -641,7 +653,9 @@ export default {
          dashedline: false,
          drawnline: 5,
          blankspace: 8,
-         layername: null
+         layername: null,
+         classifyby: false,
+         classifybyproperty: ""
        },
        drawingSource: null,
        drawnFeature: {
@@ -800,8 +814,8 @@ export default {
         var layerconfigs = layer
         extLayersObj[layer.keyname].functionToCall.call(null, layerconfigs)
       } else if (servType === 'internal') {
-        var layerkey = layer
-        addGeoserverWMS(layerkey)
+        var layerid = layer
+        addGeoserverWMS(layerid)
       } else if (servType === 'allstoriesgeoms') {
         var geoms = layer
         addAllStoriesGeomsLayer(geoms)
@@ -837,15 +851,15 @@ export default {
 
     EventBus.$on('addLayer', (payload, geoserverLayer=true) => {
       var geojsonObj = payload.jsonlayer
-      var layername = payload.filename
+      var layerid = payload.id
 
       if (geoserverLayer) {
-        EventBus.$emit('createLayer', layername, 'internal')
+        EventBus.$emit('createLayer', layerid, 'internal')
         // this.$store.commit('ADD_INTERNAL_LAYER', payload)
         if (payload.geomtype != 'raster') {
-          zoomToGeoserverVectorLayer(layername)
+          zoomToGeoserverVectorLayer(layerid)
         } else {
-          zoomToGeoserverLayerBbox(layername)
+          zoomToGeoserverLayerBbox(layerid)
         }
       } else {
         // conditional to the dataset size (number of features)
@@ -911,7 +925,7 @@ export default {
           each(feature_properties, (value, key) => {
             if (key.toLowerCase() != "geometry" && key.toLowerCase() != "bbox" && key.toLowerCase() != "id" && value != null && value != "" && value != "NULL") {
               if (isString(value) && value.includes('http')) {
-                this.features_info = this.features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> <a href="' + value + '" target="_blank">' + value + '</a></p>'
+                this.features_info = this.features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> <a href="' + value + '" target="_blank">' + key.replace(/_/g, " ") + ' link' + '</a></p>'
               } else {
                 this.features_info = this.features_info + '<p><strong>' + key.replace(/_/g, " ") + ':</strong> ' + value + '</p>'
               }
@@ -1008,14 +1022,19 @@ export default {
     EventBus.$on('zoomToLayer', (payload) => {
       if (payload.hasOwnProperty('layerType')) {
         if (payload.layerType === "internal") {
-          if (this.internalLayers[payload.layerName].geomtype != 3) {
-            // // for vector layers created with JDBCVirtualTable, the bbox is not generated,
-            // //so it's necessary to getFeatures from WFS to get the extent (but it takes more time)
-            // zoomToGeoserverVectorLayer(payload.layerName)
-            zoomToGeoserverLayerBbox(payload.layerName)
-          } else {
-            zoomToGeoserverLayerBbox(payload.layerName)
-          }
+          // if (this.internalLayers[payload.layerName].geomtype != 3) {
+          //   // // for vector layers created with JDBCVirtualTable, the bbox is not generated,
+          //   // //so it's necessary to getFeatures from WFS to get the extent (but it takes more time)
+          //   zoomToGeoserverVectorLayer(payload.layerName)
+          // } else {
+          //   zoomToGeoserverLayerBbox(payload.layerName)
+          // }
+          each(this.internalLayers, (layer) => {
+            if (layer.gs_layername === payload.layerName) {
+              zoomToGeoserverLayerBbox(layer.id)
+            }
+          })
+
         }
       } else {
         this.map.getLayers().forEach( (layer) => {
@@ -1032,64 +1051,93 @@ export default {
 
     })
 
-    EventBus.$on('restyleLayer', (payload) => {
-      if (payload.layerType === "internal") {
-        // Set the layer for style editing
-        this.layerStyle = {
-           color: '#ffffff',
-           opacity: 1,
-           linewidth: 1,
-           pointsize: 6,
-           bordercolor: '#000000',
-           borderwidth: 1,
-           dashedline: false,
-           drawnline: 5,
-           blankspace: 8,
-           layername: payload.layerName
-         }
-        // Get current geoserver layer style (SLD) and fill the layerStyle object accordingly
-        this.$store.dispatch('getInternalLayerStyle', payload.layerName)
-        .then((response) => {
+    EventBus.$on('restyleLayer', (layerid) => {
 
-          // Remove the sld: from each tag and parse the string to xml
-          var stringxml = response.body.sld.replace(/sld:/g, "")
-          var xml = $.parseXML(stringxml)
+      var layerName = this.internalLayers[layerid].gs_layername
 
-          if (response.body.stylename !== 'generic') {
-            if ($(xml).find("CssParameter[name='stroke']").text()) {
-              this.layerStyle.bordercolor = $(xml).find("CssParameter[name='stroke']").text()
-              this.layerStyle.color = $(xml).find("CssParameter[name='stroke']").text()
-            }
-            if ($(xml).find("CssParameter[name='fill']").text()) {
-              this.layerStyle.color = $(xml).find("CssParameter[name='fill']").text()
-            }
-            if ($(xml).find("CssParameter[name='fill-opacity']").text()) {
-              this.layerStyle.opacity = $(xml).find("CssParameter[name='fill-opacity']").text()
-            }
-            if ($(xml).find("CssParameter[name='stroke-opacity']").text()) {
-              this.layerStyle.opacity = $(xml).find("CssParameter[name='stroke-opacity']").text()
-            }
-            if ($(xml).find("Opacity").text()) {
-              this.layerStyle.opacity = $(xml).find("Opacity").text()
-            }
-            if ($(xml).find("CssParameter[name='stroke-width']").text()) {
-              this.layerStyle.borderwidth = $(xml).find("CssParameter[name='stroke-width']").text()
-              this.layerStyle.linewidth = $(xml).find("CssParameter[name='stroke-width']").text()
-            }
-            if ($(xml).find("CssParameter[name='stroke-dasharray']").text()) {
-              var dasharray = $(xml).find("CssParameter[name='stroke-dasharray']").text().split(" ")
-              this.layerStyle.dashedline = true
-              this.layerStyle.drawnline = dasharray[0]
-              this.layerStyle.blankspace = dasharray[1]
-            }
-            if ($(xml).find("Size").text()) {
-              this.layerStyle.pointsize = $(xml).find("Size").text()
-            }
+      // Set the layer for style editing
+      this.layerStyle = {
+         color: '#ffffff',
+         opacity: 1,
+         linewidth: 1,
+         pointsize: 6,
+         bordercolor: '#000000',
+         borderwidth: 1,
+         dashedline: false,
+         drawnline: 5,
+         blankspace: 8,
+         layername: layerName,
+         layerid: layerid,
+         classifyby: false,
+         classifybyproperty: ""
+       }
+
+      // Get current geoserver layer style (SLD) and fill the layerStyle object accordingly
+      this.$store.dispatch('getInternalLayerStyle', layerName)
+      .then((response) => {
+
+        // Remove the sld: from each tag and parse the string to xml
+        var stringxml = response.body.sld.replace(/sld:/g, "")
+        var xml = $.parseXML(stringxml)
+
+        if (response.body.stylename !== 'generic') {
+          if ($(xml).find("CssParameter[name='stroke']").text()) {
+            this.layerStyle.bordercolor = $(xml).find("CssParameter[name='stroke']").text()
+            this.layerStyle.color = $(xml).find("CssParameter[name='stroke']").text()
           }
+          if ($(xml).find("CssParameter[name='fill']").text()) {
+            this.layerStyle.color = $(xml).find("CssParameter[name='fill']").text()
+          }
+          if ($(xml).find("CssParameter[name='fill-opacity']").text()) {
+            this.layerStyle.opacity = $(xml).find("CssParameter[name='fill-opacity']").text()
+          }
+          if ($(xml).find("CssParameter[name='stroke-opacity']").text()) {
+            this.layerStyle.opacity = $(xml).find("CssParameter[name='stroke-opacity']").text()
+          }
+          if ($(xml).find("Opacity").text()) {
+            this.layerStyle.opacity = $(xml).find("Opacity").text()
+          }
+          if ($(xml).find("CssParameter[name='stroke-width']").text()) {
+            this.layerStyle.borderwidth = $(xml).find("CssParameter[name='stroke-width']").text()
+            this.layerStyle.linewidth = $(xml).find("CssParameter[name='stroke-width']").text()
+          }
+          if ($(xml).find("CssParameter[name='stroke-dasharray']").text()) {
+            var dasharray = $(xml).find("CssParameter[name='stroke-dasharray']").text().split(" ")
+            this.layerStyle.dashedline = true
+            this.layerStyle.drawnline = dasharray[0]
+            this.layerStyle.blankspace = dasharray[1]
+          }
+          if ($(xml).find("Size").text()) {
+            this.layerStyle.pointsize = $(xml).find("Size").text()
+          }
+        }
 
+        if (this.internalLayers[layerid].geomtype != 3) {
+          $.ajax( process.env.GEOSERVER_HOST + '/wms', {
+            type: 'GET',
+            data: {
+                service: 'WFS',
+                version: '1.1.0',
+                request: 'DescribeFeatureType',
+                typename: 'storyapp:' + layerName,
+                outputFormat: 'text/javascript',
+                format_options: 'callback:getJson',
+                myData: Math.random()
+            },
+            dataType: 'jsonp',
+            jsonpCallback:'getJson'
+          }).done( (response) => {
+            var geoserverLayerProperties = response.featureTypes[0].properties.map(a => a.name)
+            var layerProperties = difference(geoserverLayerProperties, ["the_geom", "id"])
+            this.layerProperties = $.extend(true, [], layerProperties)
+            $('#restyleLayerModal').modal('show')
+          })
+        } else {
           $('#restyleLayerModal').modal('show')
-        })
-      }
+        }
+
+      })
+
     })
 
     EventBus.$on('addDrawingLayer', () => {
@@ -1432,9 +1480,9 @@ export default {
       })
 
       // Add internal map services to the map (geoserver) if visible
-      each(this.internalLayers, (layer, layerkey) => {
+      each(this.internalLayers, (layer) => {
         if (layer.visible) {
-          EventBus.$emit('createLayer', layerkey, 'internal') // the layerkey is enough to request the geoserver layer
+          EventBus.$emit('createLayer', layer.id, 'internal')
         }
       })
 
@@ -1479,17 +1527,17 @@ export default {
       setSLDstyle(this.layerStyle)
       $('#restyleLayerModal').modal('hide')
     },
-    getInternalLayerLegend (layerkey) {
-      return process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + layerkey + "&myData:" + Math.random()
+    getInternalLayerLegend (layer) {
+      return process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + layer.gs_layername + "&myData:" + Math.random()
     },
     refreshInternalLegend () {
-      each(this.internalLayers, (layer, layerkey) => {
-        layer.legendURL = this.getInternalLayerLegend(layerkey)
+      each(this.internalLayers, (layer) => {
+        layer.legendURL = this.getInternalLayerLegend(layer)
       })
     },
     isStyleInputVisible (geomTypeArray) {
-      if (this.internalLayers[this.layerStyle.layername]) {
-        return geomTypeArray.includes(this.internalLayers[this.layerStyle.layername].geomtype)
+      if (this.internalLayers[this.layerStyle.layerid]) {
+        return geomTypeArray.includes(this.internalLayers[this.layerStyle.layerid].geomtype)
       }
     },
     changeBasemap (basemap_name) {

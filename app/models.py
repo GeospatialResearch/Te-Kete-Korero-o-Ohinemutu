@@ -68,6 +68,7 @@ class Dataset(models.Model):
     assigned_name = models.CharField(max_length=200, default=None, blank=True, null=True)
     uploaded_by = models.ForeignKey('auth.User', related_name='datasets', on_delete=models.CASCADE)
     shared_with = ArrayField(models.IntegerField(), default=None, blank=True, null=True)
+    style = JSONField(default=None, blank=True, null=True)
     objects = DatasetQuerySet.as_manager()
 
 

@@ -56,3 +56,52 @@ def send_email(emaildata ,emailtype):
     msg = EmailMultiAlternatives(subject, text_content, 'geospatial.gri@gmail.com', emaildata['mailing_list'])
     msg.attach_alternative(html_content, "text/html")
     msg.send()
+
+
+def SLDfilterByAttrib(legend_list, field):
+
+	mysld = StyledLayerDescriptor()
+	nl = mysld.create_namedlayer('myLayer')
+	ustyle = nl.create_userstyle()
+	ustyle.Title = 'Style Title'
+	fts = ustyle.create_featuretypestyle()
+
+	for c in legend_list:
+
+		rule = fts.create_rule(c)
+
+		f = Filter(rule)
+		f.PropertyIsEqualTo = PropertyCriterion(f, 'PropertyIsEqualTo')
+		f.PropertyIsEqualTo.PropertyName = field
+		f.PropertyIsEqualTo.Literal = c
+
+		rule.Filter = f
+
+		psymb = PointSymbolizer(rule)
+		graphic = Graphic(psymb)
+		mark = Mark(graphic)
+		mark.WellKnownName = 'circle'
+
+		fillstyle = Fill(mark)
+		strokestyle = Stroke(mark)
+
+		color = '#%06X' % random.randint(0,256**3-1)
+
+		fillstyle.create_cssparameter('fill', color)
+		strokestyle.create_cssparameter('stroke', '#000000')
+
+		#print fillstyle.CssParameters[0].Value
+		mark.Fill = fillstyle.CssParameters[0]
+		mark.Stroke = strokestyle.CssParameters[0]
+
+		#graphic.Mark = mark
+		graphic.Size = str(6).decode("utf-8")
+		#psymb.Graphic = graphic
+		#rule.PointSymbolizer = psymb
+
+	# generate SLD content
+	content = mysld.as_sld(pretty_print=True)
+	index = content.find('<sld:StyledLayerDescriptor') + len('<sld:StyledLayerDescriptor') + 1
+	content[:index] + 'xmlns:sld="http://www.opengis.net/sld"' + content[index:]
+
+	return content

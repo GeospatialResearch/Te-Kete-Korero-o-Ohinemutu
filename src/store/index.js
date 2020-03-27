@@ -127,35 +127,40 @@ const store = new Vuex.Store({
     SET_INTERNAL_LAYERS (state, layersArray) {
       state.internalLayers = {}
       each(layersArray, (obj) => {
+        var gs_layername = obj.name + '__' + obj.uploaded_by
         obj.visible = false
         obj.shared_with = obj.shared_with || []
-        obj.legendURL = process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + obj.name + "&myData:" + Math.random()
-        Vue.set(state.internalLayers, obj.name, obj)
+        obj.legendURL = process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + gs_layername + "&myData:" + Math.random()
+        obj.gs_layername = gs_layername
+        Vue.set(state.internalLayers, obj.id, obj)
       })
     },
     ADD_INTERNAL_LAYER (state, payload) {
+      var gs_layername = payload.filename + '__' + state.user.pk
       var obj = {
         name: payload.filename,
         visible: true,
-        legendURL: process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + payload.filename + "&myData:" + Math.random(),
+        legendURL: process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + gs_layername + "&myData:" + Math.random(),
         geomtype: ['POINT', 'MULTIPOINT'].includes(payload.geomtype) ? 0 : ['LINESTRING', 'MULTILINESTRING'].includes(payload.geomtype) ? 1 : ['POLYGON', 'MULTIPOLYGON'].includes(payload.geomtype) ? 2 : 3,
         assigned_name: null,
         uploaded_by: state.user.pk,
         uploaded_by__username: state.user.username,
-        shared_with: []
+        shared_with: [],
+        id: payload.id,
+        gs_layername: gs_layername
       }
-      Vue.set(state.internalLayers, payload.filename, obj) // so the new property is also reactive
+      Vue.set(state.internalLayers, payload.id, obj) // so the new property is also reactive
     },
-    DELETE_INTERNAL_LAYER (state, layername) {
-      Vue.delete(state.internalLayers, layername)
+    DELETE_INTERNAL_LAYER (state, layerid) {
+      Vue.delete(state.internalLayers, layerid)
     },
     RENAME_INTERNAL_LAYER (state, payload) {
-      state.internalLayers[payload.layername].assigned_name = payload.assignedName
+      state.internalLayers[payload.layerid].assigned_name = payload.assignedName
     },
     UNCHECK_INTERNAL_LAYERS (state) {
       each(state.internalLayers, (layer, layerkey) => {
         layer.visible = false
-        Vue.set(state.internalLayers, layer.name, layer)
+        Vue.set(state.internalLayers, layerkey, layer)
         EventBus.$emit('removeLayer', layerkey)
       })
       EventBus.$emit('resetSelectedFeatures')
@@ -367,10 +372,10 @@ const store = new Vuex.Store({
         })
         .catch((error) => store.commit('API_FAIL', error))
     },
-    deleteLayer (store, layername) {
-      return api.post(apiRoot + '/delete_layer/', {'layername': layername}, { headers: getAuthHeader() })
+    deleteLayer (store, payload) {
+      return api.post(apiRoot + '/delete_layer/', payload, { headers: getAuthHeader() })
         .then(() => {
-          store.commit('DELETE_INTERNAL_LAYER', layername)
+          store.commit('DELETE_INTERNAL_LAYER', payload.layerid)
         })
         .catch((error) => store.commit('API_FAIL', error))
     },
@@ -384,7 +389,7 @@ const store = new Vuex.Store({
     setLayerSharing (store, payload) {
       return api.post(apiRoot + '/set_layer_shared_with/', payload, { headers: getAuthHeader() })
         .then((response) => {
-          store.state.internalLayers[payload.layername].shared_with = payload.shared_with
+          store.state.internalLayers[payload.layerid].shared_with = payload.shared_with
           return response
         })
         .catch((error) => store.commit('API_FAIL', error))

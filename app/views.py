@@ -18,13 +18,13 @@ from osgeo import ogr
 from geoserver.catalog import Catalog
 from django.db import transaction
 import re
-from .utils import layer_type, get_catalog
+from .utils import layer_type, get_catalog, SLDfilterByAttrib
 import requests
 from django.utils import timezone
 
 
 # Util Functions
-def get_layer_from_file(file_obj, directory):
+def get_layer_from_file(file_obj, directory, request):
     layer = None
     local_filename = os.path.join(directory, 'layer_file.zip')
     write_uploaded_file(file_obj, local_filename)
@@ -71,11 +71,11 @@ def get_layer_from_file(file_obj, directory):
 
         # Do some validation
         try:
-            dataset = Dataset.objects.get(name = fname)
+            dataset = Dataset.objects.get(name = fname, uploaded_by = request.user)
         except Dataset.DoesNotExist:
             dataset = None
         if dataset:
-            raise ValidationError("Resource named " + fname + " already exists.")
+            raise ValidationError("You've already uploaded a resource named " + fname + ".")
         if fname[0].isdigit():
             raise ValidationError("The dataset name can't start with a digit. Please make sure the dataset name starts with an alpha character.")
         if not re.match("^[a-zA-Z0-9_-]*$", fname):
@@ -167,12 +167,14 @@ def insertDB(layer, request):
     print("######### Created dataset record #########")
 
     if geomtype == 'raster':
-        createGeoserverCoverageLayer(layer)
+        createGeoserverCoverageLayer(layer, request)
     else:
-        createGeoserverShpLayer(layer)
+        createGeoserverShpLayer(layer, request)
+
+    return dataset
 
 
-def createGeoserverShpLayer(layer, dataset_id=None):
+def createGeoserverShpLayer(layer, request):
     """Creates a datastore of type Shapefile and a FeatureType layer in GeoServer
     using GeoServer REST API through the Python requests module"""
     cat = get_catalog()
@@ -180,37 +182,56 @@ def createGeoserverShpLayer(layer, dataset_id=None):
     gs_pass = os.environ.get('GEOSERVER_PASSWORD', 'geoserver')
 
     local_filename = layer['localfilename']
+    storename = layer['filename'] + '__' + str(request.user.id)
     filename = layer['filename']
     file_extension = layer['extension']
 
     if file_extension != '.shp':
         raise ValidationError("Please, upload a zipped shapefile instead of a {} file".format(file_extension))
 
-    headers_zip = {'content-type': 'application/zip'}
     with open(local_filename, 'rb') as zip_file:
-            r_create_layer = requests.put("http://geoserver:8080/geoserver/rest/workspaces/storyapp/datastores/" + filename + "/file.shp?charset=utf-8",
+            r_create_layer = requests.put("http://geoserver:8080/geoserver/rest/workspaces/storyapp/datastores/" + storename + "/file.shp?charset=utf-8",
                 auth=(gs_user, gs_pass),
                 data=zip_file,
-                headers=headers_zip)
+                headers={'content-type': 'application/zip'})
             try:
                 r_create_layer.raise_for_status()
             except requests.exceptions.HTTPError as e:
                 raise ValidationError(e)
-            if r_create_layer.status_code == 200:
-                print("######### Published Geoserver shp datastore and layer#########")
+
+            print(r_create_layer.status_code)
+            if r_create_layer.status_code == 200 or r_create_layer.status_code == 201:
+                print("######### Published Geoserver shp datastore and layer #########")
+
+                r_rename_layer = requests.post("http://geoserver:8080/geoserver/rest/workspaces/storyapp/datastores/" + storename + "/featuretypes",
+                    auth=(gs_user, gs_pass),
+                    data="<featureType><name>" + storename + "</name><nativeName>" + filename + "</nativeName></featureType>",
+                    headers={'Content-type': 'text/xml'})
+                try:
+                    r_rename_layer.raise_for_status()
+
+                except requests.exceptions.HTTPError as e:
+                    raise ValidationError(e)
+
+                print(r_rename_layer.status_code)
+                if r_rename_layer.status_code == 200 or r_rename_layer.status_code == 201:
+                    print("######### Geoserver layer renamed #########")
+                    # delete layer generated before the layer rename
+                    delete_layer({'gs_layername': filename, 'storename': storename})
 
             cat.reload()
-            resource = cat.get_resource(layer['filename'])
+            resource = cat.get_resource(storename)
             if resource.projection is None:
-                delete_layer(layer['filename'])
+                delete_layer({'gs_layername': storename}, True)
                 raise ValidationError("The dataset does not have a defined projection. Please insert a valid dataset.")
 
 
-def createGeoserverCoverageLayer(layer):
+def createGeoserverCoverageLayer(layer, request):
     """Creates a datastore of type GeoTIFF and a Coverage layer in GeoServer
     using GeoServer REST API through gsconfig.py"""
     cat = get_catalog()
-    resource = cat.get_resource(layer['filename'])
+    filename = layer['filename'] + '__' + str(request.user.id)
+    resource = cat.get_resource(filename)
 
     file_extension = layer['extension']
 
@@ -219,9 +240,9 @@ def createGeoserverCoverageLayer(layer):
 
     try:
         if resource is not None:
-            cat.create_coveragestore(layer['filename'], layer['localfilename'])
+            cat.create_coveragestore(filename, layer['localfilename'])
         else:
-            cat.create_coveragestore(layer['filename'], layer['localfilename'], overwrite=True)
+            cat.create_coveragestore(filename, layer['localfilename'], overwrite=True)
         print("######### Created Geoserver coverage #########")
 
     except Exception as e:
@@ -231,9 +252,9 @@ def createGeoserverCoverageLayer(layer):
             raise ValidationError(e)
 
     cat.reload()
-    resource = cat.get_resource(layer['filename'])
+    resource = cat.get_resource(filename)
     if resource.projection is None:
-        delete_layer(layer['filename'])
+        delete_layer({'gs_layername': filename}, True)
         raise ValidationError("The dataset does not have a defined projection. Please insert a valid dataset.")
 
 
@@ -253,14 +274,19 @@ def update_editor(editor_id, story_id, action):
 
 
 @transaction.atomic
-def delete_layer(layername):
-    # Remove from database
-    Dataset.objects.get(name=layername).delete()
+def delete_layer(obj, deleteStore=False):
 
-    # Remove from GeoServer
+    print(obj)
+
+    if deleteStore:
+        storename = obj['gs_layername']
+    else:
+        gs_layername = obj['gs_layername']
+        storename = obj['storename']
+
     cat = get_catalog()
+    store = cat.get_store(storename)
 
-    store = cat.get_store(layername)
     if store.type == 'Shapefile' or store.type == 'PostGIS':
         storetype = 'datastores'
     elif store.type == 'GeoTIFF':
@@ -268,17 +294,36 @@ def delete_layer(layername):
 
     gs_user = os.environ.get('GEOSERVER_USERNAME', 'admin')
     gs_pass = os.environ.get('GEOSERVER_PASSWORD', 'geoserver')
-    r_detele = requests.delete("http://geoserver:8080/geoserver/rest/workspaces/storyapp/" + storetype + "/" + layername + "?recurse=true",
-        auth=(gs_user, gs_pass))
-    try:
-        r_detele.raise_for_status()
-    except requests.exceptions.HTTPError as e:
-        raise ValidationError(e)
 
-    cat.reload()
-    style = cat.get_style("style_" + layername)
-    if style is not None:
-        cat.delete(style)
+    if deleteStore:
+        # Remove from database
+        if 'layerid' in obj:
+            dataset = Dataset.objects.get(id=obj['layerid']).delete()
+
+        # Remove store and layer from GeoServer
+        r_detele = requests.delete("http://geoserver:8080/geoserver/rest/workspaces/storyapp/" + storetype + "/" + storename + "?recurse=true",
+            auth=(gs_user, gs_pass))
+        try:
+            r_detele.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            raise ValidationError(e)
+
+        cat.reload()
+        style = cat.get_style("style_" + storename)
+        if style is not None:
+            cat.delete(style)
+
+    else:
+        # Remove duplicated layer and featuretype generated before layer rename (first the layer then the feature type)
+        r_detele_layer = requests.delete("http://geoserver:8080/geoserver/rest/layers/storyapp:" + gs_layername + ".xml",
+            auth=(gs_user, gs_pass))
+        r_detele_featuretype = requests.delete("http://geoserver:8080/geoserver/rest/workspaces/storyapp/" + storetype + "/" + storename + "/featuretypes/" + gs_layername + ".xml",
+            auth=(gs_user, gs_pass))
+        try:
+            r_detele_layer.raise_for_status()
+            r_detele_featuretype.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            raise ValidationError(e)
 
 
 class GetGeoServerDefaultStyle(APIView):
@@ -297,10 +342,23 @@ class SetGeoServerDefaultStyle(APIView):
     def post(self, request):
         layername = request.data['layername']
         sld = request.data['sld']
+        styleObj = request.data['styleObj']
+
+        print(styleObj)
+
+        dataset = Dataset.objects.get(id=styleObj['layerid'])
+        del styleObj['layername']
+        del styleObj['layerid']
+        dataset.style = styleObj
+        dataset.save()
 
         cat = get_catalog()
 
         layer = cat.get_layer(layername)
+
+        print(layer)
+
+
         newstyle = cat.create_style('style_' + layername, sld, overwrite=True)
         layer.default_style = 'style_' + layername
         cat.save(layer)
@@ -314,11 +372,12 @@ class UploadFileView(APIView):
         # This will automatically clean up after us.
         with TemporaryDirectory() as directory:
             file_obj = request.data['file']
-            layer = get_layer_from_file(file_obj, directory)
+            layer = get_layer_from_file(file_obj, directory, request)
 
             if layer is not None:
-                insertDB(layer, request)
+                dataset = insertDB(layer, request)
 
+        layer["id"] = dataset.id
         return Response(layer)
 
 
@@ -502,7 +561,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class DatasetList(APIView):
     def get(self, request):
-        datasets = Dataset.objects.for_user(request.user).values('name', 'geomtype', 'assigned_name', 'uploaded_by', 'uploaded_by__username', 'shared_with')
+        datasets = Dataset.objects.for_user(request.user).values('id', 'name', 'geomtype', 'assigned_name', 'uploaded_by', 'uploaded_by__username', 'shared_with')
         datasets_list = list(datasets)
         return JsonResponse(datasets_list, safe=False)
 
@@ -531,23 +590,22 @@ class GetBeingEditedBy(APIView):
         story = Story.objects.get(id=story_id)
         return Response({'result': "ok",'being_edited_by':story.being_edited_by.id if story and story.being_edited_by else None})
 
+
 class DeleteLayer(APIView):
     def post(self, request):
-        layername = request.data['layername']
 
-        if layername is not None:
-            delete_layer(layername)
+        delete_layer(request.data, True)
 
         return Response({'result': None})
 
 
 class RenameLayer(APIView):
     def post(self, request):
-        layername = request.data['layername']
+        layerid = request.data['layerid']
         assignedname = request.data['assignedName']
 
-        if layername is not None and assignedname is not None:
-            dataset = Dataset.objects.get(name=layername)
+        if layerid is not None and assignedname is not None:
+            dataset = Dataset.objects.get(id=layerid)
             dataset.assigned_name = assignedname
             dataset.save()
 
@@ -556,11 +614,11 @@ class RenameLayer(APIView):
 
 class SetLayerSharedWith(APIView):
     def post(self, request):
-        layername = request.data['layername']
+        layerid = request.data['layerid']
         sharedwith = request.data['shared_with']
 
-        if layername is not None and sharedwith is not None:
-            dataset = Dataset.objects.get(name=layername)
+        if layerid is not None and sharedwith is not None:
+            dataset = Dataset.objects.get(id=layerid)
             dataset.shared_with = sharedwith
             dataset.save()
 

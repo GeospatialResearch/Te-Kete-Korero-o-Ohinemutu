@@ -16,9 +16,11 @@ const VectorLayer = require('ol/layer/Vector').default
 
 // TODO: get the domain and workspace name through variables
 
-var addGeoserverWMS = function (layername) {
+var addGeoserverWMS = function (layerid) {
   const map = store.state.map
   store.commit('SET_LOADING', true)
+
+  var layername = store.state.internalLayers[layerid].gs_layername
 
   var layerWMS = new ImageLayer({
     name: layername,
@@ -36,9 +38,11 @@ var addGeoserverWMS = function (layername) {
   store.commit('SET_LOADING', false)
 }
 
-var zoomToGeoserverVectorLayer = function (layername) {
+var zoomToGeoserverVectorLayer = function (layerid) {
   const map = store.state.map
   store.commit('SET_LOADING', true)
+
+  var layername = store.state.internalLayers[layerid].gs_layername
 
   $.ajax( process.env.GEOSERVER_HOST + '/wfs', {
     type: 'GET',
@@ -63,9 +67,11 @@ var zoomToGeoserverVectorLayer = function (layername) {
   })
 }
 
-var zoomToGeoserverLayerBbox = function (layername) {
+var zoomToGeoserverLayerBbox = function (layerid) {
   const map = store.state.map
   store.commit('SET_LOADING', true)
+
+  var layername = store.state.internalLayers[layerid].gs_layername
 
   store.dispatch('getInternalRasterLayerBbox', layername)
   .then((response) => {
@@ -119,17 +125,23 @@ var zoomToGeoserverLayerBbox = function (layername) {
 
 var setSLDstyle = function (styleObj) {
   var sld
-  if (store.state.internalLayers[styleObj.layername].geomtype === 0) {
+  if (store.state.internalLayers[styleObj.layerid].geomtype === 0) {
     sld = generatePointSLD(styleObj)
-  } else if (store.state.internalLayers[styleObj.layername].geomtype === 1) {
+  } else if (store.state.internalLayers[styleObj.layerid].geomtype === 1) {
     sld = generateLineSLD(styleObj)
-  } else if (store.state.internalLayers[styleObj.layername].geomtype === 2) {
+  } else if (store.state.internalLayers[styleObj.layerid].geomtype === 2) {
     sld = generatePolygonSLD(styleObj)
   } else {
     sld = generateRasterSLD(styleObj)
   }
 
-  store.dispatch('setInternalLayerStyle', {'layername': styleObj.layername, 'sld': sld})
+  var payload = {
+    'layername': styleObj.layername,
+    'sld': sld,
+    'styleObj': styleObj
+  }
+
+  store.dispatch('setInternalLayerStyle', payload)
   .then(() => {
     EventBus.$emit('refreshLayer', styleObj.layername)
   })

@@ -371,10 +371,9 @@
               <font-awesome-icon icon="share-alt" class="mr-2" />
             </button>
             <div class="dropdown-menu">
-              <a class="dropdown-item" href="#" @click="inviteCoAuthorModal()">Co-create story</a>
-              <a class="dropdown-item" href="#">Share story</a>
-              <a class="dropdown-item" href="#">Submit story</a>
-              <a class="dropdown-item" href="#">Publish story</a>
+              <a class="dropdown-item" href="#" @click="inviteCoAuthorModal()">Co-create narrative</a>
+              <a class="dropdown-item" href="#">Submit narrative</a>
+              <a class="dropdown-item" href="#">Publish narrative</a>
             </div>
           </div>
           <button v-if="isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="seeComments()">

@@ -739,7 +739,7 @@
         uploadFieldName: 'file',
         uploadError: null,
         layerAssignedName: null,
-        layerName: null,
+        layerId: null,
         layerToDelete: null,
         storyToDelete: null,
         editor: null,
@@ -873,14 +873,14 @@
       }
     },
     mounted: function () {
-      EventBus.$on('assignLayerNameModalOpen', (layername) => {
-        this.layerName = layername
-        this.layerAssignedName = this.$store.state.internalLayers[layername].assigned_name
+      EventBus.$on('assignLayerNameModalOpen', (layerid) => {
+        this.layerId = layerid
+        this.layerAssignedName = this.$store.state.internalLayers[layerid].assigned_name
         $('#renameLayerModal').modal('show')
       })
 
-      EventBus.$on('deleteLayerModalOpen', (layername) => {
-        this.layerToDelete = layername
+      EventBus.$on('deleteLayerModalOpen', (layerid) => {
+        this.layerToDelete = layerid
         $('#deleteLayerModal').modal('show')
       })
 
@@ -905,9 +905,9 @@
         }
       })
 
-      EventBus.$on('shareLayerModalOpen', (layername) => {
-        this.layerToShare = layername
-        this.layerSharedWith = this.internalLayers[layername].shared_with
+      EventBus.$on('shareLayerModalOpen', (layerid) => {
+        this.layerToShare = layerid
+        this.layerSharedWith = this.internalLayers[layerid].shared_with
         $('#shareLayerModal').modal('show')
       })
     },
@@ -995,9 +995,9 @@
       changeLayerVisibility_intServ (layer, layerkey) {
         this.$store.state.internalLayers[layerkey].visible = !this.$store.state.internalLayers[layerkey].visible
         if (this.$store.state.internalLayers[layerkey].visible) {
-          EventBus.$emit('createLayer', layerkey, 'internal') // the layerkey is enough to request the geoserver layer
+          EventBus.$emit('createLayer', layer.id, 'internal')
         } else {
-          EventBus.$emit('removeLayer', layerkey)
+          EventBus.$emit('removeLayer', layer.gs_layername)
           EventBus.$emit('resetSelectedFeatures')
         }
       },
@@ -1028,16 +1028,16 @@
         } else {
           if (layer.uploaded_by == this.userPK || this.isAdmin) {
             layerOptions = `<div class="layer-options">
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.name + `_zoomto" href="#">Zoom to layer</a>
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.name + `_rename" href="#">Rename layer</a>
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.name + `_restyle" href="#">Edit style</a>
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.name + `_share" href="#">Share layer</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.gs_layername + `_zoomto" href="#">Zoom to layer</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_rename" href="#">Rename layer</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_restyle" href="#">Edit style</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_share" href="#">Share layer</a>
                                   <div class="dropdown-divider"></div>
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.name + `_deleteLayer" href="#">Delete layer</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_deleteLayer" href="#">Delete layer</a>
                                 </div>`
           } else {
             layerOptions = `<div class="layer-options">
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.name + `_zoomto" href="#">Zoom to layer</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.gs_layername + `_zoomto" href="#">Zoom to layer</a>
                                 </div>`
           }
         }
@@ -1045,12 +1045,13 @@
         return layerOptions
       },
       assignNewName () {
-        this.$store.dispatch('renameLayer', { layername: this.layerName, assignedName: this.layerAssignedName })
+        this.$store.dispatch('renameLayer', { layerid: this.layerId, assignedName: this.layerAssignedName })
       },
       deleteLayer () {
-        this.$store.dispatch('deleteLayer', this.layerToDelete)
+        var gs_layername = this.internalLayers[this.layerToDelete].gs_layername
+        this.$store.dispatch('deleteLayer', {'gs_layername': gs_layername, 'layerid': this.layerToDelete} )
         .then(() => {
-          EventBus.$emit('removeLayer', this.layerToDelete)
+          EventBus.$emit('removeLayer', gs_layername)
         })
       },
       deleteStory () {
@@ -1174,7 +1175,7 @@
       setLayerSharedWith (value) {
         this.$refs.usersAutocomplete.inputValue = ''
         this.layerSharedWith.push(value.id)
-        this.$store.dispatch('setLayerSharing', { 'layername': this.layerToShare, 'shared_with': this.layerSharedWith })
+        this.$store.dispatch('setLayerSharing', { 'layerid': this.layerToShare, 'shared_with': this.layerSharedWith })
       },
       stopSharingLayerModalOpen (userid) {
         this.userToRemoveFromLayerSharing = userid
@@ -1183,7 +1184,7 @@
       setLayerSharedWithout (userid) {
         this.$refs.usersAutocomplete.inputValue = ''
         this.layerSharedWith=without(this.layerSharedWith, userid)
-        this.$store.dispatch('setLayerSharing', { 'layername': this.layerToShare, 'shared_with': this.layerSharedWith })
+        this.$store.dispatch('setLayerSharing', { 'layerid': this.layerToShare, 'shared_with': this.layerSharedWith })
       },
       onClose () {
         this.$refs.usersAutocomplete.inputValue = ''
