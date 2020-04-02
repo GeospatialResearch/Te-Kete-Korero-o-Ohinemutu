@@ -164,37 +164,39 @@
                 <font-awesome-icon icon="info-circle" />
                 <small>Snap the yellow geometry and drag the blue point to change the feature's shape.</small>
               </p>
-              <label class="mt-3"><strong>Name</strong></label>
-              <div class="col-sm-12 col-form-label col-form-label-sm">
-                <div v-if="storyViewLang === 'eng'">
-                  <input v-if="isDrawMode" v-model="drawnFeature.name.eng" required type="text" class="form-control form-control-sm" placeholder="Name of the geographical feature">
-                  <div v-else>
-                    <span v-if="drawnFeature.name.eng">{{ drawnFeature.name.eng }}</span>
-                    <span v-else class="text-muted font-italic">No name defined in English</span>
+              <div>
+                <label class="mt-3"><b>Name</b></label>
+                <div class="col-sm-12 col-form-label col-form-label-sm">
+                  <div v-if="storyViewLang === 'eng'">
+                    <input v-if="isDrawMode" v-model="drawnFeature.name.eng" required type="text" class="form-control form-control-sm" placeholder="Name of the geographical feature">
+                    <div v-else>
+                      <span v-if="drawnFeature.name.eng">{{ drawnFeature.name.eng }}</span>
+                      <span v-else class="text-muted font-italic">No name defined in English</span>
+                    </div>
+                  </div>
+                  <div v-if="storyViewLang === 'mao'">
+                    <input v-if="isDrawMode" v-model="drawnFeature.name.mao" required type="text" class="form-control form-control-sm" placeholder="Ingoa o te wāhi whenua">
+                    <div v-else>
+                      <span v-if="drawnFeature.name.mao">{{ drawnFeature.name.mao }}</span>
+                      <span v-else class="text-muted font-italic">No name defined in Te Reo</span>
+                    </div>
                   </div>
                 </div>
-                <div v-if="storyViewLang === 'mao'">
-                  <input v-if="isDrawMode" v-model="drawnFeature.name.mao" required type="text" class="form-control form-control-sm" placeholder="Ingoa o te wāhi whenua">
-                  <div v-else>
-                    <span v-if="drawnFeature.name.mao">{{ drawnFeature.name.mao }}</span>
-                    <span v-else class="text-muted font-italic">No name defined in Te Reo</span>
+                <label class="mt-3"><b>Description</b></label>
+                <div class="col-sm-12 col-form-label col-form-label-sm">
+                  <div v-if="storyViewLang === 'eng'">
+                    <textarea v-if="isDrawMode" v-model="drawnFeature.description.eng" required rows="4" class="form-control form-control-sm" placeholder="Description of what the geographical feature represents" />
+                    <div v-else>
+                      <span v-if="drawnFeature.description.eng">{{ drawnFeature.description.eng }}</span>
+                      <span v-else class="text-muted font-italic">No description defined in English</span>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <label class="mt-3"><strong>Description</strong></label>
-              <div class="col-sm-12 col-form-label col-form-label-sm">
-                <div v-if="storyViewLang === 'eng'">
-                  <textarea v-if="isDrawMode" v-model="drawnFeature.description.eng" required rows="4" class="form-control form-control-sm" placeholder="Description of what the geographical feature represents" />
-                  <div v-else>
-                    <span v-if="drawnFeature.description.eng">{{ drawnFeature.description.eng }}</span>
-                    <span v-else class="text-muted font-italic">No description defined in English</span>
-                  </div>
-                </div>
-                <div v-if="storyViewLang === 'mao'">
-                  <textarea v-if="isDrawMode" v-model="drawnFeature.description.mao" required rows="4" class="form-control form-control-sm" placeholder="Whakaahuatanga o te tohu o te waahi whenua" />
-                  <div v-else>
-                    <span v-if="drawnFeature.description.mao">{{ drawnFeature.description.mao }}</span>
-                    <span v-else class="text-muted font-italic">No description defined in Te Reo</span>
+                  <div v-if="storyViewLang === 'mao'">
+                    <textarea v-if="isDrawMode" v-model="drawnFeature.description.mao" required rows="4" class="form-control form-control-sm" placeholder="Whakaahuatanga o te tohu o te waahi whenua" />
+                    <div v-else>
+                      <span v-if="drawnFeature.description.mao">{{ drawnFeature.description.mao }}</span>
+                      <span v-else class="text-muted font-italic">No description defined in Te Reo</span>
+                    </div>
                   </div>
                 </div>
               </div>

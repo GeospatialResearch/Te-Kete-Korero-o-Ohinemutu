@@ -52,6 +52,7 @@ import { faAt } from '@fortawesome/free-solid-svg-icons/faAt'
 import { faComments } from '@fortawesome/free-solid-svg-icons/faComments'
 import { faPen } from '@fortawesome/free-solid-svg-icons/faPen'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner'
+import { faPrint } from '@fortawesome/free-solid-svg-icons/faPrint'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 library.add(
@@ -60,7 +61,7 @@ library.add(
   faBell, faLayerGroup, faBookOpen, faFolderOpen, faInfo, faInfoCircle, faEllipsisV, faChevronDown, farCircle,
   faTimes, faTimesCircle, faShareAlt, faEdit, faArrowsAlt, faMapMarkedAlt, faBan, faPaintBrush, farDotCircle,
   faSearchPlus, faImages, faChevronCircleRight, faChevronCircleLeft, faTrashAlt, faTrash, faMapMarkerAlt, farNewspaper,
-  faCheckSquare, faSquare, faFilter, faSearchLocation, faList, faUser, faKey, faAt, faComments, faPen, faSpinner
+  faCheckSquare, faSquare, faFilter, faSearchLocation, faList, faUser, faKey, faAt, faComments, faPen, faSpinner, faPrint
 )
 
 export {

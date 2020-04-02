@@ -20,7 +20,7 @@
 
     <div v-if="isStoryViewMode" class="mb-3">
       <!-- view mode -->
-      <div class="pl-3 pr-3 pt-4" style="background-color:#ffffff;">
+      <div class="pl-3 pr-3 pt-4 printme_1" style="background-color:#ffffff;">
         <span class="badge badge-warning mb-2 p-2" title="Story status">{{ story.status }}</span>
         <span v-if="story.story_type" class="badge badge-success mb-2 p-2 float-right" title="Type of Narrative">{{ story.story_type.type }}</span>
         <div title="Story Date">
@@ -96,7 +96,7 @@
       <div v-for="element in story.storyBodyElements" :key="element.id" class="col-md-12 pl-4 pr-4 pb-2">
         <font-awesome-icon v-if="element.content_type" disabled icon="info-circle" color="grey" class="pointer float-right" :title="element.content_type.type" />
         <div :class="element.content_type?'mr-4':''">
-          <div v-if="element.element_type == 'TEXT'">
+          <div v-if="element.element_type == 'TEXT'" class="printme_1">
             <div v-show="storyLang === 'eng'" class="ql-text mb-4" v-html="element.texteng" />
             <div v-show="storyLang === 'mao'" class="ql-text mb-4" v-html="element.textmao" />
           </div>
@@ -114,7 +114,7 @@
             </div>
           </div>
           <div class="align-center">
-            <div v-if="element.element_type == 'IMG'">
+            <div v-if="element.element_type == 'IMG'" class="printme_1">
               <img :src="mediaRoot + element.mediafile_name" class="story-elem-img img-fluid">
               <span class="fa-stack fa-1x positioner-magnify" @click="magnifyImage(element)">
                 <i class="fa fa-circle fa-stack-2x icon-background" />
@@ -130,12 +130,14 @@
               <source :src="mediaRoot + element.mediafile_name" type="audio/mpeg">
               Your browser does not support the audio element.
             </audio>
-            <p v-if="element.element_type != 'TEXT' && storyLang === 'eng' && element.media_description" class="media-caption">
-              {{ element.media_description.eng }}
-            </p>
-            <p v-if="element.element_type != 'TEXT' && storyLang === 'mao' && element.media_description" class="media-caption">
-              {{ element.media_description.mao }}
-            </p>
+            <div class="printme_1">
+              <p v-if="element.element_type != 'TEXT' && storyLang === 'eng' && element.media_description" class="media-caption">
+                {{ element.media_description.eng }}
+              </p>
+              <p v-if="element.element_type != 'TEXT' && storyLang === 'mao' && element.media_description" class="media-caption">
+                {{ element.media_description.mao }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -376,6 +378,10 @@
               <a class="dropdown-item" href="#">Publish narrative</a>
             </div>
           </div>
+          <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-sm btn-primary" @click="printStory(story.title)">
+            <font-awesome-icon icon="print" />
+            Print story
+          </button>
           <button v-if="isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="seeComments()">
             <font-awesome-icon icon="comments" />
             Comments
@@ -1265,8 +1271,70 @@ export default {
     scrollStoryTop () {
       $('#sidePanel').animate({ scrollTop: 0 }, 'fast')
     },
-    showAtuaModal() {
+    showAtuaModal () {
       EventBus.$emit('showAtuaModal')
+    },
+    printStory (title) {
+      var pdfname = title.eng?title.eng:title.mao
+      var currentdate = new Date(Date.now()).toLocaleString().split(',')[0]
+
+      var css = this.getallcss()
+
+      // Get image of the map
+      var canvas = document.getElementsByTagName("CANVAS")[0]
+      var dataURL = canvas.toDataURL();
+
+      let mywindow = window.open('', 'PRINT', 'height=650,width=900,top=100,left=150')
+      mywindow.document.write(`<html><head><title>${pdfname}</title>`)
+      mywindow.document.write(`<style>${css}</style>`)
+      mywindow.document.write('</head><body >');
+
+      mywindow.document.write(`<small class="text-muted">Printed on ${currentdate}</small><br />`)
+      mywindow.document.write(`<h5><b>CULTURAL NARRATIVES</b></h5><br /><br /><br />`)
+
+      each($(".printme_1"), (elem) => {
+        mywindow.document.write(elem.innerHTML);
+      })
+
+      mywindow.document.write(`<img style="display: block; margin-left: auto; margin-right: auto; width: 60%; margin-top:40px; margin-bottom:10px; border: solid 2px #595353" src="${dataURL}" >`)
+      mywindow.document.write(`<h4 style="text-align:center; margin-bottom:20px;">Locations in the narrative</h4>`)
+
+      var geomhtml = ''
+      var storyGeoms = this.$store.state.storyContent.storyBodyElements.filter(x => x.element_type == 'GEOM')
+      each(storyGeoms, (geom) => {
+        var geomattr = geom.geom_attr
+        geomhtml += `<p class="mt-3"><b>Name:</b> ${geomattr.name.eng?geomattr.name.eng:geomattr.name.mao}</p>`
+        geomhtml += `<p><b>Description:</b> ${geomattr.description.eng?geomattr.description.eng:geomattr.description.mao}</p>`
+        each(geomattr.geomAttribMedia, (media) => {
+          if (media.media_type == 'IMG') {
+            geomhtml += `<img src="${process.env.API_HOST + '/media/' + media.mediafile_name}" alt="" class="geometry-media">`
+            geomhtml += `<p class="media-caption">${media.media_description.eng?media.media_description.eng:media.media_description.mao}</p>`
+          }
+        })
+        geomhtml += `<br />`
+      })
+
+      mywindow.document.write(geomhtml)
+      mywindow.document.write('</body></html>')
+
+      mywindow.document.close(); // necessary for IE >= 10
+      mywindow.focus(); // necessary for IE >= 10*/
+
+      delay( () => {
+          mywindow.print();
+          mywindow.close();
+        }, 200)
+    },
+    getallcss () {
+      var cssClasses = ''
+      $.each(document.styleSheets, (sheetIndex, sheet) => {
+        if (sheet.href == null) {
+          $.each(sheet.cssRules || sheet.rules, (ruleIndex, rule) => {
+            cssClasses += rule.cssText
+          })
+        }
+      })
+      return cssClasses
     }
   }
 };
