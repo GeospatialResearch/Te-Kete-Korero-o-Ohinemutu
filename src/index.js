@@ -8,7 +8,10 @@ import store from './store'
 // import javascript
 import 'malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js'
 import 'malihu-custom-scrollbar-plugin'
+import 'jquery/dist/jquery.min.js'
+import 'popper.js'
 import 'bootstrap'
+import 'bootstrap-select'
 
 // import vue-moment
 import vueMoment from 'vue-moment'
@@ -23,7 +26,9 @@ import vuedraggable from 'vuedraggable'
 Vue.use(vuedraggable)
 
 // import css
+
 import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap-select/dist/css/bootstrap-select.min.css'
 import './css/custom.css'
 import './css/sidebar.css'
 import './css/sidebar-themes.css'

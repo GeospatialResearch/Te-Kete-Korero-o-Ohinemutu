@@ -168,7 +168,7 @@
             Atua
           </h5>
           <span class="text-muted pl-1" @click="showAtuaModal()"><font-awesome-icon icon="info-circle" class="pointer" /></span>
-          <select v-model="story.atua" required class="form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Atua">
+          <select v-model="story.atua" required class="selectpicker form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Atua">
             <option v-for="item in allAtuas" :key="item.id" :value="item.id">
               {{ item.name }}
             </option>
@@ -176,7 +176,7 @@
           <h5 class="mb-0">
             Type of Narrative
           </h5>
-          <select v-model="story.story_type_id" required class="form-control form-control-sm mb-3">
+          <select v-model="story.story_type_id" required class="selectpicker form-control form-control-sm mb-3">
             <option key="SELECT" value="" selected disabled>
               Select type of narrative
             </option>
@@ -187,7 +187,7 @@
           <h5 class="mb-0">
             Date
           </h5>
-          <select v-model="story.approx_time.type" required class="form-control form-control-sm mb-2" @change="onChange">
+          <select v-model="story.approx_time.type" required class="selectpicker form-control form-control-sm mb-2" @change="onChange">
             <option key="SELECT" value="" selected disabled>
               Select date type
             </option>
@@ -1090,6 +1090,7 @@ export default {
             this.story.story_type_id = this.story.story_type.id
           }
           this.$store.commit('SET_STORY_VIEW_MODE', false)
+          this.reinitialiseBootstrapSelect()
           EventBus.$emit('resetDrawnFeature')
           }
         else{
@@ -1274,6 +1275,11 @@ export default {
     showAtuaModal () {
       EventBus.$emit('showAtuaModal')
     },
+    reinitialiseBootstrapSelect () {
+      $(function () {
+        $('.selectpicker').selectpicker();
+      })
+    },
     printStory (title) {
       var pdfname = title.eng?title.eng:title.mao
       var currentdate = new Date(Date.now()).toLocaleString().split(',')[0]
@@ -1337,5 +1343,5 @@ export default {
       return cssClasses
     }
   }
-};
-</script>
+  };
+  </script>
