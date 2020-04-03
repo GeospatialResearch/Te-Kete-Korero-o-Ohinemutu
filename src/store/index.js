@@ -328,7 +328,6 @@ const store = new Vuex.Store({
     // Generic fail handling
     API_FAIL (state, error) {
       if (error.status === 401 || error.status === 403) {
-        console.log((error))
         console.error("Authentication error found. Logging user out.")
         store.commit("DEAUTHENTICATE")
       } else {
@@ -416,8 +415,7 @@ const store = new Vuex.Store({
         .catch((error) => store.commit('API_FAIL', error))
     },
     getStories () {
-      // To be filtered in the future based on the stories that the public/user has access
-      return api.get(apiRoot + '/stories', { headers: getAuthHeader() })
+      return api.get(apiRoot + '/stories/', { headers: getAuthHeader() })
       .then((response) => {
         store.commit('SET_STORIES', response)
         store.dispatch('getAllUsedStoriesGeometries')
@@ -425,8 +423,7 @@ const store = new Vuex.Store({
       .catch((error) => store.commit('API_FAIL', error))
     },
     getAtuas () {
-      // To getall atuas
-      return api.get(apiRoot + '/atuas', { headers: getAuthHeader() })
+      return api.get(apiRoot + '/atuas/', { headers: getAuthHeader() })
         .then((response) => {
           store.commit('SET_ALLATUAS', response)
         })
@@ -434,7 +431,7 @@ const store = new Vuex.Store({
     },
     getUsers () {
       // To getall users
-      return api.get(apiRoot + '/users', { headers: getAuthHeader() })
+      return api.get(apiRoot + '/users/', { headers: getAuthHeader() })
         .then((response) => {
           store.commit('SET_ALLUSERS', response)
         })
@@ -442,7 +439,7 @@ const store = new Vuex.Store({
     },
     getStoryTypes () {
       // To getall storytypes
-      return api.get(apiRoot + '/storytypes', { headers: getAuthHeader() })
+      return api.get(apiRoot + '/storytypes/', { headers: getAuthHeader() })
         .then((response) => {
           store.commit('SET_ALLSTORYTYPES', response)
         })
@@ -450,7 +447,7 @@ const store = new Vuex.Store({
     },
     getElementContentTypes () {
       // To getall contenttypes
-      return api.get(apiRoot + '/contenttypes', { headers: getAuthHeader() })
+      return api.get(apiRoot + '/contenttypes/', { headers: getAuthHeader() })
         .then((response) => {
           store.commit('SET_ALL_ELEMENT_CONTENTTYPES', response)
         })
@@ -645,7 +642,7 @@ const store = new Vuex.Store({
       return api.delete(apiRoot + '/storygeomsattribmedia/' + geomAttrMedia.id + '/', { headers: getAuthHeader() })
     },
     getAllUsedStoriesGeometries () {
-      api.get(apiRoot + '/storybodyelements', { headers: getAuthHeader() })
+      api.get(apiRoot + '/storybodyelements/', { headers: getAuthHeader() })
         .then((response) => {
           var allUsedGeoms = []
           var allUsedGeomsObj = {}

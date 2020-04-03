@@ -830,21 +830,27 @@
       }
     },
     watch: {
-      stories: function () {
-        this.filterNarratives()
+      stories: {
+        handler: function () {
+          try {
+            this.filterNarratives()
 
-        this.myNarratives = []
-        this.otherNarratives = []
-        if (this.authenticated) {
-          each(this.stories, (story) => {
-            if (story.owner == this.username ||  story.co_authors.indexOf(this.userPK)>=0) {
-              this.myNarratives.push(story)
+            this.myNarratives = []
+            this.otherNarratives = []
+            if (this.authenticated) {
+              each(this.stories, (story) => {
+                if (story.owner == this.username ||  story.co_authors.indexOf(this.userPK)>=0) {
+                  this.myNarratives.push(story)
+                } else {
+                  this.otherNarratives.push(story)
+                }
+              })
             } else {
-              this.otherNarratives.push(story)
+              this.otherNarratives = this.stories
             }
-          })
-        } else {
-          this.otherNarratives = this.stories
+          } catch (e) {
+            // Do nothing, this is fine.
+          }
         }
       },
       internalLayers: {

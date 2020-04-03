@@ -199,7 +199,6 @@ def createGeoserverShpLayer(layer, request):
             except requests.exceptions.HTTPError as e:
                 raise ValidationError(e)
 
-            print(r_create_layer.status_code)
             if r_create_layer.status_code == 200 or r_create_layer.status_code == 201:
                 print("######### Published Geoserver shp datastore and layer #########")
 
@@ -213,7 +212,6 @@ def createGeoserverShpLayer(layer, request):
                 except requests.exceptions.HTTPError as e:
                     raise ValidationError(e)
 
-                print(r_rename_layer.status_code)
                 if r_rename_layer.status_code == 200 or r_rename_layer.status_code == 201:
                     print("######### Geoserver layer renamed #########")
                     # delete layer generated before the layer rename
@@ -275,8 +273,6 @@ def update_editor(editor_id, story_id, action):
 
 @transaction.atomic
 def delete_layer(obj, deleteStore=False):
-
-    print(obj)
 
     if deleteStore:
         storename = obj['gs_layername']
@@ -344,8 +340,6 @@ class SetGeoServerDefaultStyle(APIView):
         sld = request.data['sld']
         styleObj = request.data['styleObj']
 
-        print(styleObj)
-
         dataset = Dataset.objects.get(id=styleObj['layerid'])
         del styleObj['layername']
         del styleObj['layerid']
@@ -355,9 +349,6 @@ class SetGeoServerDefaultStyle(APIView):
         cat = get_catalog()
 
         layer = cat.get_layer(layername)
-
-        print(layer)
-
 
         newstyle = cat.create_style('style_' + layername, sld, overwrite=True)
         layer.default_style = 'style_' + layername
@@ -394,7 +385,7 @@ class UploadMediaFileView(APIView):
         audio_exts = ['.mp3']
         filename = str(request.data['file'])
         base_name, ext = os.path.splitext(filename)
-        print("##############")
+
         if ext.lower() not in img_exts and ext.lower() not in video_exts and ext.lower() not in audio_exts:
             raise ValidationError("The format of the media file " + filename + " is not supported. Please, upload a media file with one of the following extensions: " + ",".join(img_exts) + "," + ",".join(video_exts) + " and" + ",".join(audio_exts))
         if not re.match("^[a-zA-Z0-9_-]*$", base_name):
