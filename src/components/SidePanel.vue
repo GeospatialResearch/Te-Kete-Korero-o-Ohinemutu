@@ -1288,11 +1288,16 @@ export default {
 
       // Get image of the map
       var canvas = document.getElementsByTagName("CANVAS")[0]
-      var dataURL = canvas.toDataURL();
+      var imageURL = canvas.toDataURL();
 
       let mywindow = window.open('', 'PRINT', 'height=650,width=900,top=100,left=150')
       mywindow.document.write(`<html><head><title>${pdfname}</title>`)
-      mywindow.document.write(`<style>${css}</style>`)
+
+      each(css.hrefs, (href) => {
+        mywindow.document.write(`<link href="${href}" rel="stylesheet">`)
+      })
+
+      mywindow.document.write(`<style>${css.cssClasses}</style>`)
       mywindow.document.write('</head><body >');
 
       mywindow.document.write(`<small class="text-muted">Printed on ${currentdate}</small><br />`)
@@ -1302,7 +1307,7 @@ export default {
         mywindow.document.write(elem.innerHTML);
       })
 
-      mywindow.document.write(`<img style="display: block; margin-left: auto; margin-right: auto; width: 60%; margin-top:40px; margin-bottom:10px; border: solid 2px #595353" src="${dataURL}" >`)
+      mywindow.document.write(`<img style="display: block; margin-left: auto; margin-right: auto; width: 60%; margin-top:40px; margin-bottom:10px; border: solid 2px #595353" src="${imageURL}" >`)
       mywindow.document.write(`<h4 style="text-align:center; margin-bottom:20px;">Locations in the narrative</h4>`)
 
       var geomhtml = ''
@@ -1329,18 +1334,21 @@ export default {
       delay( () => {
           mywindow.print();
           mywindow.close();
-        }, 200)
+        }, 400)
     },
     getallcss () {
       var cssClasses = ''
+      var hrefs = []
       $.each(document.styleSheets, (sheetIndex, sheet) => {
         if (sheet.href == null) {
           $.each(sheet.cssRules || sheet.rules, (ruleIndex, rule) => {
             cssClasses += rule.cssText
           })
+        } else {
+          hrefs.push(sheet.href)
         }
       })
-      return cssClasses
+      return { 'cssClasses': cssClasses, 'hrefs': hrefs }
     }
   }
   };
