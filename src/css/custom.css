@@ -941,4 +941,8 @@ b {
     color: unset;
     background-color: unset;
   }
+
+  .positioner-magnify {
+    display: none !important;
+  }
 }

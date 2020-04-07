@@ -29,7 +29,8 @@ var addGeoserverWMS = function (layerid) {
       url: process.env.GEOSERVER_HOST + '/storyapp/wms',
       params: {'LAYERS': 'storyapp:' + layername },
       ratio: 1,
-      serverType: 'geoserver'
+      serverType: 'geoserver',
+      crossOrigin: "Anonymous"
     })
   })
   map.addLayer(layerWMS)

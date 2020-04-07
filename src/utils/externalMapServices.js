@@ -42,7 +42,8 @@ var addLinzWFS = function (obj) {
     },
     strategy: tile(new createXYZ({
         maxZoom: 19
-        }))
+      })),
+    crossOrigin: "Anonymous"
   })
 
   var vl = new VectorLayer({
@@ -71,7 +72,8 @@ var addMfeWFS = function (obj) {
     },
     strategy: tile(new createXYZ({
         maxZoom: 19
-        }))
+      })),
+    crossOrigin: "Anonymous"
   })
 
   var vl = new VectorLayer({
@@ -91,7 +93,8 @@ var addAerialImageryWMTS = function (obj) {
 
   var tl = new TileLayer({
     source: new XYZ({
-      url: 'http://tiles-a.data-cdn.linz.govt.nz/services;key=' + linzKey + '/tiles/v4/set=4702/EPSG:3857/{z}/{x}/{y}.png'
+      url: 'http://tiles-a.data-cdn.linz.govt.nz/services;key=' + linzKey + '/tiles/v4/set=4702/EPSG:3857/{z}/{x}/{y}.png',
+      crossOrigin: "Anonymous"
     }),
 		name: obj.keyname,
 		zIndex: obj.zindex
