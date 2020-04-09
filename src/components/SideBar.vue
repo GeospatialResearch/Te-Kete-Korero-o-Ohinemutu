@@ -923,6 +923,7 @@
           // this.$store.state.date_type_temp = ''
           $('#storyIsBeingEditedWarningModal').modal('show')
         } else {
+          EventBus.$emit('initialiseBootstrapSelect')
           this.$store.commit('RESET_STORY_FORM')
           this.$store.commit('SET_STORY_VIEW_MODE', false)
           this.$store.commit('SET_PANEL_OPEN', true)

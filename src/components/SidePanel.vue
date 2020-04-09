@@ -895,6 +895,10 @@ export default {
       this.scrollStoryTop()
     })
 
+    EventBus.$on('initialiseBootstrapSelect', () => {
+      this.reinitialiseBootstrapSelect()
+    })
+
   },
   methods: {
     onChange (e) {
@@ -1334,7 +1338,7 @@ export default {
       delay( () => {
           mywindow.print();
           mywindow.close();
-        }, 400)
+        }, 700)
     },
     getallcss () {
       var cssClasses = ''
