@@ -289,7 +289,21 @@
             <h5>Attention</h5>
           </div>
           <div class="modal-body text-center">
-            <h6>Use the drawing buttons on the upper left corner of the map to draw points, lines and polygons.</h6>
+            <h6>
+              Use the drawing buttons along the left margin of the map to locate your narrative as a point (
+              <img src="static/img/drawPoint.svg">
+              ), a line (
+              <img src="static/img/drawLine.svg">
+              ) or a polygon(
+              <img src="static/img/drawPolygon.svg">
+              ).
+              <br><br>
+              Use the button
+              <button style="background-color: #a21515;" disabled>
+                <i><font-awesome-icon icon="ban" color="white" /></i>
+              </button>
+              to stop drawing.
+            </h6>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -1203,7 +1217,8 @@ export default {
         var features = storyGeomsSource.getFeatures()
         features.forEach((feature) => {
           if (geomAttrStyles[feature.getProperties().name]) {
-            var geomAttrStyle = this.createOLStyle({ 'label': feature.getProperties().label, 'styleObj': geomAttrStyles[feature.getProperties().name[this.$store.state.storyViewLang]] })
+            var geomAttrStyle = this.createOLStyle({ 'label': feature.getProperties().label, 'styleObj': geomAttrStyles[feature.getProperties().name] })
+
             feature.setStyle(geomAttrStyle)
           }
         })
@@ -1272,7 +1287,6 @@ export default {
 
 
     EventBus.$on('zoomToGeometry', (geomAttr) => {
-      EventBus.$emit('showStoryGeomInfo', geomAttr)
 
       var features
       this.map.getLayers().forEach( (layer) => {
@@ -1294,6 +1308,7 @@ export default {
 
     EventBus.$on('editGeomAttr', (geomAttr) => {
       EventBus.$emit('zoomToGeometry', geomAttr)
+      EventBus.$emit('showStoryGeomInfo', geomAttr)
 
       this.$store.commit('SET_DRAW_MODE', true)
       this.$store.commit('SET_GEOM_MEDIA_MODE', false)
@@ -1352,7 +1367,7 @@ export default {
     })
 
 
-    EventBus.$on('editGeometryStyle', (geomAttr) => {
+    EventBus.$on('editGeomStyle', (geomAttr) => {
       EventBus.$emit('zoomToGeometry', geomAttr)
       this.$store.commit('SET_GEOM_MEDIA_MODE', false)
       this.$store.commit('SET_DRAW_MODE', false)
@@ -1366,9 +1381,9 @@ export default {
                 this.storyGeomStyle = geomAttr.style
               } else {
                 this.storyGeomStyle = {
-                  'color': '#1f6de0',
+                  'color': '#1f6de0', // it needs to be hex code instead of rgb(31, 109, 224)
                   'opacity': 0.5,
-                  'linewidth': 2
+                  'linewidth': 4
                 }
               }
               this.storyGeomStyle.feature = feature
@@ -1762,10 +1777,10 @@ export default {
                           })
                         }),
                         text: new Text({
-                          font: 'bold 13px Calibri,sans-serif',
-                          fill: new Fill({ color: '#000' }),
+                          font: 'bold 15px Calibri,sans-serif',
+                          fill: new Fill({ color: '#2b2828' }),
                           stroke: new Stroke({
-                            color: '#f2a2a2', width: 4
+                            color: '#ffffff', width: 4
                           }),
                           text: obj.label,
                           offsetY: 15,
