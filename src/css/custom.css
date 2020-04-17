@@ -184,8 +184,8 @@ b {
 
 .navbar-elem {
   color: #e4e4e4;
-  font-weight: bold;
-  font-size: 1rem;
+  font-weight: 400;
+  font-size: .9rem;
 }
 
 .uploadmedia-loading {
@@ -833,6 +833,10 @@ b {
   padding: 5px 5px;
 }
 
+.user-manual-content {
+  padding: 0 2rem 0 2rem;
+}
+
 /* @media sizes  */
 
 @media (max-width: 768px) {
@@ -866,6 +870,9 @@ b {
   }
   .navbar-elem {
     font-size: 0.8rem;
+  }
+  .gotomap-text {
+    display: none;
   }
 }
 

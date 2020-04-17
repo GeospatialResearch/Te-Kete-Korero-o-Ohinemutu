@@ -73,7 +73,7 @@
       <h1>Welcome to Kete o Kōrero</h1>
       <div class="pb-4">
         <h4 class="mt-4" style="color:#777777;">
-          A space where whānau can hold narratives and traditional knowledge about their whenua
+          A space where Ōhinemutu whānau can hold narratives and traditional knowledge about their whenua
         </h4>
         <br>
         <h6 v-if="!authenticated">

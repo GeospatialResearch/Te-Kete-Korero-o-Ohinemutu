@@ -555,11 +555,11 @@ var allStoriesGeomsStyle = new Style({
 var defaultStoryGeomStyle = function (feature) {
   return new Style({
              fill: new Fill({
-               color: 'rgba(31, 109, 224, 0.5)'
+               color: 'rgba(31, 109, 224, 0.1)'
              }),
              stroke: new Stroke({
                color: 'rgba(31, 109, 224, 1)',
-               width: 2
+               width: 4
              }),
              image: new CircleStyle({
                radius: 5,
@@ -568,14 +568,14 @@ var defaultStoryGeomStyle = function (feature) {
                }),
                stroke: new Stroke({
                  color: 'rgba(31, 109, 224, 1)',
-                 width: 2
+                 width: 4
                })
              }),
              text: new Text({
                font: 'bold 15px Calibri,sans-serif',
                fill: new Fill({ color: '#2b2828' }),
                stroke: new Stroke({
-                 color: '#ffffff', width: 6
+                 color: '#ffffff', width: 4
                }),
                text: typeof feature == 'string' ? feature : feature.get('label'),
                offsetY:15,

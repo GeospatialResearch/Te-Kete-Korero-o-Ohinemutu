@@ -12,7 +12,7 @@
             <a id="pin-sidebar" class="btn-sm btn-dark mr-2" href="#" title="Pin sidebar">
               <font-awesome-icon icon="map-pin" />
             </a>
-            <select v-model="selectedValue" class="btn btn-sm btn-secondary dropdown-toggle" @change="onChange">
+            <select v-model="selectedValue" class="btn btn-sm btn-dark dropdown-toggle" @change="onChange">
               <option value="eng">
                 English
               </option>
@@ -21,21 +21,35 @@
               </option>
             </select>
           </div>
+          <!-- <div v-if="authenticated" class="navbar-elem ml-3 ml-md-5 pointer" title="Website walkthrough">
+            <font-awesome-icon icon="shoe-prints" />
+            Walkthrough
+          </div> -->
+          <div class="navbar-elem ml-3 ml-md-5 pointer" @click="showAtuaModal()">
+            User Manual
+          </div>
           <div class="dropdown">
-            <span id="navbarDropdownAbout" class="dropdown-toggle navbar-elem ml-3 ml-md-5" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span id="navbarDropdownAbout" class="dropdown-toggle navbar-elem ml-3 ml-md-5 pointer" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               About
             </span>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownAbout">
-              <div class="dropdown-item text-muted" @click="showAtuaModal()">
-                Atua
+              <div class="dropdown-item text-muted">
+                Te Kete o Kōrero
               </div>
               <div class="dropdown-item text-muted">
-                Types of Narratives
+                Te Tatau o Te Arawa
+              </div>
+              <div class="dropdown-item text-muted">
+                University of Canterbury
               </div>
             </div>
           </div>
           <div class="col p-0">
             <div class="float-right">
+              <button class="btn btn-sm btn-dark mr-2" type="button" title="Go to Map" @click="$store.commit('TOGGLE_CONTENT', 'map')">
+                <font-awesome-icon icon="map" />
+                <span class="gotomap-text"> Map</span>
+              </button>
               <button v-if="!authenticated" class="btn btn-sm btn-success" type="button" @click="showLoginModal()">
                 Login
               </button>
@@ -97,7 +111,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="mb-0">
-              Atua & Narratives
+              User Manual
             </h4>
           </div>
           <div class="modal-body">

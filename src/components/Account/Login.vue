@@ -28,12 +28,12 @@
               </div>
               <input v-model="credentials.password" value="" type="password" name="" class="form-control input_pass" placeholder="Enter your password" required @keyup.enter="submit()">
             </div>
-            <div class="form-group">
+            <!-- <div class="form-group">
               <div class="custom-control custom-checkbox">
                 <input id="customControlInline" type="checkbox" class="custom-control-input">
                 <label class="custom-control-label" for="customControlInline">Remember me</label>
               </div>
-            </div>
+            </div> -->
             <div class="d-flex justify-content-center mt-3 login-container">
               <button type="button" name="button" class="btn login-btn" @click="submit()">
                 Login

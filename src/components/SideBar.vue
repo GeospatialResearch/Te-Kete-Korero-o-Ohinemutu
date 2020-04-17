@@ -34,8 +34,8 @@
             </li>
             <li @click="$store.commit('TOGGLE_CONTENT', 'map')">
               <a href="#">
-                <!-- <i class="fa fa-globe" /> using this one the icons shakes when hovering over the icon-->
-                <i><font-awesome-icon icon="globe" /></i>
+                <!-- <i class="fa fa-map" /> using this one the icons shakes when hovering over the icon-->
+                <i><font-awesome-icon icon="map" /></i>
                 <span class="menu-text">Go to {{ translationObj.map[lang] }}</span>
               </a>
             </li>
