@@ -156,38 +156,9 @@
           </div>
 
           <h5 class="mb-0">
-            Summary
-          </h5>
-          <textarea v-show="storyLang === 'eng'" v-model="story.summaryeng" required class="form-control form-control-sm mb-3" placeholder="Summary" />
-          <textarea v-show="storyLang === 'mao'" v-model="story.summarymao" :required="(story.summaryeng == null || story.summaryeng == '') ? true : false" class="form-control form-control-sm mb-3" placeholder="Whakarāpopototanga" />
-          <div class="invalid-feedback">
-            Summary is mandatory
-          </div>
-
-          <h5 v-if="story.atua" class="mb-0">
-            Atua
-          </h5>
-          <span class="text-muted pl-1" @click="showAtuaModal()"><font-awesome-icon icon="info-circle" class="pointer" /></span>
-          <select v-model="story.atua" required class="selectpicker form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Atua">
-            <option v-for="item in allAtuas" :key="item.id" :value="item.id">
-              {{ item.name }}
-            </option>
-          </select>
-          <h5 class="mb-0">
-            Type of Narrative
-          </h5>
-          <select v-model="story.story_type_id" required class="selectpicker form-control form-control-sm mb-3">
-            <option key="SELECT" value="" selected disabled>
-              Select type of narrative
-            </option>
-            <option v-for="item in allStoryTypes" :key="item.id" :value="item.id">
-              {{ item.type }}
-            </option>
-          </select>
-          <h5 class="mb-0">
             Date
           </h5>
-          <select v-model="story.approx_time.type" required class="selectpicker form-control form-control-sm mb-2" @change="onChange">
+          <select v-model="story.approx_time.type" required class="selectpicker form-control form-control-sm mb-3" @change="onChange">
             <option key="SELECT" value="" selected disabled>
               Select date type
             </option>
@@ -235,6 +206,37 @@
                 <input v-model="story.approx_time.year" required min="1" max="2020" type="number" class="form-control form-control-sm" title="Year" placeholder="year">
               </div>
             </div>
+          </div>
+
+          <h5 class="mt-2 mb-0">
+            Type of Narrative
+          </h5>
+          <select v-model="story.story_type_id" required class="selectpicker form-control form-control-sm mb-3">
+            <option key="SELECT" value="" selected disabled>
+              Select type of narrative
+            </option>
+            <option v-for="item in allStoryTypes" :key="item.id" :value="item.id">
+              {{ item.type }}
+            </option>
+          </select>
+
+          <h5 v-if="story.atua" class="mb-0">
+            Atua
+          </h5>
+          <span class="text-muted pl-1" @click="showAtuaModal()"><font-awesome-icon icon="info-circle" class="pointer" /></span>
+          <select v-model="story.atua" required class="selectpicker form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Atua">
+            <option v-for="item in allAtuas" :key="item.id" :value="item.id">
+              {{ item.name }}
+            </option>
+          </select>
+
+          <h5 class="mb-0">
+            Summary
+          </h5>
+          <textarea v-show="storyLang === 'eng'" v-model="story.summaryeng" required class="form-control form-control-sm" placeholder="Summary" />
+          <textarea v-show="storyLang === 'mao'" v-model="story.summarymao" :required="(story.summaryeng == null || story.summaryeng == '') ? true : false" class="form-control form-control-sm" placeholder="Whakarāpopototanga" />
+          <div class="invalid-feedback">
+            Summary is mandatory
           </div>
         </div>
       </form>
@@ -1208,12 +1210,13 @@ export default {
     },
     zoomToGeometry (element) {
       EventBus.$emit('zoomToGeometry', element.geom_attr)
+      EventBus.$emit('showStoryGeomInfo', element.geom_attr)
     },
     editGeometry (geomAttr) {
       EventBus.$emit('editGeomAttr', geomAttr)
     },
     editGeometryStyle (geomAttr) {
-      EventBus.$emit('editGeometryStyle', geomAttr)
+      EventBus.$emit('editGeomStyle', geomAttr)
     },
     magnifyImage (element) {
       this.magnifyImageElem = element
@@ -1223,6 +1226,7 @@ export default {
       this.$store.commit('SET_GEOM_MEDIA_MODE', true)
       this.$store.commit('SET_DRAW_MODE', false)
       EventBus.$emit('zoomToGeometry', geomAttr)
+      EventBus.$emit('showStoryGeomInfo', geomAttr)
     },
     addGeomAttrMedia () {
       $('#uploadFileModal').modal('hide')
@@ -1263,6 +1267,7 @@ export default {
           EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
           delay(() => {
             EventBus.$emit('zoomToGeometry', geomAttr)
+            EventBus.$emit('showStoryGeomInfo', geomAttr)
           }, 10)
 
         })
