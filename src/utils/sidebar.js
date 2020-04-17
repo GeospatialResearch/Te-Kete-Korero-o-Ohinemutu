@@ -164,7 +164,7 @@ $(function () {
           if (story.story_type) {
             story.story_type_id = story.story_type.id
           }
-
+          EventBus.$emit('initialiseBootstrapSelect')
           store.commit('SET_STORY_VIEW_MODE', false)
           store.commit('SET_PANEL_OPEN', true)
           EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
