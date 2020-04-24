@@ -281,7 +281,7 @@ const store = new Vuex.Store({
     },
     SET_UPLOADMEDIA_PROGRESS (state, value) {
       if (value == 100) {
-        state.uploadMediaProgress = 99.9
+        state.uploadMediaProgress = 99
       } else {
         state.uploadMediaProgress = value
       }

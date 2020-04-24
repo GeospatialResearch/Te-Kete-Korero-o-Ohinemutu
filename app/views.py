@@ -21,7 +21,13 @@ import re
 from .utils import layer_type, get_catalog, SLDfilterByAttrib
 import requests
 from django.utils import timezone
-
+from PIL import Image
+from io import BytesIO
+from django.core.files import File
+import subprocess
+from django.conf import settings
+from tempfile import NamedTemporaryFile
+from django.core.files.storage import default_storage
 
 # Util Functions
 def get_layer_from_file(file_obj, directory, request):
@@ -372,6 +378,30 @@ class UploadFileView(APIView):
         return Response(layer)
 
 
+
+def compress_image(image):
+    im = Image.open(image)
+    im_io = BytesIO()
+    im.save(im_io, 'JPEG', quality=70)
+    new_image = File(im_io, name=image.name)
+    return new_image
+
+def compress_video(mediafile,filename,ext):
+    # Reduce file size in case of video and audio
+    temp_file = NamedTemporaryFile(suffix = ext.lower())
+    temp_file_path = temp_file.name
+    with open(temp_file_path, 'wb+') as destination:
+        for chunk in mediafile.chunks():
+            destination.write(chunk)
+
+    outfile = settings.MEDIA_ROOT+"/compressed_"+filename
+    subprocess.call(["ffmpeg", "-i", temp_file_path, "-strict", "-2", "-b:v", "300K", outfile])#-b:v 300K
+    file_compressed = File(open(outfile, 'rb'))
+    file_compressed.name = file_compressed.name.split('compressed_')[1]
+    default_storage.delete(outfile)
+    return file_compressed
+
+
 # https://www.techiediaries.com/django-rest-image-file-upload-tutorial/
 class UploadMediaFileView(APIView):
     parser_class = (FileUploadParser,)
@@ -392,6 +422,11 @@ class UploadMediaFileView(APIView):
             raise ValidationError("The media file name " + base_name + " is invalid. Make sure the name does not have any spaces or special characters.")
         if base_name[0].isdigit():
             raise ValidationError("The media file name can't start with a digit. Please make sure the name starts with an alpha character.")
+
+        if ext.lower() in img_exts:
+            request.data['file'] = compress_image(request.data['file'])
+        # if ext.lower() in video_exts or ext.lower() in audio_exts:
+        #     request.data['file'] = compress_video(request.data['file'],filename,ext)
 
         if file_serializer.is_valid():
             file_serializer.save()

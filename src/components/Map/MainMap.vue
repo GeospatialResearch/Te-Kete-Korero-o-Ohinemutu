@@ -459,7 +459,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="cancelsetOLStyle()">
               Cancel
             </button>
             <button class="btn btn-success btn-ok" @click="setOLStyle()">
@@ -1736,6 +1736,10 @@ export default {
     },
     hideStoryGeomInfo () {
       EventBus.$emit('resetDrawnFeature')
+    },
+    cancelsetOLStyle(){
+      delete this.storyGeomStyle['feature']
+      delete this.storyGeomStyle['geomAttr']
     },
     setOLStyle () {
       var style = this.createOLStyle({'label': this.storyGeomStyle['geomAttr'].name[this.$store.state.storyViewLang], 'styleObj': this.storyGeomStyle})

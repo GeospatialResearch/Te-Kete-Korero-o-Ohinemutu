@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y python-software-properties software-pro
 RUN apt-get update && apt-get install -y python3 python3-pip binutils libproj-dev gdal-bin python3-gdal postgresql \
     && rm -rf /var/lib/apt/lists/*
 
+# Install ffmeg command line tool
+RUN apt-get update && apt-get install -y ffmpeg
+
 # Store the app directory, so we can change it if we want
 ENV APPDIR=/code
 WORKDIR $APPDIR
