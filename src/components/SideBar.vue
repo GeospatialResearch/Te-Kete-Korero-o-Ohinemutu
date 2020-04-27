@@ -130,7 +130,7 @@
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
                 <span v-if="isAdmin" class="menu-text">Other layers</span>
-                <span v-else class="menu-text">Default layers</span>
+                <span v-else class="menu-text">Internal layers</span>
               </a>
               <div class="sidebar-submenu">
                 <ul>
