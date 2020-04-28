@@ -397,14 +397,14 @@
     </div>
 
     <!-- modals -->
-    <div id="uploadFileModal" class="modal">
+    <div id="uploadFileModal" class="modal" data-backdrop="static">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">
               Upload file (video/audio/image)
             </h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <button v-show="!uploadingMedia" type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
@@ -443,7 +443,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <span class="btn btn-secondary" data-dismiss="modal" @click="cancelAddMediaElement()">
+            <span v-show="!uploadingMedia" class="btn btn-secondary" data-dismiss="modal" @click="cancelAddMediaElement()">
               <span v-if="!uploadError">Cancel</span>
               <span v-else>Close</span>
             </span>
@@ -955,6 +955,7 @@ export default {
         if (FileSize > 500) {
           this.uploadError = 'The file size exceeds 500 MB. Please, upload a smaller media file.'
           fileList = ''
+          this.uploadingMedia = false
           return
         }
 

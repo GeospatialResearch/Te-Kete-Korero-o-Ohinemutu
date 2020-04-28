@@ -219,6 +219,9 @@
               <button v-if="drawnFeature.geomAttribMedia.length > 0" type="button" class="btn btn-sm btn-success" @click="saveCaptions()">
                 Save
               </button>
+              <!-- <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" @click="hideAddNewMedia()">
+                Close
+              </button> -->
             </div>
             <div v-if="drawnFeature.geomAttribMedia" class="carousel slide" data-ride="carousel" data-interval="false">
               <div class="row m-0">
@@ -1807,6 +1810,9 @@ export default {
     addMediaFileToGeom () {
       $('.carousel').carousel(0) // reinitialise the carousel before adding new media
       EventBus.$emit('addMediaToGeomAttr', this.drawnFeature)
+    },
+    hideAddNewMedia() {
+      this.$store.commit('SET_GEOM_MEDIA_MODE', false)
     },
     saveCaptions () {
       this.$store.commit('SET_GEOM_MEDIA_MODE', false)
