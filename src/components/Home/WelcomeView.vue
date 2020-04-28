@@ -70,7 +70,7 @@
       </h1>
     </div> -->
     <div class="text-center pt-5" style="background-color:#ffffff;">
-      <h1>Welcome to Kete o Kōrero</h1>
+      <h1>Welcome to Te Kete o Kōrero ki te Ōhinemutu</h1>
       <div class="pb-4">
         <h4 class="mt-4" style="color:#777777;">
           A space where Ōhinemutu whānau can hold narratives and traditional knowledge about their whenua
