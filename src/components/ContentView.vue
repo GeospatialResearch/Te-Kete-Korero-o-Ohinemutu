@@ -25,11 +25,12 @@
             <font-awesome-icon icon="shoe-prints" />
             Walkthrough
           </div> -->
-          <div class="dropdown">
-            <span id="navbarDropdownAbout" class="dropdown-toggle navbar-elem ml-md-5 pointer" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              User Manual
+          <div class="dropdown" title="User Manual">
+            <span id="navbarDropdownUserManual" class="dropdown-toggle navbar-elem ml-4 ml-md-5 pointer" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <font-awesome-icon class="navbar-icon" icon="book" />
+              <span class="navbar-text"> User Manual</span>
             </span>
-            <div class="dropdown-menu ml-md-5" aria-labelledby="navbarDropdownAbout">
+            <div class="dropdown-menu ml-md-5" aria-labelledby="navbarDropdownUserManual">
               <h5 class="dropdown-header pl-3" style="font-size:1.1rem;">
                 Getting started
               </h5>
@@ -95,9 +96,10 @@
               </div>
             </div>
           </div>
-          <div class="dropdown">
-            <span id="navbarDropdownAbout" class="dropdown-toggle navbar-elem ml-md-5 pointer" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              About
+          <div class="dropdown" title="About">
+            <span id="navbarDropdownAbout" class="dropdown-toggle navbar-elem ml-3 ml-md-5 pointer" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <font-awesome-icon class="navbar-icon" icon="question" />
+              <span class="navbar-text"> About</span>
             </span>
             <div class="dropdown-menu ml-md-5" aria-labelledby="navbarDropdownAbout">
               <div class="dropdown-item text-muted">
@@ -111,11 +113,12 @@
               </div>
             </div>
           </div>
-          <div class="dropdown">
-            <span id="navbarDropdownAbout" class="dropdown-toggle navbar-elem ml-md-5 pointer" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              More Info
+          <div class="dropdown" title="More Info">
+            <span id="navbarDropdownMoreInfo" class="dropdown-toggle navbar-elem ml-3 ml-md-5 pointer" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <font-awesome-icon class="navbar-icon" icon="lightbulb" />
+              <span class="navbar-text"> More info</span>
             </span>
-            <div class="dropdown-menu ml-md-5" aria-labelledby="navbarDropdownAbout">
+            <div class="dropdown-menu ml-md-5" aria-labelledby="navbarDropdownMoreInfo">
               <div class="dropdown-item pointer" @click="showOtherDataSourcesModal()">
                 Other data sources
               </div>
@@ -131,13 +134,15 @@
             <div class="float-right">
               <button class="btn btn-sm btn-dark mr-2" type="button" title="Go to Map" @click="$store.commit('TOGGLE_CONTENT', 'map')">
                 <font-awesome-icon icon="map" />
-                <span class="gotomap-text"> Map</span>
+                <span class="navbar-text p-0"> Map</span>
               </button>
-              <button v-if="!authenticated" class="btn btn-sm btn-success" type="button" @click="showLoginModal()">
-                Login
+              <button v-if="!authenticated" class="btn btn-sm btn-success" type="button" title="Login" @click="showLoginModal()">
+                <font-awesome-icon icon="sign-in-alt" />
+                <span class="navbar-text p-0"> Login</span>
               </button>
-              <button v-else class="btn btn-sm btn-outline-danger" type="button" @click="showLogoutModal()">
-                Logout
+              <button v-else class="btn btn-sm btn-outline-danger" type="button" title="Logout" @click="showLogoutModal()">
+                <font-awesome-icon icon="sign-out-alt" />
+                <span class="navbar-text p-0"> Logout</span>
               </button>
             </div>
           </div>

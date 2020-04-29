@@ -837,6 +837,14 @@ b {
   padding: 0 2rem 0 2rem;
 }
 
+.navbar-icon {
+  display: none;
+}
+
+.dropdown-menu {
+  font-size: unset;
+}
+
 /* @media sizes  */
 
 @media (max-width: 768px) {
@@ -851,8 +859,17 @@ b {
   #sidePanel {
     padding-bottom: 60%;
   }
+  h1 {
+    font-size: 2rem;
+  }
   h3 {
     font-size: 1.5rem;
+  }
+  h4{
+    font-size: 1.2rem;
+  }
+  h6 {
+    font-size: 0.8rem;
   }
   .modal-header-description {
     font-size: 14px;
@@ -871,8 +888,17 @@ b {
   .navbar-elem {
     font-size: 0.8rem;
   }
-  .gotomap-text {
+  .navbar-text {
     display: none;
+  }
+  .navbar-icon {
+    display: inline;
+  }
+  .dropdown-menu {
+    left: 50% !important;
+    right: auto !important;
+    text-align: center !important;
+    transform: translate(-50%, 0) !important;
   }
 }
 
