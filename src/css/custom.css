@@ -897,7 +897,6 @@ b {
   .dropdown-menu {
     left: 50% !important;
     right: auto !important;
-    text-align: center !important;
     transform: translate(-50%, 0) !important;
   }
 }
