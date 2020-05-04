@@ -65,6 +65,7 @@ class Dataset(models.Model):
     geomtype = models.IntegerField(null=False,
                                 default=POINT,
                                 choices=GEOMTYPES)
+    copyright_text = models.CharField(max_length=500, default=None, blank=True, null=True)
     assigned_name = models.CharField(max_length=200, default=None, blank=True, null=True)
     uploaded_by = models.ForeignKey('auth.User', related_name='datasets', on_delete=models.CASCADE)
     shared_with = ArrayField(models.IntegerField(), default=None, blank=True, null=True)

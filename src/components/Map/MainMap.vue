@@ -35,7 +35,7 @@
               </label>
             </div>
           </div>
-          <div class="mt-2">
+          <div class="mt-2 printme_2">
             <small><strong>Layers</strong></small>
             <small v-for="(layer, layerkey) in externalLayers" :key="layerkey">
               <div v-if="layer.visible">

@@ -580,14 +580,14 @@ class CommentViewSet(viewsets.ModelViewSet):
 ### I had to turn the following method into an APIView in order to the request.user don't be AnonymousUser
 # def dataset_list(request):
 #     if request.method == 'GET':
-#         datasets = Dataset.objects.for_user(request.user).values('name', 'geomtype', 'assigned_name', 'uploaded_by')
+#         datasets = Dataset.objects.for_user(request.user).values('name', 'geomtype', 'copyright_text', 'assigned_name', 'uploaded_by')
 #
 #         datasets_list = list(datasets)
 #         return JsonResponse(datasets_list, safe=False)
 
 class DatasetList(APIView):
     def get(self, request):
-        datasets = Dataset.objects.for_user(request.user).values('id', 'name', 'geomtype', 'assigned_name', 'uploaded_by', 'uploaded_by__username', 'shared_with')
+        datasets = Dataset.objects.for_user(request.user).values('id', 'name', 'geomtype', 'copyright_text', 'assigned_name', 'uploaded_by', 'uploaded_by__username', 'shared_with')
         datasets_list = list(datasets)
         return JsonResponse(datasets_list, safe=False)
 
@@ -624,6 +624,17 @@ class DeleteLayer(APIView):
 
         return Response({'result': None})
 
+class AddCopyright(APIView):
+    def post(self, request):
+        layerid = request.data['layerid']
+        copyright_text = request.data['copyrightText']
+
+        if layerid is not None and copyright_text is not None:
+            dataset = Dataset.objects.get(id=layerid)
+            dataset.copyright_text = copyright_text
+            dataset.save()
+
+        return Response({'result': None})
 
 class RenameLayer(APIView):
     def post(self, request):

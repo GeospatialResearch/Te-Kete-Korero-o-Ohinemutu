@@ -524,6 +524,29 @@
         </div>
       </div>
     </div>
+    <div id="addCopyrightLayerModal" class="modal fade" data-backdrop="static">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Add copyright</h5>
+          </div>
+          <div class="modal-body">
+            <div>
+              <h6 class="mb-4">Add a copyright statement to your layer so the source can be acknowledged.</h6>
+              <span class="text-muted">Examples: Sourced from ... and licensed for reuse under the licence ... | Created by user ...</span>
+              <input v-model="layercopyrightText" required type="text" class="form-control form-control-sm mt-2" title="Add copyright">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <div class="btn-group pull-right">
+              <button type="button" class="btn btn-primary" data-dismiss="modal" @click="addCopyright()">
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="renameLayerModal" class="modal fade">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -739,6 +762,7 @@
         uploadFieldName: 'file',
         uploadError: null,
         layerAssignedName: null,
+        layercopyrightText: null,
         layerId: null,
         layerToDelete: null,
         storyToDelete: null,
@@ -879,6 +903,12 @@
       }
     },
     mounted: function () {
+      EventBus.$on('addCopyrightLayerModalOpen', (layerid) => {
+        this.layerId = layerid
+        this.layercopyrightText = this.$store.state.internalLayers[layerid].copyright_text
+        $('#addCopyrightLayerModal').modal('show')
+      })
+
       EventBus.$on('assignLayerNameModalOpen', (layerid) => {
         this.layerId = layerid
         this.layerAssignedName = this.$store.state.internalLayers[layerid].assigned_name
@@ -969,6 +999,7 @@
             }
             this.$store.state.isUploadingData = false
             this.reset()
+            EventBus.$emit('addCopyrightLayerModalOpen',response.body['id'])
           } else {
             if (response.body.indexOf('Request') == -1) {
               this.uploadError = response.body[0]
@@ -1037,6 +1068,7 @@
             layerOptions = `<div class="layer-options">
                                   <a class="dropdown-item` + disabled +`" id="` + layer.gs_layername + `_zoomto" href="#">Zoom to layer</a>
                                   <a class="dropdown-item` + disabled +`" id="` + layer.id + `_rename" href="#">Rename layer</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_copyright" href="#">Edit copyright</a>
                                   <a class="dropdown-item` + disabled +`" id="` + layer.id + `_restyle" href="#">Edit style</a>
                                   <a class="dropdown-item` + disabled +`" id="` + layer.id + `_share" href="#">Share layer</a>
                                   <div class="dropdown-divider"></div>
@@ -1050,6 +1082,9 @@
         }
 
         return layerOptions
+      },
+      addCopyright () {
+        this.$store.dispatch('addCopyrightText', { layerid: this.layerId, copyrightText: this.layercopyrightText })
       },
       assignNewName () {
         this.$store.dispatch('renameLayer', { layerid: this.layerId, assignedName: this.layerAssignedName })

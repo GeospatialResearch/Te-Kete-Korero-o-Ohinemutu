@@ -1320,6 +1320,11 @@ export default {
       mywindow.document.write(`<img style="display: block; margin-left: auto; margin-right: auto; width: 60%; margin-top:40px; margin-bottom:10px; border: solid 2px #595353" src="${imageURL}" >`)
       mywindow.document.write(`<h4 style="text-align:center; margin-bottom:20px;">Locations in the narrative</h4>`)
 
+      each($(".printme_2"), (elem) => {
+        mywindow.document.write(elem.innerHTML)
+        mywindow.document.write('<br /><br />')
+      })
+
       var geomhtml = ''
       var storyGeoms = this.$store.state.storyContent.storyBodyElements.filter(x => x.element_type == 'GEOM')
       each(storyGeoms, (geom) => {
@@ -1336,6 +1341,48 @@ export default {
       })
 
       mywindow.document.write(geomhtml)
+
+      var copyright_available = true
+      // To print internal layers' copyright
+      var intlayers = this.$store.state.internalLayers
+      each(intlayers, (layer) => {
+        if(layer.visible)
+        {
+          if(copyright_available)
+          {
+            mywindow.document.write('<h2 class="mt-5 mb-5">Layers Copyrights</h2>')
+            copyright_available = false
+          }
+
+          if(layer.assigned_name){
+            mywindow.document.write('<p><strong>Layer name: </strong>'+layer.assigned_name+'</p>')
+          }
+          else {
+            mywindow.document.write('<p><strong>Layer name: </strong>'+layer.name+'</p>')
+          }
+          if(layer.copyright_text){
+            mywindow.document.write('<i>'+layer.copyright_text+'</i><br /><br /><br />')
+          }
+          else {
+            mywindow.document.write('<i>Copyright statement not provided.</i><br /><br /><br />')
+          }
+        }
+        })
+      // To print external layers' copyright
+      var extlayers = this.$store.state.externalLayers
+      each(extlayers, (layer) => {
+        if(layer.visible)
+        {
+          if(copyright_available)
+          {
+            mywindow.document.write('<h2 class="mt-5 mb-5">Layers Copyrights</h2>')
+            copyright_available = false
+          }
+          mywindow.document.write(layer.attribution+'<br /><br /><br />')
+        }
+      })
+      mywindow.document.write('<p><strong>Basemaps: </strong><i>Map tiles by <a href="https://stamen.com/">Stamen Design</a>, under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.</i></p>')
+
       mywindow.document.write('</body></html>')
 
       mywindow.document.close(); // necessary for IE >= 10

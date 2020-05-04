@@ -53,6 +53,7 @@ v1 = router.urls + [
     url(r'^set_layer_style/', views.SetGeoServerDefaultStyle.as_view()),
     url(r'^get_layer_style/', views.GetGeoServerDefaultStyle.as_view()),
     url(r'^delete_layer/', views.DeleteLayer.as_view()),
+    url(r'^add_copyright/', views.AddCopyright.as_view()),
     url(r'^rename_layer/', views.RenameLayer.as_view()),
     url(r'^get_layer_bbox/', views.get_layer_bbox),
     url(r'^set_layer_shared_with/', views.SetLayerSharedWith.as_view()),

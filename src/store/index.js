@@ -113,12 +113,17 @@ const store = new Vuex.Store({
       state.orientation = content
     },
     TOGGLE_CONTENT (state, content) {
+      if (!store.state.storyViewMode) {
+        EventBus.$emit('storyIsBeingEditedWarning')
+      }
+      else {
       state.contentToShow = content
       if (state.contentToShow != 'map') {
         EventBus.$emit('closePanel')
       }
       if (state.contentToShow == 'welcome') {
         EventBus.$emit('closeSidebar')
+        }
       }
     },
     SET_EXTERNAL_LAYERS (state, layersObj) {
@@ -143,6 +148,7 @@ const store = new Vuex.Store({
         legendURL: process.env.GEOSERVER_HOST + "/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=storyapp:" + gs_layername + "&myData:" + Math.random(),
         geomtype: ['POINT', 'MULTIPOINT'].includes(payload.geomtype) ? 0 : ['LINESTRING', 'MULTILINESTRING'].includes(payload.geomtype) ? 1 : ['POLYGON', 'MULTIPOLYGON'].includes(payload.geomtype) ? 2 : 3,
         assigned_name: null,
+        copyright_text: null,
         uploaded_by: state.user.pk,
         uploaded_by__username: state.user.username,
         shared_with: [],
@@ -153,6 +159,9 @@ const store = new Vuex.Store({
     },
     DELETE_INTERNAL_LAYER (state, layerid) {
       Vue.delete(state.internalLayers, layerid)
+    },
+    ADD_COPYRIGHT_TEXT (state, payload) {
+      state.internalLayers[payload.layerid].copyright_text = payload.copyrightText
     },
     RENAME_INTERNAL_LAYER (state, payload) {
       state.internalLayers[payload.layerid].assigned_name = payload.assignedName
@@ -375,6 +384,13 @@ const store = new Vuex.Store({
       return api.post(apiRoot + '/delete_layer/', payload, { headers: getAuthHeader() })
         .then(() => {
           store.commit('DELETE_INTERNAL_LAYER', payload.layerid)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    addCopyrightText (store, payload) {
+      return api.post(apiRoot + '/add_copyright/', payload, { headers: getAuthHeader() })
+        .then(() => {
+          store.commit('ADD_COPYRIGHT_TEXT', payload)
         })
         .catch((error) => store.commit('API_FAIL', error))
     },

@@ -127,12 +127,15 @@ $(function () {
     var layer_id = $(this).attr('id').replace("_deleteLayer", "")
     EventBus.$emit('deleteLayerModalOpen', layer_id)
   })
+  $(document.body).on('click', "[id*='_copyright']" ,function(){
+    var layer_id = $(this).attr('id').replace("_copyright", "")
+    EventBus.$emit('addCopyrightLayerModalOpen', layer_id)
+  })
   $(document.body).on('click', "[id*='_rename']" ,function(){
     var layer_id = $(this).attr('id').replace("_rename", "")
     EventBus.$emit('assignLayerNameModalOpen', layer_id)
   })
   $(document.body).on('click', "[id*='_share']" ,function(){
-    console.log($(this).attr('id'))
     var layer_id = $(this).attr('id').replace("_share", "")
     EventBus.$emit('shareLayerModalOpen', layer_id)
   })
