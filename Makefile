@@ -85,6 +85,9 @@ load-storytypes:
 load-contenttypes:
 	docker-compose $(DEV) exec api python3 manage.py load_content_types
 
+load-sectornests:
+	docker-compose $(DEV) exec api python3 manage.py load_sectors_nests
+
 # initialise-db: migrate load-test
 # 	docker-compose $(DEV) restart api
 

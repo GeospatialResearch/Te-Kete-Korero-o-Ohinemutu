@@ -126,6 +126,7 @@
     .sidebar-wrapper .sidebar-header .user-pic img {
       -o-object-fit: cover;
       object-fit: cover;
+      border: solid 2px #f2f0f0;
       height: 100%;
       width: 100%; }
   .sidebar-wrapper .sidebar-header .user-info {

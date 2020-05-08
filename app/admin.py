@@ -1,11 +1,14 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin, register
 from django.contrib.gis.admin import GeoModelAdmin
-from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment
+from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest
+# TribalRegisterList
 
 # Register your models here.
 
 admin.site.register(Comment)
+admin.site.register(Profile)
+# admin.site.register(TribalRegisterList)
 
 @register(Dataset)
 class DatasetAdmin(ModelAdmin):
@@ -57,3 +60,16 @@ class AtuaAdmin(ModelAdmin):
 @register(StoryType)
 class StoryTypeAdmin(ModelAdmin):
     list_display = ['type']
+
+
+@register(Sector)
+class SectorAdmin(ModelAdmin):
+    list_display = ['name']
+
+
+@register(Nest)
+class NestAdmin(ModelAdmin):
+    list_display = ['name', 'get_kinshipsector_name']
+
+    def get_kinshipsector_name(self, obj):
+        return obj.kinship_sector.name

@@ -8,6 +8,7 @@ from geoserver.catalog import Catalog
 
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
+from django.conf import settings
 
 shp_exts = ['.shp', ]
 csv_exts = ['.csv']
@@ -46,14 +47,13 @@ def get_catalog():
     return cat
 
 
-def send_email(emaildata ,emailtype):
+def send_email(emaildata, emailtype):
 
     text_content = ''
     htmly = get_template('../templates/app/' + emailtype + '.html')
     html_content = htmly.render(emaildata)
-    subject = 'New comment in your narrative'
 
-    msg = EmailMultiAlternatives(subject, text_content, 'geospatial.gri@gmail.com', emaildata['mailing_list'])
+    msg = EmailMultiAlternatives(emaildata['subject'], text_content, settings.EMAIL_HOST_USER, emaildata['mailing_list'])
     msg.attach_alternative(html_content, "text/html")
     msg.send()
 

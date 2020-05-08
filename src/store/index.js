@@ -28,9 +28,12 @@ var getData = function () {
   store.dispatch('getStories'),
   store.dispatch('getAtuas'),
   store.dispatch('getUsers'),
+  store.dispatch('getProfiles'),
   store.dispatch('getStoryTypes'),
   store.dispatch('getElementContentTypes'),
-  store.dispatch('getWebsiteTranslation')
+  store.dispatch('getWebsiteTranslation'),
+  store.dispatch('getSectors'),
+  store.dispatch('getNests')
 }
 
 const initialState = {
@@ -80,6 +83,7 @@ const initialState = {
   lang: 'eng',
   storyViewLang: 'eng',
   allUsers: [],
+  allProfiles: [],
   allAtuas: [],
   allStoryTypes: [],
   allElementContentTypes: [],
@@ -90,7 +94,9 @@ const initialState = {
   authenticated: false,
   user: null,
   isAdmin: false,
-  orientation: null
+  orientation: null,
+  sectors: null,
+  nests: null
 }
 
 const store = new Vuex.Store({
@@ -192,7 +198,10 @@ const store = new Vuex.Store({
       state.allAtuas = response.body
     },
     SET_ALLUSERS (state, response) {
-      state.allUsers = response.body
+      state.allUsers = response.body.users
+    },
+    SET_ALLPROFILES (state, response) {
+      state.allProfiles = response.body
     },
     SET_ALLSTORYTYPES (state, response) {
       state.allStoryTypes = response.body
@@ -297,9 +306,15 @@ const store = new Vuex.Store({
 
     },
     // Account system
+    SET_AVATAR (state, response) {
+      store.state.user.profile.avatar = response.body.avatar
+    },
+    SET_USER (state, response) {
+      state.user = response.body.user
+    },
     SET_LOGIN (state, response) {
       if (!isEmpty(response.body)) {
-        state.user = response.body.user
+        store.commit("SET_USER", response)
         if (response.body.hasOwnProperty('token')) {
           state.token = response.body.token // rest-auth jwt
           localStorage.setItem('token', response.body.token)
@@ -333,6 +348,12 @@ const store = new Vuex.Store({
       state.isAdmin = value
       getData()
       store.commit("UNCHECK_INTERNAL_LAYERS")
+    },
+    SET_SECTORS (state, response) {
+      state.sectors = response.body
+    },
+    SET_NESTS (state, response) {
+      state.nests = response.body
     },
     // Generic fail handling
     API_FAIL (state, error) {
@@ -442,14 +463,6 @@ const store = new Vuex.Store({
       return api.get(apiRoot + '/atuas/', { headers: getAuthHeader() })
         .then((response) => {
           store.commit('SET_ALLATUAS', response)
-        })
-        .catch((error) => store.commit('API_FAIL', error))
-    },
-    getUsers () {
-      // To getall users
-      return api.get(apiRoot + '/users/', { headers: getAuthHeader() })
-        .then((response) => {
-          store.commit('SET_ALLUSERS', response)
         })
         .catch((error) => store.commit('API_FAIL', error))
     },
@@ -703,6 +716,7 @@ const store = new Vuex.Store({
       return api.post(process.env.API_HOST + '/auth/login/', payload)
         .then((response) => {
           store.commit('SET_LOGIN', response)
+          store.dispatch('getUser') // to get the profile detail
           router.push('/')
           store.commit('TOGGLE_CONTENT', 'map')
           return response
@@ -715,6 +729,21 @@ const store = new Vuex.Store({
       store.commit('DEAUTHENTICATE')
       store.commit('TOGGLE_CONTENT', 'welcome')
       location.reload()
+    },
+    getUsers () {
+      // To getall users
+      return api.get(apiRoot + '/get_users/', { headers: getAuthHeader() })
+        .then((response) => {
+          store.commit('SET_ALLUSERS', response)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    getProfiles () {
+      return api.get(apiRoot + '/get_profiles/', { headers: getAuthHeader() })
+        .then((response) => {
+          store.commit('SET_ALLPROFILES', response)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     getUser (store) {
       // To check the token validation
@@ -735,7 +764,48 @@ const store = new Vuex.Store({
           store.dispatch('getStoryContent', comment.story)
         })
         .catch((error) => store.commit('API_FAIL', error))
-    }
+    },
+    changeAvatar (store, imageurl) {
+      return api.post(apiRoot + '/change_avatar/', { 'imageurl': imageurl }, { headers: getAuthHeader() })
+        .then((response) => store.commit('SET_AVATAR', response))
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    saveProfile (store, inputs) {
+      return api.post(apiRoot + '/save_profile/', { 'inputs': inputs }, { headers: getAuthHeader() })
+        .then((response) => store.commit('SET_USER', response))
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    saveAffiliation (store, payload) {
+      return api.post(apiRoot + '/save_affiliation/', payload, { headers: getAuthHeader() })
+        .then((response) => {
+          console.log(response)
+          store.dispatch('getProfiles')
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    getSectors (store) {
+      return api.get(apiRoot + '/sectors/', { headers: getAuthHeader() })
+        .then((response) => {
+          store.commit('SET_SECTORS', response)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    getNests (store) {
+      return api.get(apiRoot + '/nests/', { headers: getAuthHeader() })
+        .then((response) => {
+          store.commit('SET_NESTS', response)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    updateNest (store, nest) {
+      nest.kaitiaki_temp = nest.kaitiaki
+      delete nest['kaitiaki']
+      return api.patch(apiRoot + '/nests/' + nest.id + '/', nest, { headers: getAuthHeader() })
+        .then(() => {
+          store.dispatch('getNests')
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
   }
 })
 

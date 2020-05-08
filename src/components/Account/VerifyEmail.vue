@@ -7,13 +7,15 @@
           Verify Email
         </h1>
         <div v-if="activationLoading">
-          loading...
+          <font-awesome-icon icon="spinner" spin size="lg" />
+          <p>
+            loading...
+          </p>
         </div>
         <div v-else-if="activationError">
           An error occured.
         </div>
-        <div>
-          <!-- v-else-if="activationCompleted" -->
+        <div v-else-if="activationCompleted">
           <h3 class="pt-2">
             Account activation successful.
           </h3>

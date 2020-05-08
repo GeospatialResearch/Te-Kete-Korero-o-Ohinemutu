@@ -152,6 +152,9 @@
           <verify-email v-show="contentToShow=='verifyemail'" />
           <password-reset-confirm v-show="contentToShow=='passwordresetconfirm'" />
           <settings-view v-show="contentToShow=='themes'" />
+          <profile-view v-show="contentToShow=='profile'" />
+          <nests-view v-show="contentToShow=='nests'" />
+          <users-view v-show="contentToShow=='users'" />
           <main-map v-if="contentToShow=='map'" />
           <side-panel v-if="contentToShow=='map'" />
         </div>
@@ -263,6 +266,7 @@
   import { EventBus } from 'store/event-bus'
   import MainMap from 'components/Map/MainMap'
   import SettingsView from 'components/SettingsView'
+  import ProfileView from 'components/ProfileView'
   import SidePanel from 'components/SidePanel'
   import LogIn from 'components/Account/Login'
   import Register from 'components/Account/Register'
@@ -271,11 +275,14 @@
   import PasswordResetConfirm from 'components/Account/PasswordResetConfirm'
   import WelcomeView from 'components/Home/WelcomeView'
   import AtuaView from 'components/AtuaView'
+  import NestsView from 'components/ManageNestsView'
+  import UsersView from 'components/ManageUsersView'
 
   export default {
     components: {
       MainMap,
       SettingsView,
+      ProfileView,
       SidePanel,
       LogIn,
       Register,
@@ -283,7 +290,9 @@
       PasswordReset,
       PasswordResetConfirm,
       WelcomeView,
-      AtuaView
+      AtuaView,
+      NestsView,
+      UsersView
     },
     data () {
       return {

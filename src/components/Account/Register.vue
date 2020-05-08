@@ -1,15 +1,16 @@
 <template>
   <div class="container h-100">
     <div class="d-flex justify-content-center h-100">
-      <div class="user-card" :style="error ? 'height:500px': 'height:450px'">
+      <div class="user-card" :style="error ? 'height:600px': 'height:550px'">
         <div class="d-flex justify-content-center">
           <div class="brand-logo-container">
             <img src="static/img/weaveLogo.png" class="brand-logo" alt="Logo">
           </div>
         </div>
         <div v-if="registrationLoading" class="d-flex justify-content-center form-container">
+          <font-awesome-icon icon="spinner" spin size="lg" />
           <p class="text-center">
-            loading...
+            Creating account...
           </p>
         </div>
         <div v-else-if="!registrationCompleted">
@@ -97,7 +98,7 @@ export default {
         username: '',
         email: '',
         password1: '',
-        password2: '',
+        password2: ''
       },
       error: ''
     }

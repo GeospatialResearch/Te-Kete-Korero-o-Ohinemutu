@@ -7158,6 +7158,13 @@ vm-browserify@0.0.4:
   dependencies:
     indexof "0.0.1"
 
+vue-avatar-editor-improved@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/vue-avatar-editor-improved/-/vue-avatar-editor-improved-1.0.5.tgz#fb76a3747cd141206836e24d8db1658a16a44738"
+  integrity sha512-1YC6TQmAicCyQkdLx2bJiputg/tNkJtUgfSODaqyysRu2Q27vgmSmJt59UzPmvF96OcDLZZu1OD0Q7bWzD2D+w==
+  dependencies:
+    vue "^2.4.1"
+
 vue-bootstrap-typeahead@^0.2.6:
   version "0.2.6"
   resolved "https://registry.yarnpkg.com/vue-bootstrap-typeahead/-/vue-bootstrap-typeahead-0.2.6.tgz#8c1999a00bf4bf9fc906bae3a462482482cbc297"
@@ -7260,7 +7267,7 @@ vue2-editor@^2.10.2:
   dependencies:
     quill "^1.3.6"
 
-vue@^2.5.17:
+vue@^2.4.1, vue@^2.5.17:
   version "2.6.11"
   resolved "https://registry.yarnpkg.com/vue/-/vue-2.6.11.tgz#76594d877d4b12234406e84e35275c6d514125c5"
   integrity sha512-VfPwgcGABbGAue9+sfrD4PuwFar7gPb1yl1UK1MwXoQPAw0BKSqWfoYCT/ThFrdEVWoI51dBuyCoiNU9bZDZxQ==

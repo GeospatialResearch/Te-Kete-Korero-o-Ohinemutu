@@ -59,6 +59,9 @@ import { faSignInAlt } from '@fortawesome/free-solid-svg-icons/faSignInAlt'
 import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons/faSignOutAlt'
 import { faQuestion } from '@fortawesome/free-solid-svg-icons/faQuestion'
 import { faLightbulb } from '@fortawesome/free-solid-svg-icons/faLightbulb'
+import { faCalendarAlt as farCalendarAlt } from '@fortawesome/free-regular-svg-icons/faCalendarAlt'
+import { faFingerprint } from '@fortawesome/free-solid-svg-icons/faFingerprint'
+import { faAddressCard as farAddressCard } from '@fortawesome/free-regular-svg-icons/faAddressCard'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 library.add(
@@ -68,7 +71,7 @@ library.add(
   faTimes, faTimesCircle, faShareAlt, faEdit, faArrowsAlt, faMapMarkedAlt, faBan, faPaintBrush, farDotCircle,
   faSearchPlus, faImages, faChevronCircleRight, faChevronCircleLeft, faTrashAlt, faTrash, faMapMarkerAlt, farNewspaper,
   faCheckSquare, faSquare, faFilter, faSearchLocation, faList, faUser, faKey, faAt, faComments, faPen, faSpinner, faPrint,
-  faMap, faShoePrints, faSignInAlt, faSignOutAlt, faQuestion, faLightbulb
+  faMap, faShoePrints, faSignInAlt, faSignOutAlt, faQuestion, faLightbulb, farCalendarAlt, faFingerprint, farAddressCard
 )
 
 export {

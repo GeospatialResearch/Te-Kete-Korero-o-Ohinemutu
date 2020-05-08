@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer, ListField, SerializerMethodField, JSONField, PrimaryKeyRelatedField, ReadOnlyField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Dataset, CoAuthor, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment
+from .models import Dataset, CoAuthor, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest
 from django.contrib.gis.geos import GEOSGeometry
 from rest_auth.serializers import PasswordResetSerializer
 from django.contrib.auth.models import User
@@ -18,6 +18,12 @@ class AtuaSerializer(ModelSerializer):
 
 
 class UserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        exclude = ('password', )
+
+
+class UserSimpleSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'id')
@@ -68,7 +74,7 @@ class StorySerializer(ModelSerializer):
     def create(self, validated_data):
         elements = validated_data.pop('storyBodyElements_temp')
         atuas = validated_data.pop('atua_temp')
-        story_type_data =  validated_data.pop('StoryType')
+        story_type_data = validated_data.pop('StoryType')
 
         story = Story.objects.create(**validated_data,story_type=story_type_data)
 
@@ -285,3 +291,38 @@ class CoAuthorSerializer(ModelSerializer):
         for author in authors:
             CoAuthor.objects.create(story=story,co_author_id=author)
         return CoAuthor.objects.filter(story=story).all()
+
+
+class ProfileSerializer(ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = '__all__'
+
+
+class SectorSerializer(ModelSerializer):
+    class Meta:
+        model = Sector
+        fields = '__all__'
+
+
+class NestSerializer(ModelSerializer):
+    kaitiaki_temp = PrimaryKeyRelatedField(write_only=True,many=True,queryset=User.objects.all())
+    kinship_sector_id = PrimaryKeyRelatedField(source="Sector",queryset=Sector.objects.all(),required=False)
+    kinship_sector = SectorSerializer(read_only=True)
+
+    class Meta:
+        model = Nest
+        fields = '__all__'
+        depth = 1
+
+    def update(self, instance, validated_data):
+        instance.kinship_sector = validated_data.pop('Sector')
+        kaitiaki = validated_data.pop('kaitiaki_temp')
+
+        instance.kaitiaki.clear()
+        for k in kaitiaki:
+            instance.kaitiaki.add(k)
+        instance.name = validated_data['name']
+
+        instance.save()
+        return instance

@@ -83,7 +83,7 @@ REST_FRAMEWORK = {
 REST_USE_JWT = True
 
 JWT_AUTH = {
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=60)
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=4)
 }
 
 SITE_ID = 1

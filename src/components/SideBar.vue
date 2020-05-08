@@ -9,15 +9,16 @@
 
         <!-- sidebar-header  -->
         <div class="sidebar-item sidebar-header d-flex flex-nowrap">
-          <div v-if="authenticated" class="user-pic">
-            <img class="img-responsive img-rounded" src="static/img/user.jpg" alt="User picture">
+          <div v-if="authenticated" class="user-pic" @click="$store.commit('TOGGLE_CONTENT', 'profile')">
+            <img v-if="avatar" class="img-responsive img-rounded" :src="mediaRoot + avatar" alt="User picture">
+            <img v-else class="img-responsive img-rounded" src="static/img/user.jpg" alt="User picture">
           </div>
           <div v-if="authenticated" class="user-info">
             <span class="user-name">Welcome, <strong>{{ username }}</strong>
             </span>
-            <span class="user-status mt-0">Whanau: </span>
+            <!-- <span class="user-status mt-0">Whanau: </span>
             <span class="user-status mt-0">Hapu: </span>
-            <span class="user-status mt-0">Iwi: </span>
+            <span class="user-status mt-0">Iwi: </span> -->
             <!-- <span class="user-role">Administrator</span> -->
             <!-- <span class="user-status">
               <i><font-awesome-icon icon="circle" /></i>
@@ -290,7 +291,7 @@
                 <div v-else>
                   <ul>
                     <li v-for="story in filteredStories" :key="story.id">
-                      <a href="#" class="justify-content-between" :title="story.title">
+                      <a href="#" class="justify-content-between" :title="story.title.eng">
                         <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
                         <span class="inline-text">
                           <span class="ml-2 ellipsis-text"> {{ story.title.eng }}</span>
@@ -408,7 +409,7 @@
         <div class="dropdown">
           <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i><font-awesome-icon icon="envelope" /></i>
-            <span class="badge badge-pill badge-success notification">7</span>
+            <!-- <span class="badge badge-pill badge-success notification">7</span> -->
           </a>
           <div class="dropdown-menu messages" aria-labelledby="dropdownMenuMessage">
             <div class="messages-header">
@@ -465,10 +466,12 @@
         <div class="dropdown">
           <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i><font-awesome-icon icon="cog" /></i>
-            <span class="badge-sonar" />
+            <!-- <span class="badge-sonar" /> -->
           </a>
           <div class="dropdown-menu" aria-labelledby="dropdownMenuMessage">
-            <a class="dropdown-item" href="#">My profile</a>
+            <a v-if="authenticated" class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'profile')">My profile</a>
+            <a v-if="authenticated && isAdmin" class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'nests')">Nests settings</a>
+            <a v-if="authenticated && isAdmin" class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'users')">Users settings</a>
             <a class="dropdown-item" href="#">Help</a>
             <a class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'themes')">Themes</a>
           </div>
@@ -532,7 +535,9 @@
           </div>
           <div class="modal-body">
             <div>
-              <h6 class="mb-4">Add a copyright statement to your layer so the source can be acknowledged.</h6>
+              <h6 class="mb-4">
+                Add a copyright statement to your layer so the source can be acknowledged.
+              </h6>
               <span class="text-muted">Examples: Sourced from ... and licensed for reuse under the licence ... | Created by user ...</span>
               <input v-model="layercopyrightText" required type="text" class="form-control form-control-sm mt-2" title="Add copyright">
             </div>
@@ -688,8 +693,8 @@
               </p>
             </h4>
           </div>
-          <div class="modal-body">
-            <h5 v-if="allOtherUsers" class="mb-0">
+          <div v-if="allOtherUsers" class="modal-body">
+            <h5 class="mb-0">
               Users
             </h5>
             <div v-if="userPK">
@@ -780,7 +785,9 @@
         user_query:'',
         layerSharedWith: [],
         layerToShare: null,
-        userToRemoveFromLayerSharing: null
+        userToRemoveFromLayerSharing: null,
+        mediaRoot: process.env.API_HOST,
+        allOtherUsers: []
       }
     },
     computed: {
@@ -839,18 +846,20 @@
         }
         return userpk
       },
+      avatar () {
+        var avatar
+        if (this.$store.state.user) {
+          if (this.$store.state.user.profile) {
+            avatar = this.$store.state.user.profile.avatar
+          }
+        }
+        return avatar
+      },
       isAdmin () {
         return this.$store.state.isAdmin
       },
       contentToShow () {
         return this.$store.state.contentToShow
-      },
-      allOtherUsers() {
-        var users
-        if (this.$store.state.user) {
-          users = this.$store.state.allUsers.filter(user=>(user.id!=this.userPK && user.id!=1))
-        }
-        return users
       }
     },
     watch: {
@@ -900,6 +909,16 @@
           }
         },
         deep: true
+      },
+      allUsers: {
+        deep: true,
+        handler: function (newVal) {
+          var users
+          if (this.$store.state.user) {
+            users = newVal.filter(user=>(user.id!=this.userPK && user.id!=1))
+          }
+          this.allOtherUsers = users
+        }
       }
     },
     mounted: function () {

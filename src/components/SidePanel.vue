@@ -376,13 +376,13 @@
             </button>
             <div class="dropdown-menu">
               <a class="dropdown-item" href="#" @click="inviteCoAuthorModal()">Co-create narrative</a>
-              <a class="dropdown-item" href="#">Submit narrative</a>
-              <a class="dropdown-item" href="#">Publish narrative</a>
+              <a class="dropdown-item" href="#" @click="submitStoryModal()">Submit narrative</a>
+              <!-- <a class="dropdown-item" href="#">Publish narrative</a> -->
             </div>
           </div>
           <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-sm btn-primary" @click="printStory(story.title)">
             <font-awesome-icon icon="print" />
-            Print story
+            Print
           </button>
           <button v-if="isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="seeComments()">
             <font-awesome-icon icon="comments" />
@@ -464,7 +464,7 @@
           <div class="modal-header">
             <h4>Invite Co-authors</h4>
           </div>
-          <div class="modal-body">
+          <div v-if="allOtherUsers" class="modal-body">
             <!-- <div v-if="story.length > 0"> -->
             <h5 v-if="allOtherUsers" class="mb-0">
               Users
@@ -687,6 +687,42 @@
         </div>
       </div>
     </div>
+
+    <div id="submitStoryModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4>Submit your narrative</h4>
+          </div>
+          <div class="modal-body">
+            <p class="text-center">
+              <b>Functionality under development...</b>
+            </p>
+            <p>
+              Select the nests in which you want to publish your narrative.<br>
+              The available nests are related to your whakapapa.
+            </p>
+            <div v-if="user && user.profile && user.profile.affiliation.length == 0">
+              <form>
+                <select class="selectpicker form-control form-control-sm mb-3">
+                  <option :value="tatouNestId">
+                    Tātou
+                  </option>
+                </select>
+              </form>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-dismiss="modal">
+              Close
+            </button>
+            <button disabled class="btn btn-success" data-dismiss="modal">
+              Submit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -738,7 +774,8 @@ export default {
       storyLang: 'eng',
       query: '',
       coauthorToDelete: '',
-      editor: null
+      editor: null,
+      allOtherUsers: []
     }
   },
   computed: {
@@ -796,6 +833,9 @@ export default {
     allUsers() {
       return this.$store.state.allUsers
     },
+    user () {
+      return this.$store.state.user
+    },
     userPK () {
       var userpk
       if (this.$store.state.user) {
@@ -812,13 +852,6 @@ export default {
         username = this.$store.state.user.username
       }
       return username
-    },
-    allOtherUsers() {
-      var users
-      if (this.$store.state.user) {
-        users = this.$store.state.allUsers.filter(user=>(user.id!=this.userPK && user.id!=1))
-      }
-      return users
     },
     allStoryTypes(){
       return this.$store.state.allStoryTypes
@@ -837,6 +870,28 @@ export default {
         }
       })
       return coauthors
+    },
+    nests () {
+      return this.$store.state.nests
+    },
+    tatouNestId () {
+      var tatouNestId
+      if (this.nests) {
+        tatouNestId = this.nests.filter(x=>x.name == 'Tātou')[0].id
+      }
+      return tatouNestId
+    }
+  },
+  watch: {
+    allUsers: {
+      deep: true,
+      handler: function (newVal) {
+        var users
+        if (this.$store.state.user) {
+          users = newVal.filter(user=>(user.id!=this.userPK && user.id!=1))
+        }
+        this.allOtherUsers = users
+      }
     }
   },
   created () {
@@ -1126,6 +1181,10 @@ export default {
         $('#deleteCoAuthorModal').modal('show')
       }
     },
+    submitStoryModal() {
+      this.reinitialiseBootstrapSelect()
+      $('#submitStoryModal').modal('show')
+    },
     settingsElementModal: function (element) {
       if (!this.isDrawMode) {
         this.selectedElement = element
@@ -1294,27 +1353,32 @@ export default {
       var pdfname = title.eng?title.eng:title.mao
       var currentdate = new Date(Date.now()).toLocaleString().split(',')[0]
 
-      var css = this.getallcss()
-
       // Get image of the map
-      var canvas = document.getElementsByTagName("CANVAS")[0]
-      var imageURL = canvas.toDataURL();
+      var canvas = document.getElementsByTagName("CANVAS")
+      var mapcanvas
+      each(canvas, (c) => {
+        if (c.className == "ol-unselectable") {
+          mapcanvas = c
+        }
+      })
+      var imageURL = mapcanvas.toDataURL()
 
       let mywindow = window.open('', 'PRINT', 'height=650,width=900,top=100,left=150')
       mywindow.document.write(`<html><head><title>${pdfname}</title>`)
 
+      var css = this.getallcss()
       each(css.hrefs, (href) => {
         mywindow.document.write(`<link href="${href}" rel="stylesheet">`)
       })
-
       mywindow.document.write(`<style>${css.cssClasses}</style>`)
-      mywindow.document.write('</head><body >');
+
+      mywindow.document.write('</head><body >')
 
       mywindow.document.write(`<small class="text-muted">Printed on ${currentdate}</small><br />`)
       mywindow.document.write(`<h5><b>CULTURAL NARRATIVES</b></h5><br /><br /><br />`)
 
       each($(".printme_1"), (elem) => {
-        mywindow.document.write(elem.innerHTML);
+        mywindow.document.write(elem.innerHTML)
       })
 
       mywindow.document.write(`<img style="display: block; margin-left: auto; margin-right: auto; width: 60%; margin-top:40px; margin-bottom:10px; border: solid 2px #595353" src="${imageURL}" >`)
@@ -1329,7 +1393,7 @@ export default {
       var storyGeoms = this.$store.state.storyContent.storyBodyElements.filter(x => x.element_type == 'GEOM')
       each(storyGeoms, (geom) => {
         var geomattr = geom.geom_attr
-        geomhtml += `<p class="mt-3"><b>Name:</b> ${geomattr.name.eng?geomattr.name.eng:geomattr.name.mao}</p>`
+        geomhtml += `<p class="mt-3"><b>Geometry name:</b> ${geomattr.name.eng?geomattr.name.eng:geomattr.name.mao}</p>`
         geomhtml += `<p><b>Description:</b> ${geomattr.description.eng?geomattr.description.eng:geomattr.description.mao}</p>`
         each(geomattr.geomAttribMedia, (media) => {
           if (media.media_type == 'IMG') {
@@ -1342,18 +1406,13 @@ export default {
 
       mywindow.document.write(geomhtml)
 
-      var copyright_available = true
+      mywindow.document.write('<h2 class="mt-5 mb-5">Layers Copyrights</h2>')
+
       // To print internal layers' copyright
       var intlayers = this.$store.state.internalLayers
       each(intlayers, (layer) => {
         if(layer.visible)
         {
-          if(copyright_available)
-          {
-            mywindow.document.write('<h2 class="mt-5 mb-5">Layers Copyrights</h2>')
-            copyright_available = false
-          }
-
           if(layer.assigned_name){
             mywindow.document.write('<p><strong>Layer name: </strong>'+layer.assigned_name+'</p>')
           }
@@ -1373,11 +1432,6 @@ export default {
       each(extlayers, (layer) => {
         if(layer.visible)
         {
-          if(copyright_available)
-          {
-            mywindow.document.write('<h2 class="mt-5 mb-5">Layers Copyrights</h2>')
-            copyright_available = false
-          }
           mywindow.document.write(layer.attribution+'<br /><br /><br />')
         }
       })
@@ -1389,8 +1443,10 @@ export default {
       mywindow.focus(); // necessary for IE >= 10*/
 
       delay( () => {
-          mywindow.print();
-          mywindow.close();
+          mywindow.print()
+          if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            mywindow.close()
+          }
         }, 700)
     },
     getallcss () {

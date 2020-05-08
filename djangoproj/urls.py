@@ -33,7 +33,7 @@ router.register(r'stories', views.StoryViewSet)
 router.register(r'mediafiles', views.MediaFileViewSet)
 router.register(r'storybodyelements', views.StoryBodyElementViewSet)
 router.register(r'atuas', views.AtuaViewSet)
-router.register(r'users', views.UserViewSet)
+# router.register(r'users', views.UserViewSet)
 router.register(r'coauthors', views.CoAuthorViewSet)
 router.register(r'storytypes', views.StoryTypeViewSet)
 router.register(r'contenttypes', views.ContentTypeViewSet)
@@ -41,6 +41,8 @@ router.register(r'storygeomsattrib', views.StoryGeomAttribViewSet)
 router.register(r'storygeomsattribmedia', views.StoryGeomAttribMediaViewSet)
 router.register(r'websitetranslation', views.WebsiteTranslationViewSet)
 router.register(r'comments', views.CommentViewSet)
+router.register(r'sectors', views.SectorViewSet)
+router.register(r'nests', views.NestViewSet)
 # router.register(r'storygeometries', views.StoryGeometryViewSet)
 
 v1 = router.urls + [
@@ -58,10 +60,14 @@ v1 = router.urls + [
     url(r'^get_layer_bbox/', views.get_layer_bbox),
     url(r'^set_layer_shared_with/', views.SetLayerSharedWith.as_view()),
     url(r'^datasets/', views.DatasetList.as_view()),
+    url(r'^get_users/', views.GetAllUsers.as_view()),
     url(r'^check_user/', views.GetUser.as_view()),
     url(r'^check_email/$', views.GetEmail.as_view()),
     url(r'^is_admin/', views.IsAdmin.as_view()),
-
+    url(r'^get_profiles/', views.GetAllProfiles.as_view()),
+    url(r'^change_avatar/', views.ChangeAvatar.as_view()),
+    url(r'^save_profile/', views.SaveProfile.as_view()),
+    url(r'^save_affiliation/', views.SaveAffiliation.as_view())
 ]
 
 urlpatterns = [

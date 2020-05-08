@@ -7,9 +7,9 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import UserSerializer, CoAuthorSerializer, DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer, CommentSerializer
+from .serializers import UserSerializer, UserSimpleSerializer, CoAuthorSerializer, DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer, CommentSerializer, ProfileSerializer, SectorSerializer, NestSerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, CoAuthor, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment
+from .models import Dataset, Story, CoAuthor, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest
 from django.contrib.auth.models import User
 from tempfile import TemporaryDirectory
 import zipfile
@@ -521,9 +521,9 @@ class AtuaViewSet(viewsets.ModelViewSet):
     serializer_class = AtuaSerializer
     queryset = Atua.objects.all()
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = UserSerializer
-    queryset = User.objects.all()
+# class UserViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = UserSerializer
+#     queryset = User.objects.all()
 
 class StoryTypeViewSet(viewsets.ModelViewSet):
     serializer_class = StoryTypeSerializer
@@ -576,6 +576,27 @@ class CommentViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def perform_create(self,serializer):
         serializer.save(user=self.request.user)
+
+
+class SectorViewSet(viewsets.ModelViewSet):
+    serializer_class = SectorSerializer
+    queryset = Sector.objects.all()
+
+
+class NestViewSet(viewsets.ModelViewSet):
+    serializer_class = NestSerializer
+    queryset = Nest.objects.all()
+
+    def get_queryset(self):
+        queryset_for_user = self.queryset.for_user(self.request.user)
+        if queryset_for_user is not None:
+            return queryset_for_user.order_by('id')
+        return
+
+    def perform_update(self,serializer):
+        serializer.save()
+
+
 
 ### I had to turn the following method into an APIView in order to the request.user don't be AnonymousUser
 # def dataset_list(request):
@@ -671,10 +692,27 @@ def get_layer_bbox(request):
     return JsonResponse({'bbox': resource.latlon_bbox})
 
 
+class GetAllUsers(APIView):
+    def get(self, request):
+        if request.user is not None and not request.user.is_anonymous:
+
+            if request.user.is_superuser:
+                allusers = User.objects.all()
+                users_serializer = UserSerializer(allusers, many=True)
+            else:
+                allusers = User.objects.values('id', 'username')
+                users_serializer = UserSimpleSerializer(allusers, many=True)
+
+            return Response({'users': users_serializer.data})
+        else:
+            return Response({})
+
+
 class GetUser(APIView):
     def get(self, request):
         if request.user is not None and not request.user.is_anonymous:
-            return Response({'user': {'email': request.user.email, 'username': request.user.username, 'pk' : request.user.pk}})
+            profile_serializer = ProfileSerializer(request.user.profile)
+            return Response({'user': {'email': request.user.email, 'username': request.user.username, 'first_name': request.user.first_name, 'last_name': request.user.last_name, 'pk' : request.user.pk, 'profile': profile_serializer.data}})
         else:
             return Response({})
 
@@ -697,3 +735,71 @@ class IsAdmin(APIView):
             and request.user.is_superuser
 
         return Response({'isAdmin': isAdmin})
+
+
+class GetAllProfiles(APIView):
+    def get(self, request):
+        if request.user.is_superuser:
+            profiles = Profile.objects.all()
+            profile_serializer = ProfileSerializer(profiles, many=True)
+
+            return Response (profile_serializer.data)
+
+        return Response({})
+
+
+class ChangeAvatar(APIView):
+    def post(self, request):
+        imageurl = request.data['imageurl']
+        user = request.user
+
+        import base64
+        from django.core.files.base import ContentFile
+        format, imgstr = imageurl.split(';base64,')
+        ext = format.split('/')[-1]
+        data = ContentFile(base64.b64decode(imgstr), name='avatar.' + ext)
+
+        user.profile.avatar = data
+        user.save()
+
+        profile_serializer = ProfileSerializer(request.user.profile)
+
+        return Response({'avatar': profile_serializer.data['avatar']})
+
+
+class SaveProfile(APIView):
+    def post(self, request):
+        inputs = request.data['inputs']
+        user = request.user
+
+        if inputs['first_name'] is not '':
+            user.first_name = inputs['first_name']
+        if inputs['last_name'] is not '':
+            user.last_name = inputs['last_name']
+        if inputs['pepeha'] is not '':
+            user.profile.pepeha = inputs['pepeha']
+        if inputs['bio'] is not '':
+            user.profile.bio = inputs['bio']
+        if inputs['date_birth'] is not '':
+            user.profile.birth_date = inputs['date_birth']
+
+        user.save()
+
+        profile_serializer = ProfileSerializer(request.user.profile)
+
+        return Response({'user': {'email': request.user.email, 'username': request.user.username, 'first_name': request.user.first_name, 'last_name': request.user.last_name, 'pk' : request.user.pk, 'profile': profile_serializer.data}})
+
+
+class SaveAffiliation(APIView):
+    def post(self, request):
+        userid = request.data['user']
+        affiliation = request.data['affiliation']
+
+        user = User.objects.get(pk=userid)
+
+        user.profile.affiliation.clear()
+        for nest_id in affiliation:
+            user.profile.affiliation.add(nest_id)
+
+
+        return Response({'user': 'ok' })

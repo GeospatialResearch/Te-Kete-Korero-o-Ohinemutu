@@ -11,6 +11,7 @@
           Reset Password
         </h4>
         <div v-if="emailLoading" class="d-flex justify-content-center">
+          <font-awesome-icon icon="spinner" spin size="lg" />
           <p class="text-center">
             loading...
           </p>

@@ -800,9 +800,12 @@ export default {
       this.$store.dispatch('getStories'),
       this.$store.dispatch('getAtuas'),
       this.$store.dispatch('getUsers'),
+      this.$store.dispatch('getProfiles'),
       this.$store.dispatch('getStoryTypes'),
       this.$store.dispatch('getElementContentTypes'),
-      this.$store.dispatch('getWebsiteTranslation')
+      this.$store.dispatch('getWebsiteTranslation'),
+      this.$store.dispatch('getSectors'),
+      this.$store.dispatch('getNests')
     ]).then(() => {
       // Create the map
       this.initMap()

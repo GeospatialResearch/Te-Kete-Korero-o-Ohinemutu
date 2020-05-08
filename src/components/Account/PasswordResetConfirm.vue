@@ -6,7 +6,10 @@
           <h2>Reset Password Confirm</h2>
         </div>
         <div v-if="resetLoading" class="text-center">
-          loading...
+          <font-awesome-icon icon="spinner" spin size="lg" />
+          <p>
+            loading...
+          </p>
         </div>
         <div v-else-if="!resetCompleted">
           <div class="main-registration main-center">
