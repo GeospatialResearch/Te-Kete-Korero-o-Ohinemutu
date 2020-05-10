@@ -7,6 +7,7 @@ html, body {
 
 h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, span, small, label {
   font-family: 'Inter', sans-serif;
+  /* font-family: sans-serif; */
   font-weight: 300;
 }
 
@@ -980,6 +981,24 @@ b {
   @page {
     size: A4; /* DIN A4 standard, Europe */
     margin: 8%;
+  }
+
+  h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, span, small, label {
+    /* font-family: 'Inter', sans-serif; */
+    font-family: sans-serif;
+    font-weight: 300;
+  }
+
+  strong {
+    /* font-family: 'Inter', sans-serif; */
+    font-family: sans-serif;
+    font-weight: 600;
+  }
+
+  b {
+    /* font-family: 'Inter', sans-serif; */
+    font-family: sans-serif;
+    font-weight: 700;
   }
 
   p, i {
