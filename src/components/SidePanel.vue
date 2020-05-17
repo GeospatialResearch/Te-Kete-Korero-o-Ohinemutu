@@ -158,6 +158,7 @@
           <h5 class="mb-0">
             Date
           </h5>
+          <span class="text-muted pl-1" @click="showUserManualModal('DateTheNarrative')"><font-awesome-icon icon="info-circle" class="pointer" /></span>
           <select v-model="story.approx_time.type" required class="selectpicker form-control form-control-sm mb-3" @change="onChange">
             <option key="SELECT" value="" selected disabled>
               Select date type
@@ -207,10 +208,10 @@
               </div>
             </div>
           </div>
-
-          <h5 class="mt-2 mb-0">
+          <h5 class="mt-0.5 mb-0">
             Type of Narrative
           </h5>
+          <span class="text-muted pl-1" @click="showUserManualModal('NarrativeType')"><font-awesome-icon icon="info-circle" class="pointer" /></span>
           <select v-model="story.story_type_id" required class="selectpicker form-control form-control-sm mb-3">
             <option key="SELECT" value="" selected disabled>
               Select type of narrative
@@ -223,7 +224,7 @@
           <h5 v-if="story.atua" class="mb-0">
             Atua
           </h5>
-          <span class="text-muted pl-1" @click="showAtuaModal()"><font-awesome-icon icon="info-circle" class="pointer" /></span>
+          <span class="text-muted pl-1" @click="showUserManualModal('Atua')"><font-awesome-icon icon="info-circle" class="pointer" /></span>
           <select v-model="story.atua" required class="selectpicker form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Atua">
             <option v-for="item in allAtuas" :key="item.id" :value="item.id">
               {{ item.name }}
@@ -243,7 +244,8 @@
 
       <hr>
       <p class="text-muted">
-        <font-awesome-icon icon="info-circle" />
+        <!-- <font-awesome-icon icon="info-circle" /> -->
+        <span class="text-muted pl-1" @click="showUserManualModal('AddElementsToYourNarrative')"><font-awesome-icon icon="info-circle" class="pointer" /></span>
         Use the button below to add new elements to the story and reorder the elements dragging and dropping them.
       </p>
       <div class="btn-group dropright mb-4">
@@ -1341,8 +1343,8 @@ export default {
     scrollStoryTop () {
       $('#sidePanel').animate({ scrollTop: 0 }, 'fast')
     },
-    showAtuaModal () {
-      EventBus.$emit('showAtuaModal')
+    showUserManualModal (content) {
+      EventBus.$emit('showUserManualModal',content)
     },
     reinitialiseBootstrapSelect () {
       $(function () {

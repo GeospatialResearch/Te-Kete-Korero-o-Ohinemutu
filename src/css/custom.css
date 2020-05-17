@@ -826,6 +826,26 @@ b {
   color: #ffffff;
 }
 
+.user-manual-p {
+  text-align: justify;
+}
+
+.user-manual-screenshot-img {
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
+  width: auto;
+  padding: 5px 5px;
+}
+
+table, th, td {
+  border: 1px solid black;
+}
+
+.user-manual-inline-image {
+  width:35px;
+}
+
 .atua-img {
   max-width: 100%;
   height: auto;

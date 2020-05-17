@@ -34,64 +34,64 @@
               <h5 class="dropdown-header pl-3" style="font-size:1.1rem;">
                 Getting started
               </h5>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('CreateAUserAccount')">
                 Create a user account
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('IwiMembershipVerification')">
                 Iwi membership verification
               </div>
               <div class="dropdown-item">
                 Access to the Kete
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('MapNavigation')">
                 Map navigation
               </div>
-              <h5 class="dropdown-header pl-3" style="font-size:1.1rem;">
+              <h5 class="dropdown-header pl-3" style="font-size:1.1rem;" @click="showUserManualModal('Layers')">
                 Layers
               </h5>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('MyLayers')">
                 My Layers
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('ExternalLayers')">
                 External layers
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('InternalLayers')">
                 Internal layers
               </div>
-              <h5 class="dropdown-header pl-3" style="font-size:1.1rem;">
+              <h5 class="dropdown-header pl-3" style="font-size:1.1rem;" @click="showUserManualModal('Narratives')">
                 Narratives
               </h5>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('MyNarratives')">
                 My narratives
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('OtherNarratives')">
                 Other/Public narratives
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('AddNewNarrative')">
                 Add new narrative
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('DateTheNarrative')">
                 Date the narrative
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('NarrativeType')">
                 Narrative type
               </div>
-              <div class="dropdown-item" @click="showAtuaModal()">
+              <div class="dropdown-item" @click="showUserManualModal('Atua')">
                 Atua
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('AddElementsToYourNarrative')">
                 Add elements to the narrative
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('CoCreateStory')">
                 Co-create a narrative
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('PublishNarrative')">
                 Submit/Publish your narrative
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('KohangaNests')">
                 Kōhanga nests
               </div>
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="showUserManualModal('NarrativeSubmissionWorkflow')">
                 Narrative submission workflow
               </div>
             </div>
@@ -197,8 +197,8 @@
         </div>
       </div>
     </div>
-    <div id="atuaModal" class="modal fade">
-      <div class="modal-dialog modal-lg">
+    <div id="userManualModal" class="modal fade">
+      <div class="modal-dialog modal-dialog-scrollable modal-xl">
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="mb-0">
@@ -206,7 +206,7 @@
             </h4>
           </div>
           <div class="modal-body">
-            <atua-view />
+            <user-manual-view />
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -274,7 +274,7 @@
   import PasswordReset from 'components/Account/PasswordReset'
   import PasswordResetConfirm from 'components/Account/PasswordResetConfirm'
   import WelcomeView from 'components/Home/WelcomeView'
-  import AtuaView from 'components/AtuaView'
+  import UserManualView from 'components/UserManualView'
   import NestsView from 'components/ManageNestsView'
   import UsersView from 'components/ManageUsersView'
 
@@ -290,7 +290,7 @@
       PasswordReset,
       PasswordResetConfirm,
       WelcomeView,
-      AtuaView,
+      UserManualView,
       NestsView,
       UsersView
     },
@@ -318,8 +318,8 @@
       EventBus.$on('showResetPasswordForm', () =>{
         this.formToShow = 'resetpassword'
       })
-      EventBus.$on('showAtuaModal', () =>{
-        this.showAtuaModal()
+      EventBus.$on('showUserManualModal', (content) =>{
+        this.showUserManualModal(content)
       })
     },
     beforeCreate: function () {
@@ -350,8 +350,13 @@
       showLogoutModal () {
         $('#logoutModal').modal('show')
       },
-      showAtuaModal () {
-        $('#atuaModal').modal('show')
+      showUserManualModal (content) {
+        this.$store.commit('SET_USER_MANUAL_SECTION', content)
+        $('#userManualModal').modal('show')
+        setTimeout(function(){
+          var element = document.querySelector('#' + content);
+          element.scrollIntoView({ behavior: 'smooth', block: 'start'});
+        },500);
       },
       showOtherDataSourcesModal () {
         $('#otherDataSourcesModal').modal('show')

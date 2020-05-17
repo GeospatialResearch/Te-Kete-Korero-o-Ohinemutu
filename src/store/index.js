@@ -43,6 +43,7 @@ const initialState = {
   isUploadingData: false,
   isPanelOpen: false,
   contentToShow: 'welcome',
+  userManualSection: 'usermanual',
   externalLayers: null,
   internalLayers: {},
   allStoriesGeomsLayer: {
@@ -363,6 +364,9 @@ const store = new Vuex.Store({
       } else {
         console.error(error)
       }
+    },
+    SET_USER_MANUAL_SECTION(state, value) {
+      state.userManualSection = value
     }
   },
   getters: {
