@@ -67,7 +67,9 @@ v1 = router.urls + [
     url(r'^get_profiles/', views.GetAllProfiles.as_view()),
     url(r'^change_avatar/', views.ChangeAvatar.as_view()),
     url(r'^save_profile/', views.SaveProfile.as_view()),
-    url(r'^save_affiliation/', views.SaveAffiliation.as_view())
+    url(r'^save_affiliation/', views.SaveAffiliation.as_view()),
+    url(r'^filter_stories/$', views.FilterStories.as_view())
+
 ]
 
 urlpatterns = [

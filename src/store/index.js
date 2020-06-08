@@ -72,7 +72,8 @@ const initialState = {
       start_time: null,
       end_time: null,
       year: null
-    }
+    },
+    is_detectable: true
   },
   uploadMediaProgress: 0,
   drawMode: false,
@@ -97,7 +98,8 @@ const initialState = {
   isAdmin: false,
   orientation: null,
   sectors: null,
-  nests: null
+  nests: null,
+  storyDetectable: true
 }
 
 const store = new Vuex.Store({
@@ -262,7 +264,8 @@ const store = new Vuex.Store({
           date: null,
           start_time: null,
           end_time: null
-        }
+        },
+        is_detectable: true
       }
     },
     ADD_FEATURES_FOR_REUSE (state, f) {
@@ -304,7 +307,6 @@ const store = new Vuex.Store({
       } else {
         state.uploadMediaProgress = value
       }
-
     },
     // Account system
     SET_AVATAR (state, response) {
@@ -367,7 +369,13 @@ const store = new Vuex.Store({
     },
     SET_USER_MANUAL_SECTION(state, value) {
       state.userManualSection = value
-    }
+    },
+    SET_STORY_DETECTABLE(state, value) {
+      state.storyDetectable = value
+    },
+    // SET_DETECTABLE_STORIES (state, response) {
+    //   state.detectableStories = response
+    // },
   },
   getters: {
     flavor: state => state.flavor
@@ -781,8 +789,7 @@ const store = new Vuex.Store({
     },
     saveAffiliation (store, payload) {
       return api.post(apiRoot + '/save_affiliation/', payload, { headers: getAuthHeader() })
-        .then((response) => {
-          console.log(response)
+        .then(() => {
           store.dispatch('getProfiles')
         })
         .catch((error) => store.commit('API_FAIL', error))
@@ -809,6 +816,13 @@ const store = new Vuex.Store({
           store.dispatch('getNests')
         })
         .catch((error) => store.commit('API_FAIL', error))
+    },
+    filterStories(store, payload) {
+      return api.get(apiRoot + '/filter_stories/?text=' +payload.text+'&atua='+payload.atua+'&storytype='+payload.storytype, { headers: getAuthHeader() })
+      .then((response) => {
+        return response
+      })
+      .catch((error) => store.commit('API_FAIL', error))
     },
   }
 })

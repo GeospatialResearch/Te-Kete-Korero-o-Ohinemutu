@@ -28,6 +28,7 @@ import subprocess
 from django.conf import settings
 from tempfile import NamedTemporaryFile
 from django.core.files.storage import default_storage
+from django.db.models import Q
 
 # Util Functions
 def get_layer_from_file(file_obj, directory, request):
@@ -606,6 +607,7 @@ class NestViewSet(viewsets.ModelViewSet):
 #         datasets_list = list(datasets)
 #         return JsonResponse(datasets_list, safe=False)
 
+
 class DatasetList(APIView):
     def get(self, request):
         datasets = Dataset.objects.for_user(request.user).values('id', 'name', 'geomtype', 'copyright_text', 'assigned_name', 'uploaded_by', 'uploaded_by__username', 'shared_with')
@@ -801,5 +803,57 @@ class SaveAffiliation(APIView):
         for nest_id in affiliation:
             user.profile.affiliation.add(nest_id)
 
-
         return Response({'user': 'ok' })
+
+
+class FilterStories(APIView):
+    def get(self, request):
+        text = request.GET.get('text')
+        atua = request.GET.get('atua')
+        storytype = request.GET.get('storytype')
+        emptyqueryset = Story.objects.none()
+        text_searched_stories = emptyqueryset
+        atua_searched_stories = emptyqueryset
+        storytype_searched_stories = emptyqueryset
+
+        stories = Story.objects.for_user(request.user) | Story.objects.filter(is_detectable = 'True') | Story.objects.filter(is_detectable = None)
+        if len(text)>0:
+            storybody_text_searched = StoryBodyElement.objects.filter(text__icontains=text).values_list('story', flat=True)
+            text_combined_search_result = Story.objects.filter(title__eng__icontains = text) | Story.objects.filter(title__mao__icontains = text) | Story.objects.filter(summary__eng__icontains = text) | Story.objects.filter(summary__mao__icontains = text) | Story.objects.filter(id__in=storybody_text_searched)
+            text_searched_stories = stories.intersection(Story.objects.filter(id__in=text_combined_search_result))
+
+        if atua:
+            atua_searched_stories = stories.intersection(Story.objects.filter(atua__id__in = atua.split(',')))
+
+        if storytype:
+            storytype_searched_stories = stories.intersection(Story.objects.filter(story_type_id__in = storytype.split(',')))
+
+        result = text_searched_stories.union(atua_searched_stories, storytype_searched_stories)
+        temp = {}
+
+        for item in text_searched_stories:
+            temp[item.id]={'contains' : [text]}
+
+        for item in atua_searched_stories:
+            atuas = ''
+            for a in item.atua.all():
+                if str(a.pk) in atua.split(','):
+                    atuas = atuas+", "+str(a.name)
+
+            if item.id in temp:
+                temp[item.id]['contains'].append(atuas)
+            else:
+                temp[item.id]={'contains' : [atuas[1:]]}
+
+        for item in storytype_searched_stories:
+            if item.id in temp:
+                temp[item.id]['contains'].append(", "+item.story_type.type)
+            else:
+                temp[item.id]={'contains' : [item.story_type.type]}
+
+        result_list = list(result.values('id', 'title', 'summary', 'owner', 'story_type'))
+
+        for ea in result_list:
+            contains = temp[ea['id']]['contains']
+            ea['contains']= contains
+        return JsonResponse(result_list, safe=False)

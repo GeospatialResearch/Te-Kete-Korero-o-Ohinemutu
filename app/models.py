@@ -133,6 +133,7 @@ class Story(models.Model):
     story_type = models.ForeignKey(StoryType, blank=True, null=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='stories', on_delete=models.CASCADE)
     being_edited_by = models.ForeignKey('auth.User', blank=True, null=True, on_delete=models.CASCADE)
+    is_detectable = models.BooleanField(default=True, blank=True, null=True)
     objects = StoryQuerySet.as_manager()
 
 class CoAuthor(models.Model):

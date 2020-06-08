@@ -234,10 +234,16 @@
           <h5 class="mb-0">
             Summary
           </h5>
-          <textarea v-show="storyLang === 'eng'" v-model="story.summaryeng" required class="form-control form-control-sm" placeholder="Summary" />
-          <textarea v-show="storyLang === 'mao'" v-model="story.summarymao" :required="(story.summaryeng == null || story.summaryeng == '') ? true : false" class="form-control form-control-sm" placeholder="Whakarāpopototanga" />
+          <textarea v-show="storyLang === 'eng'" v-model="story.summaryeng" required class="form-control form-control-sm" rows="3" placeholder="Summary" />
+          <textarea v-show="storyLang === 'mao'" v-model="story.summarymao" :required="(story.summaryeng == null || story.summaryeng == '') ? true : false" class="form-control form-control-sm" rows="3" placeholder="Whakarāpopototanga" />
           <div class="invalid-feedback">
             Summary is mandatory
+          </div>
+          <div class="form-group pt-4 mb-0 pl-1">
+            <div class="custom-control custom-checkbox">
+              <input id="customControlInline" v-model="story.is_detectable" type="checkbox" class="custom-control-input">
+              <label class="custom-control-label" for="customControlInline">Yes, I want the story to be detectable (it can be searched but only the title, summary and author are visible)</label>
+            </div>
           </div>
         </div>
       </form>
@@ -878,7 +884,7 @@ export default {
     },
     tatouNestId () {
       var tatouNestId
-      if (this.nests) {
+      if (this.nests && this.nests.length > 0) {
         tatouNestId = this.nests.filter(x=>x.name == 'Tātou')[0].id
       }
       return tatouNestId
@@ -1464,7 +1470,7 @@ export default {
         }
       })
       return { 'cssClasses': cssClasses, 'hrefs': hrefs }
-    }
+    },
   }
   };
   </script>

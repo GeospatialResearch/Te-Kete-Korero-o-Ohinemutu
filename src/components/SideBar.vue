@@ -250,6 +250,17 @@
             <div v-if="contentToShow=='map'" class="sidebar-item sidebar-search">
               <div>
                 <div class="input-group input-group-sm">
+                  <div class="form-control search-menu text-center label-info pointer" @click="searchModal()">
+                    Search Narratives
+                  </div>
+                  <div class="input-group-append">
+                    <span class="input-group-text">
+                      <i aria-hidden="true"><font-awesome-icon icon="filter" /></i>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- <div class="input-group input-group-sm">
                   <input v-model="filter.freeText" type="text" class="form-control search-menu" placeholder="Filter narratives..." @keyup="filterNarratives()">
                   <div class="input-group-append" title="Advanced filter">
                     <button class="btn btn-dark" type="button" @click="advancedFilterModal()">
@@ -266,12 +277,12 @@
                 <div class="m-2">
                   <span v-for="atua in filter.atua" :key="atua" class="badge badge-pill badge-light m-1" title="Atua">{{ allAtuas.find(x => x.id == atua).name }}</span>
                   <span v-for="type in filter.storyType" :key="type" class="badge badge-pill badge-light m-1" title="Type of Narrative">{{ allStoryTypes.find(x => x.id == type).type }}</span>
-                </div>
+                </div> -->
               </div>
             </div>
 
-
-            <li v-show="filter.freeText || filter.atua.length !== 0 || filter.storyType.length !== 0" class="sidebar-dropdown">
+            <!-- # Just commented for the time being. Need to put beck. DO NOT DELETE this li -->
+            <!-- <li v-show="filter.freeText || filter.atua.length !== 0 || filter.storyType.length !== 0" class="sidebar-dropdown">
               <a href="#" @click="dropdownSidebarDropdow($event)">
                 <i><font-awesome-icon icon="book-open" /></i>
                 <span class="menu-text">Filtered narratives</span>
@@ -304,7 +315,7 @@
                   </ul>
                 </div>
               </div>
-            </li>
+            </li> -->
 
             <!-- <li class="sidebar-dropdown">
               <a href="#">
@@ -654,7 +665,7 @@
         </div>
       </div>
     </div>
-    <div id="advancedFilterModal" class="modal fade">
+    <!-- <div id="advancedFilterModal" class="modal fade">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -676,6 +687,89 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div> -->
+    <div id="searchModal" class="modal fade">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Search Narratives</h5>
+          </div>
+          <div class="modal-body pl-5 pr-5">
+            <div class="input-group input-group-sm">
+              <input v-model="filter.freeText" type="text" class="form-control search-menu" placeholder="Type text to search...">
+              <div class="input-group-append" title="Clear filter">
+                <button class="btn btn-dark" type="button" @click="clearNarrativesFilter()">
+                  <i aria-hidden="true"><font-awesome-icon icon="times" /></i>
+                </button>
+              </div>
+              <div class="input-group-append" title="Advanced filter">
+                <button class="btn btn-secondary" data-toggle="collapse" data-target="#advancedFilters">
+                  <font-awesome-icon icon="filter" />
+                </button>
+              </div>
+              <div class="input-group-append">
+                <button class="btn btn-success" @click="filterStories(filter.freeText, filter.atua, filter.storyType)">
+                  Search
+                </button>
+              </div>
+            </div>
+            <div id="advancedFilters" class="collapse pt-3 pb-0 ml-2">
+              <div class="card card-body">
+                <h6>By Atua</h6>
+                <select v-model="filter.atua" class="form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Atua" @change="filterNarratives()">
+                  <option v-for="item in allAtuas" :key="item.id" :value="item.id">
+                    {{ item.name }}
+                  </option>
+                </select>
+                <h6>By Type of Narrative</h6>
+                <select v-model="filter.storyType" class="form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Type of Narrative" @change="filterNarratives()">
+                  <option v-for="item in allStoryTypes" :key="item.id" :value="item.id">
+                    {{ item.type }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-body pt-5 pb-0 ml-2">
+              <div v-if="filteredStories.length === 0">
+                <div class="text-center">
+                  <span>No narratives matching the filter</span>
+                </div>
+              </div>
+              <div v-else>
+                <div v-for="story in filteredStories" :key="story.id">
+                  <div class="row pb-4">
+                    <div class="col-sm-9">
+                      <h6 class="text-muted">
+                        <span title="Narrative title"><i><font-awesome-icon icon="book-open" /></i>&nbsp;&nbsp;{{ story.title.eng }}</span> &mdash; <small title="Type of Narrative"><i>{{ allStoryTypes.find(x => x.id == story.story_type).type }}</i></small>
+                      </h6>
+                      <h6 title="Narrative summary" class="ml-4">
+                        <i>{{ story.summary.eng }}</i>
+                      </h6>
+                      <i v-if="authenticated && allUsers" class="ml-4"><small>Story by {{ allUsers.filter(x=>x.id === story.owner)[0].username }}</small></i>
+                      <i class="ml-4"><small><b>Contains: {{ story.contains[0] }}{{ story.contains[1] }}{{ story.contains[2] }}</b></small></i>
+                    </div>
+                    <div v-if="stories.filter(s=>s.id === story.id).length != 0" class="col-sm-3 text-center">
+                      <button type="button" class="btn btn-sm btn-primary" title="Open narrative" @click="openNarrative(story.id)">
+                        Open narrative
+                      </button>
+                    </div>
+                    <div  v-else class="col-sm-3 text-center">
+                      <button type="button" disabled class="btn btn-sm btn-primary" title="Send mail">
+                        Send <i class="fa fa-envelope" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="closeSearchCollapse()">
               Close
             </button>
           </div>
@@ -755,7 +849,8 @@
   import 'utils/sidebar'
   import { EventBus } from 'store/event-bus'
   import { langObj } from 'utils/initialTranslObj'
-  import { each, intersection, some, without } from 'underscore'
+  // import { each, intersection, some, without } from 'underscore'
+  import { each, without } from 'underscore'
   import VueBootstrapTypeahead from 'vue-bootstrap-typeahead'
 
   export default {
@@ -775,7 +870,7 @@
         filter: {
           atua: [],
           storyType: [],
-          freeText: null
+          freeText: ''
         },
         filteredStories: [],
         myNarratives: [],
@@ -806,6 +901,9 @@
         // the popover needs to be re-initialized when reloading the divs
         this.reinitialisePopups()
         return this.$store.state.stories
+      },
+      detectableStories(){
+        return this.$store.state.detectableStories
       },
       lang () {
         return this.$store.state.lang
@@ -1157,61 +1255,58 @@
           })
         })
       },
-      advancedFilterModal () {
-        $('#advancedFilterModal').modal('show')
-      },
       filterNarratives () {
-        this.filteredStories = []
-
-        each(this.stories, (story) => {
-          var filterStory_byAtua
-          var filterStory_byType
-          var filterStory_byFreeText
-
-          if (this.filter.freeText !== null && this.filter.freeText !== "") {
-            filterStory_byFreeText = false
-            if (JSON.stringify(story.title).toLowerCase().includes(this.filter.freeText.toLowerCase())) {
-              filterStory_byFreeText = true
-            }
-            if (JSON.stringify(story.summary).toLowerCase().includes(this.filter.freeText.toLowerCase())) {
-              filterStory_byFreeText = true
-            }
-            some(story.storyBodyElements, (elem) => {
-              if (elem.element_type === 'TEXT') {
-                if (JSON.stringify(elem.text).toLowerCase().includes(this.filter.freeText.toLowerCase())) {
-                  filterStory_byFreeText = true
-                }
-              }
-            })
-          }
-
-          if (this.filter.atua.length > 0) {
-            var atuaInters = intersection(story.atua, this.filter.atua)
-            if (atuaInters !== undefined && atuaInters.length !== 0) {
-              filterStory_byAtua = true
-            } else {
-              filterStory_byAtua = false
-            }
-          }
-
-          if (this.filter.storyType.length > 0) {
-            if (this.filter.storyType.includes(story.story_type.id)) {
-              filterStory_byType = true
-            } else {
-              filterStory_byType = false
-            }
-          }
-
-          var filterStory = [filterStory_byAtua, filterStory_byType, filterStory_byFreeText]
-
-          if (filterStory.every(element => element === undefined) || filterStory.includes(false)) {
-            // do not filter the story
-          } else {
-            this.filteredStories.push(story)
-          }
-        })
-
-        this.reinitialisePopups()
+        // this.filteredStories = []
+        //
+        // each(this.stories, (story) => {
+        //   var filterStory_byAtua
+        //   var filterStory_byType
+        //   var filterStory_byFreeText
+        //
+        //   if (this.filter.freeText !== null && this.filter.freeText !== "") {
+        //     filterStory_byFreeText = false
+        //     if (JSON.stringify(story.title).toLowerCase().includes(this.filter.freeText.toLowerCase())) {
+        //       filterStory_byFreeText = true
+        //     }
+        //     if (JSON.stringify(story.summary).toLowerCase().includes(this.filter.freeText.toLowerCase())) {
+        //       filterStory_byFreeText = true
+        //     }
+        //     some(story.storyBodyElements, (elem) => {
+        //       if (elem.element_type === 'TEXT') {
+        //         if (JSON.stringify(elem.text).toLowerCase().includes(this.filter.freeText.toLowerCase())) {
+        //           filterStory_byFreeText = true
+        //         }
+        //       }
+        //     })
+        //   }
+        //
+        //   if (this.filter.atua.length > 0) {
+        //     var atuaInters = intersection(story.atua, this.filter.atua)
+        //     if (atuaInters !== undefined && atuaInters.length !== 0) {
+        //       filterStory_byAtua = true
+        //     } else {
+        //       filterStory_byAtua = false
+        //     }
+        //   }
+        //
+        //   if (this.filter.storyType.length > 0) {
+        //     if (this.filter.storyType.includes(story.story_type.id)) {
+        //       filterStory_byType = true
+        //     } else {
+        //       filterStory_byType = false
+        //     }
+        //   }
+        //
+        //   var filterStory = [filterStory_byAtua, filterStory_byType, filterStory_byFreeText]
+        //
+        //   if (filterStory.every(element => element === undefined) || filterStory.includes(false)) {
+        //     // do not filter the story
+        //   } else {
+        //     this.filteredStories.push(story)
+        //   }
+        // })
+        //
+        // this.reinitialisePopups()
 
       },
       clearNarrativesFilter () {
@@ -1219,7 +1314,7 @@
         this.filter = {
           atua: [],
           storyType: [],
-          freeText: null
+          freeText: ''
         }
       },
       dropdownSidebarDropdow (event) {
@@ -1250,6 +1345,33 @@
       onClose () {
         this.$refs.usersAutocomplete.inputValue = ''
       },
+      openNarrative(story_id){
+        // close the modal
+        $('#searchModal').modal('hide')
+        if (!this.$store.state.storyViewMode) {
+          EventBus.$emit('storyIsBeingEditedWarning')
+        } else {
+          this.$store.dispatch('getStoryContent', story_id)
+          .then((story) => {
+            this.$store.commit('SET_STORY_VIEW_MODE', true)
+            this.$store.commit('SET_PANEL_OPEN', true)
+            EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
+          })
+        }
+      },
+      searchModal () {
+        this.clearNarrativesFilter()
+        $('#searchModal').modal('show')
+      },
+      filterStories (text, atua, storytype){
+        this.$store.dispatch('filterStories', { 'text': text, 'atua': atua, 'storytype':storytype})
+        .then((response) => {
+          this.filteredStories = response.body
+        })
+      },
+      closeSearchCollapse(){
+        $('#advancedFilters').collapse('hide');
+      }
     }
   }
 
