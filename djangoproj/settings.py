@@ -77,6 +77,12 @@ REST_FRAMEWORK = {
         # enables simple command line authentication
         'rest_framework.authentication.BasicAuthentication',
     ),
+
+    # 'PAGINATE_BY': 100,
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'app.renderers.BrowsableAPIRendererWithoutForms',
+    ),
 }
 
 # Enables django-rest-auth to use JWT tokens instead of regular tokens.

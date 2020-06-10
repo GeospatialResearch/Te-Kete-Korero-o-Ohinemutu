@@ -21,7 +21,10 @@
     <div v-if="isStoryViewMode" class="mb-3">
       <!-- view mode -->
       <div class="pl-3 pr-3 pt-4 printme_1" style="background-color:#ffffff;">
-        <span class="badge badge-warning mb-2 p-2" title="Story status">{{ story.status }}</span>
+        <span class="badge badge-warning mb-2 p-2 pointer" title="Show narrative status" @click="showNarrativeInfoOpenModal()">
+          <font-awesome-icon icon="info-circle" />
+          Narrative status
+        </span>
         <span v-if="story.story_type" class="badge badge-success mb-2 p-2 float-right" title="Type of Narrative">{{ story.story_type.type }}</span>
         <div title="Story Date">
           <p v-if="story.approx_time.type === 'PRECISE_DATE'" class="badge badge-light mb-2 p-2 float-right">
@@ -67,7 +70,7 @@
           </div>
           <p class="font-italic mb-0">
             <small>&mdash; Story by {{ story.owner }}</small>
-            <span v-if="story.co_authors && story.co_authors.length">
+            <span v-if="story.co_authors && story.co_authors.length > 0">
               <small>, Co-created with</small>
               <small v-for="(auth, i) in storyCoAuthors" :key="auth.id">
                 <span v-if="i!=0">,</span>
@@ -242,7 +245,7 @@
           <div class="form-group pt-4 mb-0 pl-1">
             <div class="custom-control custom-checkbox">
               <input id="customControlInline" v-model="story.is_detectable" type="checkbox" class="custom-control-input">
-              <label class="custom-control-label" for="customControlInline">Yes, I want the story to be detectable (it can be searched but only the title, summary and author are visible)</label>
+              <label class="custom-control-label" for="customControlInline">Yes, I want the story to be detectable (it can be searched but only the title and summary are visible)</label>
             </div>
           </div>
         </div>
@@ -374,18 +377,18 @@
           <button v-if="!isStoryViewMode" type="button" class="btn btn-sm btn-danger ml-2" @click="showCancelStorySavingModal()">
             Cancel
           </button>
-          <button v-if="story.hasOwnProperty('id') && isStoryViewMode && (story.owner === username || isAdmin || story.co_authors.indexOf(userPK) >= 0)" type="button" class="btn btn-sm btn-primary" @click="editStory()">
+          <button v-if="story.hasOwnProperty('id') && isStoryViewMode && (story.owner === username || (user && user.is_superuser) || story.co_authors.indexOf(userPK) >= 0)" type="button" class="btn btn-sm btn-primary" @click="editStory()">
             <font-awesome-icon icon="pen" />
             Edit story
           </button>
-          <div v-if="isStoryViewMode && (story.owner === username || isAdmin)" class="btn-group btn-group-sm dropup">
+          <div v-if="isStoryViewMode && (story.owner === username || (user && user.is_superuser))" class="btn-group btn-group-sm dropup">
             <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <font-awesome-icon icon="share-alt" class="mr-2" />
             </button>
             <div class="dropdown-menu">
-              <a class="dropdown-item" href="#" @click="inviteCoAuthorModal()">Co-create narrative</a>
-              <a class="dropdown-item" href="#" @click="submitStoryModal()">Submit narrative</a>
-              <!-- <a class="dropdown-item" href="#">Publish narrative</a> -->
+              <a class="dropdown-item" href="#" @click="inviteCoAuthorOpenModal()">Co-create narrative</a>
+              <a class="dropdown-item" href="#" @click="setStoryPublicationOpenModal('submit')">Submit narrative</a>
+              <!-- <a class="dropdown-item" href="#" @click="setStoryPublicationOpenModal('publish')">Publish narrative</a> -->
             </div>
           </div>
           <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-sm btn-primary" @click="printStory(story.title)">
@@ -696,37 +699,138 @@
       </div>
     </div>
 
-    <div id="submitStoryModal" class="modal fade">
+    <div id="setStoryPublicationModal" class="modal fade" data-backdrop="static">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h4>Submit your narrative</h4>
+            <h4>
+              <span v-if="setStoryPublication.action">{{ setStoryPublication.action.charAt(0).toUpperCase() + setStoryPublication.action.slice(1) }} </span>
+              your narrative
+            </h4>
           </div>
           <div class="modal-body">
-            <p class="text-center">
-              <b>Functionality under development...</b>
+            <p class="text-center mb-5">
+              <strong>Note: </strong>
+              <strong class="text-muted">Narratives submitted into Whānau nests become published immediately, while submissions into wider sectors require validation before publication.</strong>
             </p>
-            <p>
-              Select the nests in which you want to publish your narrative.<br>
-              The available nests are related to your whakapapa.
-            </p>
-            <div v-if="user && user.profile && user.profile.affiliation.length == 0">
+            <!-- v-if="user && user.profile && user.profile.affiliation.length != 0" -->
+            <div>
               <form>
-                <select class="selectpicker form-control form-control-sm mb-3">
+                <p>
+                  Select the sector in which you want to {{ setStoryPublication.action }} your narrative<br>
+                </p>
+                <div class="ml-md-5 mr-md-5">
+                  <select v-if="sectors" v-model="setStoryPublication.sector" class="selectpicker form-control form-control-sm mb-3" @change="reinitialiseBootstrapSelect()">
+                    <option v-for="sector in sectors" :key="sector.id" :value="sector.name">
+                      {{ sector.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <div v-if="setStoryPublication.sector">
+                  <p>
+                    Select the nest(s) you want to {{ setStoryPublication.action }} your narrative<br>
+                  </p>
+                  <div class="ml-md-5 mr-md-5">
+                    <select v-model="setStoryPublication.nests" class="selectpicker form-control form-control-sm mb-3" multiple>
+                      <option v-for="affiliatednest in affiliationBySector[setStoryPublication.sector]" :key="'nest_'+affiliatednest" :value="affiliatednest">
+                        {{ nests.filter(x => x.id == affiliatednest)[0].name }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <!-- <select class="selectpicker form-control form-control-sm mb-3">
                   <option :value="tatouNestId">
                     Tātou
                   </option>
-                </select>
+                </select> -->
               </form>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" data-dismiss="modal">
+            <button class="btn btn-secondary" data-dismiss="modal" @click="clearSetStoryPublication()">
               Close
             </button>
-            <button disabled class="btn btn-success" data-dismiss="modal">
+            <button disabled class="btn btn-success" data-dismiss="modal" @click="sendSetStoryPublication()">
               Submit
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="showNarrativeInfoModal" class="modal fade">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4>
+              Narrative Info
+            </h4>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div v-if="story && story.title" class="col-sm-12">
+                <h6 class="text-muted">
+                  <span title="Narrative title"><i><font-awesome-icon icon="book-open" /></i>&nbsp;&nbsp;{{ story.title.eng }}</span> &mdash; <small title="Type of Narrative"><i>{{ story.story_type.type }}</i></small>
+                </h6>
+                <h6 title="Narrative summary" class="ml-4">
+                  <i>{{ story.summary.eng }}</i>
+                </h6>
+                <p v-if="story.owner != username" class="font-italic ml-4 mb-0">
+                  <small>&mdash; Story by {{ story.owner }}</small>
+                </p>
+                <div class="ml-4 mt-4">
+                  <table v-if="storyPublications && storyPublications.length > 0" class="table table-sm table-borderless">
+                    <thead>
+                      <tr>
+                        <th scope="col">
+                          Status
+                        </th>
+                        <th scope="col">
+                          Nest
+                        </th>
+                        <th scope="col">
+                          Date
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="publication in storyPublications" :key="publication.id">
+                        <td>
+                          <span class="badge badge-secondary">{{ publication.status }}</span>
+                        </td>
+                        <td>
+                          {{ publication.nest.kinship_sector.name }} {{ publication.nest.name }}
+                          <strong v-if="user.profile.affiliation.includes(publication.nest.id)">(You are member)</strong>
+                        </td>
+                        <td>{{ publication.status_modified_on | moment("MMMM Do, YYYY") }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <table v-else class="table table-sm table-borderless">
+                    <thead>
+                      <tr>
+                        <th scope="col">
+                          Status
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <span class="badge badge-secondary">DRAFT</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <div class="btn btn-secondary btn-ok" data-dismiss="modal">
+              Close
+            </div>
           </div>
         </div>
       </div>
@@ -783,7 +887,12 @@ export default {
       query: '',
       coauthorToDelete: '',
       editor: null,
-      allOtherUsers: []
+      allOtherUsers: [],
+      setStoryPublication: {
+        action: null,
+        sector: null,
+        nests: []
+      }
     }
   },
   computed: {
@@ -847,12 +956,9 @@ export default {
     userPK () {
       var userpk
       if (this.$store.state.user) {
-        userpk = this.$store.state.user.pk
+        userpk = this.$store.state.user.id
       }
       return userpk
-    },
-    isAdmin () {
-      return this.$store.state.isAdmin
     },
     username () {
       var username
@@ -860,6 +966,27 @@ export default {
         username = this.$store.state.user.username
       }
       return username
+    },
+    storyPublications () {
+      return this.$store.state.storyPublications
+    },
+    affiliationBySector () {
+      var affiliationBySector = {}
+
+      if (this.sectors && this.nests) {
+        var sectors_names = this.sectors.map(x => x.name)
+        each(sectors_names, (name) => {
+          affiliationBySector[name] = []
+        })
+      }
+      each(this.nests, (nest) => {
+        if (this.user && this.user.profile.affiliation.includes(nest.id)) {
+          if (affiliationBySector[nest.kinship_sector.name]) {
+            affiliationBySector[nest.kinship_sector.name].push(nest.id)
+          }
+        }
+      })
+      return affiliationBySector
     },
     allStoryTypes(){
       return this.$store.state.allStoryTypes
@@ -882,10 +1009,16 @@ export default {
     nests () {
       return this.$store.state.nests
     },
+    sectors () {
+      return this.$store.state.sectors
+    },
     tatouNestId () {
       var tatouNestId
-      if (this.nests && this.nests.length > 0) {
-        tatouNestId = this.nests.filter(x=>x.name == 'Tātou')[0].id
+      if (this.nests) {
+        var tatouNest = this.nests.filter(x=>x.name == 'Tātou')[0]
+        if (tatouNest) {
+          tatouNestId = tatouNest.id
+        }
       }
       return tatouNestId
     }
@@ -962,6 +1095,10 @@ export default {
 
     EventBus.$on('initialiseBootstrapSelect', () => {
       this.reinitialiseBootstrapSelect()
+    })
+
+    EventBus.$on('openNarrative', (story_id) => {
+      this.openNarrative(story_id, null)
     })
 
   },
@@ -1168,7 +1305,7 @@ export default {
         }
       })
     },
-    inviteCoAuthorModal: function () {
+    inviteCoAuthorOpenModal: function () {
       this.$store.dispatch('getEditor', {'story_id': this.story.id})
       .then((response) => {
         this.editor = response.being_edited_by
@@ -1189,9 +1326,10 @@ export default {
         $('#deleteCoAuthorModal').modal('show')
       }
     },
-    submitStoryModal() {
+    setStoryPublicationOpenModal(action) {
       this.reinitialiseBootstrapSelect()
-      $('#submitStoryModal').modal('show')
+      this.setStoryPublication.action = action
+      $('#setStoryPublicationModal').modal('show')
     },
     settingsElementModal: function (element) {
       if (!this.isDrawMode) {
@@ -1328,16 +1466,19 @@ export default {
       if (!this.isStoryViewMode) {
         EventBus.$emit('storyIsBeingEditedWarning')
       } else {
+        this.$store.dispatch('getStoryPublications', story_id)
         this.$store.dispatch('getStoryContent', story_id)
         .then((story) => {
           this.$store.commit('SET_STORY_VIEW_MODE', true)
           this.$store.commit('SET_PANEL_OPEN', true)
           EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
-          delay(() => {
-            EventBus.$emit('zoomToGeometry', geomAttr)
-            EventBus.$emit('showStoryGeomInfo', geomAttr)
-          }, 10)
 
+          if (geomAttr) {
+            delay(() => {
+              EventBus.$emit('zoomToGeometry', geomAttr)
+              EventBus.$emit('showStoryGeomInfo', geomAttr)
+            }, 10)
+          }
         })
       }
     },
@@ -1354,7 +1495,7 @@ export default {
     },
     reinitialiseBootstrapSelect () {
       $(function () {
-        $('.selectpicker').selectpicker();
+        $('.selectpicker').selectpicker('refresh');
       })
     },
     printStory (title) {
@@ -1471,6 +1612,21 @@ export default {
       })
       return { 'cssClasses': cssClasses, 'hrefs': hrefs }
     },
+    clearSetStoryPublication () {
+      this.setStoryPublication = {
+        action: null,
+        sector: null,
+        nests: []
+      }
+    },
+    sendSetStoryPublication () {
+      this.setStoryPublication.story = this.story
+      this.$store.dispatch('setStoryPublication', this.setStoryPublication)
+      this.clearSetStoryPublication()
+    },
+    showNarrativeInfoOpenModal () {
+      $('#showNarrativeInfoModal').modal('show')
+    }
   }
   };
   </script>

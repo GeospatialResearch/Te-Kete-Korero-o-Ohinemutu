@@ -152,9 +152,10 @@
           <verify-email v-show="contentToShow=='verifyemail'" />
           <password-reset-confirm v-show="contentToShow=='passwordresetconfirm'" />
           <settings-view v-show="contentToShow=='themes'" />
-          <profile-view v-show="contentToShow=='profile'" />
+          <profile-view v-if="contentToShow=='profile'" />
+          <whanau-view v-show="contentToShow=='whanau'" />
           <nests-view v-show="contentToShow=='nests'" />
-          <users-view v-show="contentToShow=='users'" />
+          <users-view v-if="contentToShow=='users'" />
           <main-map v-if="contentToShow=='map'" />
           <side-panel v-if="contentToShow=='map'" />
         </div>
@@ -267,6 +268,7 @@
   import MainMap from 'components/Map/MainMap'
   import SettingsView from 'components/SettingsView'
   import ProfileView from 'components/ProfileView'
+  import WhanauView from 'components/WhanauSettingsView'
   import SidePanel from 'components/SidePanel'
   import LogIn from 'components/Account/Login'
   import Register from 'components/Account/Register'
@@ -283,6 +285,7 @@
       MainMap,
       SettingsView,
       ProfileView,
+      WhanauView,
       SidePanel,
       LogIn,
       Register,

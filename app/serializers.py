@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer, ListField, SerializerMethodField, JSONField, PrimaryKeyRelatedField, ReadOnlyField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Dataset, CoAuthor, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest
+from .models import Dataset, CoAuthor, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest, WhanauGroupInvitation, Publication
 from django.contrib.gis.geos import GEOSGeometry
 from rest_auth.serializers import PasswordResetSerializer
 from django.contrib.auth.models import User
@@ -18,15 +18,27 @@ class AtuaSerializer(ModelSerializer):
 
 
 class UserSerializer(ModelSerializer):
+    profile = SerializerMethodField()
+
     class Meta:
         model = User
         exclude = ('password', )
 
+    def get_profile(self, user):
+        serializer = ProfileSimpleSerializer(instance=user.profile)
+        return serializer.data
+
 
 class UserSimpleSerializer(ModelSerializer):
+    profile = SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('username', 'id')
+        fields = ('username', 'id', 'first_name', 'last_name', 'profile')
+
+    def get_profile(self, user):
+        serializer = ProfileSimpleSerializer(instance=user.profile)
+        return serializer.data
 
 
 class StoryTypeSerializer(ModelSerializer):
@@ -299,21 +311,64 @@ class ProfileSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class ProfileSimpleSerializer(ModelSerializer):
+    username = ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = Profile
+        fields = ('user_id', 'avatar', 'username')
+
+
+
 class SectorSerializer(ModelSerializer):
     class Meta:
         model = Sector
         fields = '__all__'
 
 
+class NestSimpleSerializer(ModelSerializer):
+    kinship_sector = SectorSerializer(read_only=True)
+    created_by = UserSimpleSerializer(read_only=True)
+    class Meta:
+        model = Sector
+        fields = '__all__'
+
+
 class NestSerializer(ModelSerializer):
-    kaitiaki_temp = PrimaryKeyRelatedField(write_only=True,many=True,queryset=User.objects.all())
+    kaitiaki_temp = PrimaryKeyRelatedField(write_only=True, many=True, queryset=User.objects.all(), required=False, allow_null=True, default=None)
     kinship_sector_id = PrimaryKeyRelatedField(source="Sector",queryset=Sector.objects.all(),required=False)
     kinship_sector = SectorSerializer(read_only=True)
+    created_by = UserSimpleSerializer(read_only=True)
+    kaitiaki = UserSimpleSerializer(read_only=True, many=True)
+    members = SerializerMethodField()
+    invitations = SerializerMethodField()
+    publications = SerializerMethodField()
 
     class Meta:
         model = Nest
         fields = '__all__'
         depth = 1
+
+    def get_members(self, nest):
+        members = nest.members.all()
+        serializer = ProfileSimpleSerializer(instance=members, many=True)
+        return serializer.data
+
+    def get_invitations(self, nest):
+        invitations = nest.invitations.all()
+        serializer = WhanauGroupInvitationSerializer(instance=invitations, many=True)
+        return serializer.data
+
+    def get_publications(self, nest):
+        number_publications = nest.publications.all().count()
+        return number_publications
+
+    def create(self, validated_data):
+        validated_data.pop('kaitiaki_temp')
+        kinship_sector = validated_data.pop('Sector')
+        nest = Nest.objects.create(**validated_data, kinship_sector=kinship_sector)
+        return nest
+
 
     def update(self, instance, validated_data):
         instance.kinship_sector = validated_data.pop('Sector')
@@ -326,3 +381,30 @@ class NestSerializer(ModelSerializer):
 
         instance.save()
         return instance
+
+
+class WhanauGroupInvitationSerializer(ModelSerializer):
+    invitee_id = PrimaryKeyRelatedField(queryset=User.objects.all())
+    nest_id = PrimaryKeyRelatedField(queryset=Nest.objects.all())
+    nest = NestSimpleSerializer(read_only=True)
+    invitee = UserSimpleSerializer(read_only=True)
+
+    class Meta:
+        model = WhanauGroupInvitation
+        fields = '__all__'
+        depth = 1
+
+    def create(self, validated_data):
+        invitee = validated_data.pop('invitee_id')
+        nest = validated_data.pop('nest_id')
+        invitation = WhanauGroupInvitation.objects.create(invitee=invitee, nest=nest)
+        return invitation
+
+
+class PublicationSerializer(ModelSerializer):
+    nest = NestSerializer()
+
+    class Meta:
+        model = Publication
+        fields = '__all__'
+        depth = 1

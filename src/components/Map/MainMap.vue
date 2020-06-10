@@ -871,7 +871,7 @@ export default {
       })
     })
 
-    EventBus.$on('addLayer', (payload, geoserverLayer=true) => {
+    EventBus.$on('addUploadedLayer', (payload, geoserverLayer=true) => {
       var geojsonObj = payload.jsonlayer
       var layerid = payload.id
 

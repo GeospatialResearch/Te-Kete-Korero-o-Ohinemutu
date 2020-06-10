@@ -99,6 +99,7 @@ const initialState = {
   orientation: null,
   sectors: null,
   nests: null,
+  storyPublications: null,
   storyDetectable: true
 }
 
@@ -126,12 +127,17 @@ const store = new Vuex.Store({
         EventBus.$emit('storyIsBeingEditedWarning')
       }
       else {
-      state.contentToShow = content
-      if (state.contentToShow != 'map') {
-        EventBus.$emit('closePanel')
-      }
-      if (state.contentToShow == 'welcome') {
-        EventBus.$emit('closeSidebar')
+        if (content == 'map') {
+          $('.viewer-container').animate({ scrollTop: 0 }, 100, () => {
+            state.contentToShow = content
+          })
+        } else {
+          state.contentToShow = content
+          EventBus.$emit('closePanel')
+
+          if (state.contentToShow == 'welcome') {
+            EventBus.$emit('closeSidebar')
+          }
         }
       }
     },
@@ -150,7 +156,7 @@ const store = new Vuex.Store({
       })
     },
     ADD_INTERNAL_LAYER (state, payload) {
-      var gs_layername = payload.filename + '__' + state.user.pk
+      var gs_layername = payload.filename + '__' + state.user.id
       var obj = {
         name: payload.filename,
         visible: true,
@@ -158,7 +164,7 @@ const store = new Vuex.Store({
         geomtype: ['POINT', 'MULTIPOINT'].includes(payload.geomtype) ? 0 : ['LINESTRING', 'MULTILINESTRING'].includes(payload.geomtype) ? 1 : ['POLYGON', 'MULTIPOLYGON'].includes(payload.geomtype) ? 2 : 3,
         assigned_name: null,
         copyright_text: null,
-        uploaded_by: state.user.pk,
+        uploaded_by: state.user.id,
         uploaded_by__username: state.user.username,
         shared_with: [],
         id: payload.id,
@@ -202,6 +208,9 @@ const store = new Vuex.Store({
     },
     SET_ALLUSERS (state, response) {
       state.allUsers = response.body.users
+    },
+    UPDATE_STAFF (state, response) {
+      state.allUsers.find(user => user.id == response.body.id).is_staff = response.body.is_staff
     },
     SET_ALLPROFILES (state, response) {
       state.allProfiles = response.body
@@ -358,11 +367,21 @@ const store = new Vuex.Store({
     SET_NESTS (state, response) {
       state.nests = response.body
     },
+    ADD_NEST (state, response) {
+      state.nests.unshift(response.body)
+    },
+    UPDATE_INVITATION (state, response) {
+      state.user.invitations.find(inv => inv.id == response.body.id).accepted = response.body.accepted
+    },
+    SET_STORY_PUBLICATIONS (state, response) {
+      state.storyPublications = response.body
+    },
     // Generic fail handling
     API_FAIL (state, error) {
       if (error.status === 401 || error.status === 403) {
         console.error("Authentication error found. Logging user out.")
-        store.commit("DEAUTHENTICATE")
+        // store.commit("DEAUTHENTICATE")
+        store.dispatch('logOut')
       } else {
         console.error(error)
       }
@@ -790,6 +809,7 @@ const store = new Vuex.Store({
     saveAffiliation (store, payload) {
       return api.post(apiRoot + '/save_affiliation/', payload, { headers: getAuthHeader() })
         .then(() => {
+          store.dispatch('getNests')
           store.dispatch('getProfiles')
         })
         .catch((error) => store.commit('API_FAIL', error))
@@ -808,6 +828,14 @@ const store = new Vuex.Store({
         })
         .catch((error) => store.commit('API_FAIL', error))
     },
+    addNest (store, payload) {
+      return api.post(apiRoot + '/nests/', payload, { headers: getAuthHeader() })
+        .then((response) => {
+          store.commit('ADD_NEST', response)
+          return response
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
     updateNest (store, nest) {
       nest.kaitiaki_temp = nest.kaitiaki
       delete nest['kaitiaki']
@@ -817,13 +845,75 @@ const store = new Vuex.Store({
         })
         .catch((error) => store.commit('API_FAIL', error))
     },
+    deleteNest (store, nest) {
+      return api.delete(apiRoot + '/nests/' + nest.id + '/', { headers: getAuthHeader() })
+      .then(() => {
+        store.dispatch('getNests')
+      })
+      .catch((error) => store.commit('API_FAIL', error))
+    },
+    addWhanauInvitation (store, payload) {
+      return api.post(apiRoot + '/whanaugroupinvitation/', payload, { headers: getAuthHeader() })
+        .then(() => {
+          store.dispatch('getNests')
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    acceptWhanauInvitation (store, payload) {
+      return api.patch(apiRoot + '/whanaugroupinvitation/' + payload.id + '/', payload, { headers: getAuthHeader() })
+        .then((response) => {
+          store.dispatch('saveAffiliation', {'user': response.body.invitee_id, 'affiliation': [response.body.nest_id], 'isWhanauOrGroup': true})
+          store.commit('UPDATE_INVITATION', response)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    declineWhanauInvitation (store, payload) {
+      return api.patch(apiRoot + '/whanaugroupinvitation/' + payload.id + '/', payload, { headers: getAuthHeader() })
+        .then((response) => {
+          store.dispatch('getNests')
+          store.commit('UPDATE_INVITATION', response)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    removeUserFromWhanau (store, payload) {
+      return api.post(apiRoot + '/delete_affiliation/', payload, { headers: getAuthHeader() })
+        .then(() => {
+          store.dispatch('getNests')
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    setAsStaff (store, payload) {
+      return api.post(apiRoot + '/set_staff/', payload, { headers: getAuthHeader() })
+        .then((response) => {
+          store.commit('UPDATE_STAFF', response)
+          return response
+        })
+        .catch((error) => {
+          store.commit('API_FAIL', error)
+          return error
+        })
+    },
+    getStoryPublications (store, storyid) {
+      return api.get(apiRoot + '/get_story_publications/?story=' + storyid, { headers: getAuthHeader() })
+        .then((response) => {
+          store.commit('SET_STORY_PUBLICATIONS', response)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    setStoryPublication (store, payload) {
+      return api.post(apiRoot + '/set_story_publication/', payload, { headers: getAuthHeader() })
+        .then(() => {
+          store.dispatch('getStoryPublications', payload.story.id)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
     filterStories(store, payload) {
       return api.get(apiRoot + '/filter_stories/?text=' +payload.text+'&atua='+payload.atua+'&storytype='+payload.storytype, { headers: getAuthHeader() })
       .then((response) => {
         return response
       })
       .catch((error) => store.commit('API_FAIL', error))
-    },
+    }
   }
 })
 

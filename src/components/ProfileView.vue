@@ -155,20 +155,7 @@
               </div>
               <input v-model="membership_number" value="" type="text" name="" class="form-control input_pass" placeholder="Tribal register number">
             </div>
-            <h5>Affiliation</h5>
-            <form v-if="affiliationBySector" class="p-2">
-              <div v-for="(sector, sectorkey) in nestsBySector" :key="sectorkey">
-                <label :for="sectorkey"><strong>{{ sectorkey }}</strong></label>
-                <select v-if="sector.length > 0" :id="sectorkey" v-model="affiliationBySector[sectorkey]" class="selectpicker form-control form-control-sm mb-3" multiple :title="'Select one or more ' + sectorkey">
-                  <option v-for="nest in sector" :key="nest.id" :value="nest.id">
-                    {{ nest.name }}
-                  </option>
-                </select>
-                <p v-else class="text-muted">
-                  There are no {{ sectorkey }} nests defined yet
-                </p>
-              </div>
-            </form>
+            <affiliation-form v-if="user" :user-profile="user.profile" prefix="profile" />
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="cancelRequest()">
@@ -186,11 +173,13 @@
 
 <script>
 import { VueAvatar } from 'vue-avatar-editor-improved'
-import { each } from 'underscore'
+// import { each } from 'underscore'
+import AffiliationForm from 'components/AffiliationForm'
 
 export default {
   components: {
-    VueAvatar
+    VueAvatar,
+    AffiliationForm
   },
   data () {
     return {
@@ -205,41 +194,13 @@ export default {
         pepeha: '',
         bio: ''
       },
-      membership_number: null,
-      affiliationBySector: null
+      membership_number: null
     }
   },
   computed: {
     user () {
       return this.$store.state.user
-    },
-    sectors () {
-      return this.$store.state.sectors
-    },
-    nests () {
-      return this.$store.state.nests
-    },
-    nestsBySector () {
-      var nests = this.$store.state.nests
-      var sectors = this.$store.state.sectors
-      var nestsBySector = {}
-
-      if (sectors && nests) {
-        var sectors_names = sectors.filter(x=>x.name !== 'Tātou').map(x => x.name)
-        each(sectors_names, (name) => {
-          nestsBySector[name] = []
-        })
-        each(nests, (nest) => {
-          if (nest.kinship_sector) {
-            if (nestsBySector[nest.kinship_sector.name]) {
-              nestsBySector[nest.kinship_sector.name].push(nest)
-            }
-          }
-        })
-      }
-      return nestsBySector
     }
-
   },
   watch: {
     user: {
@@ -283,36 +244,16 @@ export default {
       }
     },
     requestTribalVerification () {
-      this.affiliationBySector = this.groupAffiliationBySector()
       $('#tribalMemberVerificationModal').modal('show')
       this.reinitialiseBootstrapSelect()
     },
     reinitialiseBootstrapSelect () {
       $(function () {
-        $('.selectpicker').selectpicker()
+        $('.selectpicker').selectpicker('refresh')
       })
-    },
-    groupAffiliationBySector () {
-      var nests = this.$store.state.nests
-      var sectors = this.$store.state.sectors
-      var affiliationBySector = {}
-
-      if (sectors && nests) {
-        var sectors_names = sectors.filter(x=>x.name !== 'Tātou').map(x => x.name)
-        each(sectors_names, (name) => {
-          affiliationBySector[name] = []
-        })
-      }
-      each(this.nests, (nest) => {
-        if (this.user && this.user.profile.affiliation.includes(nest.id)) {
-          affiliationBySector[nest.kinship_sector.name].push(nest.id)
-        }
-      })
-
-      return affiliationBySector
     },
     cancelRequest() {
-      this.affiliationBySector = null
+      // this.affiliationBySector = null
     },
     sendRequest () {
     }

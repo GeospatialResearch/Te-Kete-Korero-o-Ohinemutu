@@ -4,6 +4,12 @@
       <div class="col-lg-12 settings-title">
         <h2>Nests settings</h2>
       </div>
+      <div class="col-lg-12 mt-3">
+        <button class="btn btn-primary float-right" @click="addNewNestOpenModal()">
+          <font-awesome-icon icon="plus" size="lg" />
+          Add new nest
+        </button>
+      </div>
       <div class="col-lg-12 pt-4 pt-lg-5 nests-table">
         <table class="table table-hover">
           <thead>
@@ -20,8 +26,8 @@
               <th scope="col" />
             </tr>
           </thead>
-          <tbody>
-            <tr v-for="(nest, nestkey) in nests" :key="nestkey">
+          <tbody v-for="(sectornests, sectorkey) in nestsBySector" :key="sectorkey">
+            <tr v-for="(nest, nestkey) in sectornests" :key="'nest'+nestkey">
               <td class="nest-name">
                 {{ nest.name }}
               </td>
@@ -33,7 +39,14 @@
                   {{ k.username }}<span v-if="key != nest.kaitiaki.length - 1">,</span>
                 </span>
               </td>
-              <td><a href="#" @click="editNest(nest)">Edit</a></td>
+              <td>
+                <a href="#" type="button" class="btn btn-sm btn-primary" title="Edit nest" @click="editNest(nest)">
+                  <i><font-awesome-icon icon="pen" /></i>
+                </a>
+                <a href="#" type="button" class="btn btn-sm btn-danger" title="Delete nest" @click="deleteNestOpenModal(nest)">
+                  <i><font-awesome-icon icon="trash" /></i>
+                </a>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -48,15 +61,18 @@
             </h4>
           </div>
           <div class="modal-body">
-            <form v-if="nestToEdit.name">
+            <form>
               <div class="form-group">
                 <label for="nestName">Name</label>
                 <input id="nestName" v-model="nestToEdit.name" type="text" class="form-control">
               </div>
               <div>
                 <label for="kinshipSector">Unit</label>
-                <select id="kinshipSector" v-model="nestToEdit.kinship_sector_id" class="selectpicker form-control form-control-sm mb-3" placeholder="Select one political unit">
-                  <option v-for="sector in sectors" :key="sector.id" :value="sector.id">
+                <span>
+                  <font-awesome-icon icon="info-circle" size="lg" color="grey" title="The users create their own whanau nests" />
+                </span>
+                <select v-if="sectors" id="kinshipSector" v-model="nestToEdit.kinship_sector_id" class="selectpicker form-control form-control-sm mb-3" title="Select one political unit">
+                  <option v-for="sector in sectors.filter(x=>x.name !== 'Whānau')" :key="sector.id" :value="sector.id">
                     {{ sector.name }}
                   </option>
                 </select>
@@ -64,8 +80,8 @@
               <div>
                 <label for="kaitiaki">Kaitiaki</label>
                 <select id="kaitiaki" v-model="nestToEdit.kaitiaki" class="selectpicker form-control form-control-sm mb-3" multiple title="Select one or more kaitiaki">
-                  <option v-for="user in allUsers" :key="user.id" :value="user.id">
-                    {{ user.username }}
+                  <option v-for="a_user in allUsers" :key="a_user.id" :value="a_user.id">
+                    {{ a_user.username }}
                   </option>
                 </select>
               </div>
@@ -82,10 +98,37 @@
         </div>
       </div>
     </div>
+    <div id="deleteNestModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4>Delete nest</h4>
+          </div>
+          <div v-if="nestToDelete" class="modal-body">
+            <p>
+              Are you sure you want to delete the nest {{ nestToDelete.name }}?
+            </p>
+            <p>
+              NOTE: The narratives published in this nest will become unpublished and only their authors will be able to access them.<br>
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Cancel
+            </button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal" @click="deleteNest()">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+
+import { each } from 'underscore'
 
 export default {
   data () {
@@ -94,15 +137,42 @@ export default {
         name: null,
         kinship_sector_id: null,
         kaitiaki: []
-      }
+      },
+      nestToDelete: null
     }
   },
   computed: {
+    user () {
+      return this.$store.state.user
+    },
     sectors () {
       return this.$store.state.sectors
     },
     nests () {
       return this.$store.state.nests
+    },
+    nestsBySector () {
+      var nestsBySector = {}
+      var sectors_names
+
+      if (this.sectors && this.nests) {
+        if (this.user && this.user.is_superuser) {
+          sectors_names = this.sectors.map(x => x.name)
+        } else {
+          sectors_names = this.sectors.filter(x=>x.name !== 'Whānau').map(x => x.name)
+        }
+        each(sectors_names, (name) => {
+          nestsBySector[name] = []
+        })
+        each(this.nests, (nest) => {
+          if (nest.kinship_sector) {
+            if (nestsBySector[nest.kinship_sector.name]) {
+              nestsBySector[nest.kinship_sector.name].push(nest)
+            }
+          }
+        })
+      }
+      return nestsBySector
     },
     allUsers() {
       return this.$store.state.allUsers
@@ -119,11 +189,15 @@ export default {
     },
     reinitialiseBootstrapSelect () {
       $(function () {
-        $('.selectpicker').selectpicker()
+        $('.selectpicker').selectpicker('refresh')
       })
     },
     saveNest () {
-      this.$store.dispatch('updateNest', $.extend(true, {}, this.nestToEdit))
+      if (this.nestToEdit.id) {
+        this.$store.dispatch('updateNest', $.extend(true, {}, this.nestToEdit))
+      } else {
+        this.$store.dispatch('addNest', $.extend(true, {}, this.nestToEdit))
+      }
     },
     cancelNest () {
       this.nestToEdit = {
@@ -131,6 +205,19 @@ export default {
         kinship_sector_id: null,
         kaitiaki: []
       }
+    },
+    deleteNest () {
+      this.$store.dispatch('deleteNest', $.extend(true, {}, this.nestToDelete))
+      this.nestToDelete = null
+    },
+    deleteNestOpenModal (nest) {
+      this.nestToDelete = nest
+      $('#deleteNestModal').modal('show')
+    },
+    addNewNestOpenModal () {
+      this.reinitialiseBootstrapSelect()
+      this.cancelNest()
+      $('#editNestModal').modal('show')
     }
   }
 }

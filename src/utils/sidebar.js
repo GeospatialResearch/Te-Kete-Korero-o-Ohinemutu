@@ -142,46 +142,37 @@ $(function () {
 
   // Send EventBus on story click option
   $(document.body).on('click', "[id*='_view']" ,function(){
-    if (!store.state.storyViewMode) {
-      EventBus.$emit('storyIsBeingEditedWarning')
-    } else {
-      var story_id = $(this).attr('id').replace("_view", "")
-      store.dispatch('getStoryContent', story_id)
-      .then((story) => {
-        store.commit('SET_STORY_VIEW_MODE', true)
-        store.commit('SET_PANEL_OPEN', true)
-        EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
-      })
-    }
+    var story_id = $(this).attr('id').replace("_view", "")
+    EventBus.$emit('openNarrative', story_id)
+    // TODO: Open modal with Narrative Info instead of open narrative immediately
   })
-  $(document.body).on('click', "[id*='_edit']" ,function(){
-    if (!store.state.storyViewMode) {
-      EventBus.$emit('storyIsBeingEditedWarning')
-    } else {
-      var story_id = $(this).attr('id').replace("_edit", "")
-      store.dispatch('getStoryContent',story_id)
-      .then((story) => {
-        if (!story.being_edited_by || story.being_edited_by == store.state.user.pk) {
-          store.dispatch('updateEditor', {'story_id': story_id,'editor': store.state.user.pk,"action":"set"})
-          //story.being_edited_by = store.state.user.pk
-          if (story.story_type) {
-            story.story_type_id = story.story_type.id
-          }
-          EventBus.$emit('initialiseBootstrapSelect')
-          store.commit('SET_STORY_VIEW_MODE', false)
-          store.commit('SET_PANEL_OPEN', true)
-          EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
-
-        }
-        else {
-          store.commit('SET_STORY_VIEW_MODE', true)
-          store.commit('SET_PANEL_OPEN', true)
-          EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
-          EventBus.$emit('showStoryIsBeingEditedByWarning',story.being_edited_by)
-        }
-      })
-    }
-  })
+  // $(document.body).on('click', "[id*='_edit']" ,function(){
+  //   if (!store.state.storyViewMode) {
+  //     EventBus.$emit('storyIsBeingEditedWarning')
+  //   } else {
+  //     var story_id = $(this).attr('id').replace("_edit", "")
+  //     store.dispatch('getStoryContent',story_id)
+  //     .then((story) => {
+  //       if (!story.being_edited_by || story.being_edited_by == store.state.user.id) {
+  //         store.dispatch('updateEditor', {'story_id': story_id,'editor': store.state.user.id,"action":"set"})
+  //         if (story.story_type) {
+  //           story.story_type_id = story.story_type.id
+  //         }
+  //         EventBus.$emit('initialiseBootstrapSelect')
+  //         store.commit('SET_STORY_VIEW_MODE', false)
+  //         store.commit('SET_PANEL_OPEN', true)
+  //         EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
+  //
+  //       }
+  //       else {
+  //         store.commit('SET_STORY_VIEW_MODE', true)
+  //         store.commit('SET_PANEL_OPEN', true)
+  //         EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
+  //         EventBus.$emit('showStoryIsBeingEditedByWarning',story.being_edited_by)
+  //       }
+  //     })
+  //   }
+  // })
   $(document.body).on('click', "[id*='_deleteStory']" ,function(){
     var storyid = $(this).attr('id').replace("_deleteStory", "")
     EventBus.$emit('deleteStoryModalOpen', storyid)

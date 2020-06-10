@@ -17,8 +17,12 @@ class StoryQuerySet(models.QuerySet):
         if user.is_superuser:
             return self.all()
         else:
-            stories = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
-            return self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=stories)
+            # stories that user is co-author
+            stories_coauthor = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
+            # stories published in nests that user belongs to
+            stories_published_nest_member = [publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')]
+            # the above plus stories that user is ower and stories created by admin
+            return self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=stories_coauthor) | self.filter(id__in=stories_published_nest_member)
 
 class StoryBodyElementQuerySet(models.QuerySet):
     def for_user(self, user):
@@ -47,16 +51,31 @@ class DatasetQuerySet(models.QuerySet):
 
 class NestQuerySet(models.QuerySet):
     def for_user(self, user):
+        whanausector = Sector.objects.get(name='Whānau')
+
         # Not logged in? Don't have access
         if not user.is_authenticated:
             return
-        # Super user? All the data!
+        # Is superuser? Get all
         if user.is_superuser:
             return self.all()
-        # Not super user? Don't see the kaitiaki field
+        # Is staff? Gel all nests except whanau groups (users private)
+        if user.is_staff:
+            return self.filter(Q(members__id=user.profile.id) | ~Q(kinship_sector_id=whanausector.id)).distinct()
+        # Regular user? Get only the nests the user is member
         else:
-            # return self.values("name")
+            return self.filter(Q(members__id=user.profile.id))
+
+
+class WhanauGroupInvitationQuerySet(models.QuerySet):
+    def for_user(self, user):
+        # Not logged in? Don't have access
+        if not user.is_authenticated:
+            return
+        if user.is_superuser:
             return self.all()
+        else:
+            return self.filter(Q(nest__created_by=user)) | self.filter(Q(invitee=user))
 
 
 # Create your models here.
@@ -107,13 +126,6 @@ class Atua(models.Model):
 
 
 class Story(models.Model):
-    STATUS = Choices(
-        ('DRAFT', 'DRAFT'),
-        ('SUBMITTED', 'SUBMITTED'),
-        ('ACCEPTED', 'ACCEPTED'),
-        ('PUBLISHED', 'PUBLISHED')
-    )
-
     DATE_TYPE = Choices(
         ('PRECISE_DATE', 'PRECISE DATE'),
         ('DATE_RANGE', 'DATE RANGE')
@@ -127,13 +139,13 @@ class Story(models.Model):
     modified_date = models.DateTimeField(auto_now=True)
     title = JSONField(default=None, blank=True, null=True)
     summary = JSONField(default=None, blank=True, null=True)
-    status = models.CharField(max_length=20, default=STATUS.DRAFT, null=False, choices=STATUS)
     approx_time = JSONField(default=None, blank=True, null=True)
     atua =  models.ManyToManyField("Atua")
     story_type = models.ForeignKey(StoryType, blank=True, null=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='stories', on_delete=models.CASCADE)
-    being_edited_by = models.ForeignKey('auth.User', blank=True, null=True, on_delete=models.CASCADE)
     is_detectable = models.BooleanField(default=True, blank=True, null=True)
+    last_edited_by = models.ForeignKey('auth.User', related_name="last_edited", blank=True, null=True, on_delete=models.CASCADE)
+    being_edited_by = models.ForeignKey('auth.User', related_name="being_edited", blank=True, null=True, on_delete=models.CASCADE)
     objects = StoryQuerySet.as_manager()
 
 class CoAuthor(models.Model):
@@ -240,6 +252,8 @@ class Nest(models.Model):
     name = models.CharField(max_length=300)
     kinship_sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
     kaitiaki = models.ManyToManyField(User)
+    created_by = models.ForeignKey('auth.User', related_name='creatednests', on_delete=models.CASCADE, blank=True, null=True)
+    created_on = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     objects = NestQuerySet.as_manager()
 
     def __str__(self):
@@ -247,10 +261,38 @@ class Nest(models.Model):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, related_name="profile", on_delete=models.CASCADE)
     avatar = models.ImageField(blank=True, null=True)
     pepeha = models.TextField(max_length=2000, blank=True, null=True)
     bio = models.TextField(max_length=2000, blank=True, null=True)
     birth_date = models.DateField(blank=True, null=True)
     membership_number = models.CharField(max_length=100, blank=True, null=True)
-    affiliation = models.ManyToManyField(Nest)
+    affiliation = models.ManyToManyField(Nest, related_name="members")
+
+
+class WhanauGroupInvitation(models.Model):
+    nest = models.ForeignKey(Nest, related_name='invitations', on_delete=models.CASCADE)
+    invitee = models.ForeignKey('auth.User', related_name='invitations', on_delete=models.CASCADE)
+    sent_on = models.DateTimeField(auto_now_add=True)
+    accepted = models.BooleanField(blank=True, null=True)
+    objects = WhanauGroupInvitationQuerySet.as_manager()
+
+
+class Publication(models.Model):
+    STATUS = Choices(
+        ('DRAFT', 'DRAFT'),
+        ('SUBMITTED', 'SUBMITTED'),
+        ('REVIEWED', 'REVIEWED'),
+        ('ACCEPTED', 'ACCEPTED'),
+        ('PUBLISHED', 'PUBLISHED'),
+        ('UNPUBLISHED', 'UNPUBLISHED')
+    )
+    story = models.ForeignKey(Story, related_name='publications', on_delete=models.CASCADE)
+    nest = models.ForeignKey(Nest, related_name='publications', on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, default=STATUS.SUBMITTED, null=False, choices=STATUS)
+    status_modified_on = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['story', 'nest'], name='unique_story_nest')
+        ]

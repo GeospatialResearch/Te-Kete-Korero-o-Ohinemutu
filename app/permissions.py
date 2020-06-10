@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from .models import StoryBodyElement, StoryGeomAttrib, StoryGeomAttribMedia, CoAuthor
+from .models import Story, StoryBodyElement, StoryGeomAttrib, StoryGeomAttribMedia, CoAuthor, Nest, WhanauGroupInvitation, Sector
 # from django.contrib.auth.models import User
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -35,11 +35,14 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         if request.user.is_superuser:
             return True
 
-        # CoAuthors can update and delete
-        coauths = CoAuthor.objects.filter(story = obj.id).values_list("co_author", flat=True)
-        coauths = list(coauths)
-        if request.user.id in coauths:
-            return True
+        if isinstance(obj, Story):
+            # CoAuthors can update and delete
+            coauths = CoAuthor.objects.filter(story = obj.id).values_list("co_author", flat=True)
+            coauths = list(coauths)
+            if request.user.id in coauths:
+                return True
+
+            return obj.owner == request.user
 
         # Finally, if the user owns the thing, he can do update and delete.
 
@@ -65,5 +68,12 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             except Exception as e:
                 return True
 
-        # if story
-        return obj.owner == request.user
+        if isinstance(obj, Nest):
+            if obj.created_by == request.user:
+                return True
+            else:
+                whanausector = Sector.objects.get(name='Whānau')
+                return (request.user.is_staff and obj.kinship_sector != whanausector)
+
+        if isinstance(obj, WhanauGroupInvitation):
+            return obj.invitee == request.user

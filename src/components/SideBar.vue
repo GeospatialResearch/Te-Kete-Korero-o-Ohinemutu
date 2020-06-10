@@ -16,6 +16,9 @@
           <div v-if="authenticated" class="user-info">
             <span class="user-name">Welcome, <strong>{{ username }}</strong>
             </span>
+            <span v-if="user.is_superuser" class="badge badge-pill badge-secondary mt-3 role-badge">Administrator</span>
+            <span v-if="user.is_staff && !user.is_superuser" class="badge badge-pill badge-secondary mt-3 role-badge">Tool Manager</span>
+            <!-- <span v-if="user.is_superuser" class="badge badge-pill badge-secondary mt-3 role-badge">Kaitiaki</span> -->
             <!-- <span class="user-status mt-0">Whanau: </span>
             <span class="user-status mt-0">Hapu: </span>
             <span class="user-status mt-0">Iwi: </span> -->
@@ -130,7 +133,7 @@
               <a href="#" title="Data uploaded and managed by admin" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
-                <span v-if="isAdmin" class="menu-text">Other layers</span>
+                <span v-if="user && user.is_superuser" class="menu-text">Other layers</span>
                 <span v-else class="menu-text">Internal layers</span>
               </a>
               <div class="sidebar-submenu">
@@ -481,10 +484,12 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="dropdownMenuMessage">
             <a v-if="authenticated" class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'profile')">My profile</a>
-            <a v-if="authenticated && isAdmin" class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'nests')">Nests settings</a>
-            <a v-if="authenticated && isAdmin" class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'users')">Users settings</a>
+            <a v-if="authenticated" class="dropdown-item" href="#" @click="openWhanauSettings()">Whānau Page</a>
+            <a v-if="authenticated && user && (user.is_superuser || user.is_staff)" class="dropdown-item" href="#" @click="openNestsSettings()">Nests settings Page</a>
+            <a v-if="authenticated && user && (user.is_superuser || user.is_staff)" class="dropdown-item" href="#" @click="openUsersSettings()">Users settings Page</a>
+            <!-- <a v-if="authenticated && user && (user.is_superuser || user.is_staff)" class="dropdown-item" href="#" @click="openUsersSettings()">Kaitiaki Page</a> -->
             <a class="dropdown-item" href="#">Help</a>
-            <a class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'themes')">Themes</a>
+            <a class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'themes')">Look & Feel</a>
           </div>
         </div>
         <div>
@@ -758,7 +763,7 @@
                         Open narrative
                       </button>
                     </div>
-                    <div  v-else class="col-sm-3 text-center">
+                    <div v-else class="col-sm-3 text-center">
                       <button type="button" disabled class="btn btn-sm btn-primary" title="Send mail">
                         Send <i class="fa fa-envelope" />
                       </button>
@@ -930,6 +935,9 @@
       authenticated () {
         return this.$store.state.authenticated
       },
+      user () {
+        return this.$store.state.user
+      },
       username () {
         var username
         if (this.$store.state.user) {
@@ -940,7 +948,7 @@
       userPK () {
         var userpk
         if (this.$store.state.user) {
-          userpk = this.$store.state.user.pk
+          userpk = this.$store.state.user.id
         }
         return userpk
       },
@@ -952,9 +960,6 @@
           }
         }
         return avatar
-      },
-      isAdmin () {
-        return this.$store.state.isAdmin
       },
       contentToShow () {
         return this.$store.state.contentToShow
@@ -1112,7 +1117,7 @@
         .then(response => {
           if (response.ok) {
             if (response.body) {
-              EventBus.$emit('addLayer', response.body)  // add argument false if you want to add geojson layer
+              EventBus.$emit('addUploadedLayer', response.body)  // add argument false if you want to add geojson layer
             }
             this.$store.state.isUploadingData = false
             this.reset()
@@ -1181,7 +1186,7 @@
                                 <a class="dropdown-item` + disabled +`" id="` + this.allStoriesGeomsLayer.name + `_zoomto" href="#">Zoom to layer</a>
                               </div>`
         } else {
-          if (layer.uploaded_by == this.userPK || this.isAdmin) {
+          if (layer.uploaded_by == this.userPK || (this.user && this.user.is_superuser)) {
             layerOptions = `<div class="layer-options">
                                   <a class="dropdown-item` + disabled +`" id="` + layer.gs_layername + `_zoomto" href="#">Zoom to layer</a>
                                   <a class="dropdown-item` + disabled +`" id="` + layer.id + `_rename" href="#">Rename layer</a>
@@ -1225,18 +1230,31 @@
       },
       createPopoverStoryOptions (story) {
         var storyOptions
-        if (story.owner === this.username || this.isAdmin) {
+        // if (story.owner === this.username || (this.user && this.user.is_superuser)) {
+        //   storyOptions = `<div class="layer-options">
+        //                     <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
+        //                     <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit narrative</a>
+        //                     <div class="dropdown-divider"></div>
+        //                     <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">Delete narrative</a>
+        //                   </div>`
+        //
+        // } else if (story.co_authors.indexOf(this.userPK)>=0) {
+        //   storyOptions = `<div class="layer-options">
+        //                     <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
+        //                     <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit narrative</a>
+        //                   </div>`
+        //
+        // } else {
+        //   storyOptions = `<div class="layer-options">
+        //                     <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
+        //                   </div>`
+        // }
+
+        if (story.owner === this.username || (this.user && this.user.is_superuser)) {
           storyOptions = `<div class="layer-options">
                             <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
-                            <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit narrative</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">Delete narrative</a>
-                          </div>`
-
-        } else if (story.co_authors.indexOf(this.userPK)>=0) {
-          storyOptions = `<div class="layer-options">
-                            <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
-                            <a class="dropdown-item" id="` + story.id + `_edit" href="#">Edit narrative</a>
                           </div>`
 
         } else {
@@ -1344,6 +1362,25 @@
       },
       onClose () {
         this.$refs.usersAutocomplete.inputValue = ''
+      },
+      openWhanauSettings () {
+        this.getData()
+        this.$store.commit('TOGGLE_CONTENT', 'whanau')
+      },
+      openNestsSettings () {
+        this.getData()
+        this.$store.commit('TOGGLE_CONTENT', 'nests')
+      },
+      openUsersSettings () {
+        this.getData()
+        this.$store.commit('TOGGLE_CONTENT', 'users')
+      },
+      getData () {
+        this.$store.dispatch('getUsers')
+        this.$store.dispatch('getProfiles')
+        this.$store.dispatch('getSectors')
+        this.$store.dispatch('getNests')
+        this.$store.dispatch('getUser') // to update user invitations
       },
       openNarrative(story_id){
         // close the modal

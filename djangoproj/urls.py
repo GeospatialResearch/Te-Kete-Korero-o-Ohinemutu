@@ -43,7 +43,7 @@ router.register(r'websitetranslation', views.WebsiteTranslationViewSet)
 router.register(r'comments', views.CommentViewSet)
 router.register(r'sectors', views.SectorViewSet)
 router.register(r'nests', views.NestViewSet)
-# router.register(r'storygeometries', views.StoryGeometryViewSet)
+router.register(r'whanaugroupinvitation', views.WhanauGroupInvitationViewSet)
 
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),
@@ -68,6 +68,10 @@ v1 = router.urls + [
     url(r'^change_avatar/', views.ChangeAvatar.as_view()),
     url(r'^save_profile/', views.SaveProfile.as_view()),
     url(r'^save_affiliation/', views.SaveAffiliation.as_view()),
+    url(r'^delete_affiliation/', views.DeleteWhanauAffiliation.as_view()),
+    url(r'^set_staff/', views.SetUserAsStaff.as_view()),
+    url(r'^get_story_publications/$', views.GetStoryPublications.as_view()),
+    url(r'^set_story_publication/', views.setStoryPublication.as_view()),
     url(r'^filter_stories/$', views.FilterStories.as_view())
 
 ]

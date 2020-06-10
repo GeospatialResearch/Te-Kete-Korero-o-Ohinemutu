@@ -7,9 +7,9 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import UserSerializer, UserSimpleSerializer, CoAuthorSerializer, DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer, CommentSerializer, ProfileSerializer, SectorSerializer, NestSerializer
+from .serializers import UserSerializer, UserSimpleSerializer, CoAuthorSerializer, DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer, CommentSerializer, ProfileSerializer, ProfileSimpleSerializer, SectorSerializer, NestSerializer, WhanauGroupInvitationSerializer, PublicationSerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, CoAuthor, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest
+from .models import Dataset, Story, CoAuthor, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest, WhanauGroupInvitation, Publication
 from django.contrib.auth.models import User
 from tempfile import TemporaryDirectory
 import zipfile
@@ -500,7 +500,7 @@ class StoryViewSet(viewsets.ModelViewSet):
     def perform_create(self,serializer):
         serializer.save(owner=self.request.user)
     def perform_update(self,serializer):
-        serializer.save(being_edited_by = None)
+        serializer.save(being_edited_by = None, last_edited_by=self.request.user)
 
 
 class StoryBodyElementViewSet(viewsets.ModelViewSet):
@@ -522,9 +522,13 @@ class AtuaViewSet(viewsets.ModelViewSet):
     serializer_class = AtuaSerializer
     queryset = Atua.objects.all()
 
-# class UserViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = UserSerializer
-#     queryset = User.objects.all()
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    def get_serializer_class(self):
+        if self.request.user.is_superuser:
+            return serializers.UserSerializer
+        else:
+            return serializers.UserSimpleSerializer
 
 class StoryTypeViewSet(viewsets.ModelViewSet):
     serializer_class = StoryTypeSerializer
@@ -591,12 +595,27 @@ class NestViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset_for_user = self.queryset.for_user(self.request.user)
         if queryset_for_user is not None:
-            return queryset_for_user.order_by('id')
+            return queryset_for_user.order_by('-created_on')
         return
+
+    @transaction.atomic
+    def perform_create(self,serializer):
+        serializer.save(created_by=self.request.user)
 
     def perform_update(self,serializer):
         serializer.save()
 
+
+class WhanauGroupInvitationViewSet(viewsets.ModelViewSet):
+    serializer_class = WhanauGroupInvitationSerializer
+    queryset = WhanauGroupInvitation.objects.all()
+
+    def get_queryset(self):
+        return self.queryset.for_user(self.request.user)
+
+    @transaction.atomic
+    def perform_create(self,serializer):
+        serializer.save()
 
 
 ### I had to turn the following method into an APIView in order to the request.user don't be AnonymousUser
@@ -696,25 +715,27 @@ def get_layer_bbox(request):
 
 class GetAllUsers(APIView):
     def get(self, request):
-        if request.user is not None and not request.user.is_anonymous:
-
-            if request.user.is_superuser:
-                allusers = User.objects.all()
-                users_serializer = UserSerializer(allusers, many=True)
-            else:
-                allusers = User.objects.values('id', 'username')
-                users_serializer = UserSimpleSerializer(allusers, many=True)
-
-            return Response({'users': users_serializer.data})
+        if request.user.is_superuser or request.user.is_staff:
+            allusers = User.objects.all().order_by('username')
+            users_serializer = UserSerializer(allusers, many=True)
         else:
-            return Response({})
+            allusers = User.objects.all().order_by('username')
+            users_serializer = UserSimpleSerializer(allusers, many=True)
+
+        return Response({'users': users_serializer.data})
 
 
 class GetUser(APIView):
     def get(self, request):
         if request.user is not None and not request.user.is_anonymous:
+            user_serializer = UserSerializer(request.user)
             profile_serializer = ProfileSerializer(request.user.profile)
-            return Response({'user': {'email': request.user.email, 'username': request.user.username, 'first_name': request.user.first_name, 'last_name': request.user.last_name, 'pk' : request.user.pk, 'profile': profile_serializer.data}})
+            userinvitations_serializer = WhanauGroupInvitationSerializer(request.user.invitations, many=True)
+            userdata = user_serializer.data
+            userdata['profile'] = profile_serializer.data
+            userdata['invitations'] = userinvitations_serializer.data
+            # return Response({'user': {'email': request.user.email, 'username': request.user.username, 'first_name': request.user.first_name, 'last_name': request.user.last_name, 'pk' : request.user.pk, 'profile': profile_serializer.data, 'invitations': userinvitations_serializer.data }})
+            return Response({'user': userdata})
         else:
             return Response({})
 
@@ -741,11 +762,15 @@ class IsAdmin(APIView):
 
 class GetAllProfiles(APIView):
     def get(self, request):
-        if request.user.is_superuser:
-            profiles = Profile.objects.all()
-            profile_serializer = ProfileSerializer(profiles, many=True)
-
-            return Response (profile_serializer.data)
+        if request.user is not None and not request.user.is_anonymous:
+            if request.user.is_superuser or request.user.is_staff:
+                profiles = Profile.objects.all()
+                profile_serializer = ProfileSerializer(profiles, many=True)
+                return Response (profile_serializer.data)
+            else:
+                profiles = Profile.objects.all()
+                profile_serializer = ProfileSimpleSerializer(profiles, many=True)
+                return Response (profile_serializer.data)
 
         return Response({})
 
@@ -796,12 +821,118 @@ class SaveAffiliation(APIView):
     def post(self, request):
         userid = request.data['user']
         affiliation = request.data['affiliation']
+        isWhanauOrGroup = request.data.get('isWhanauOrGroup', None)
 
         user = User.objects.get(pk=userid)
 
-        user.profile.affiliation.clear()
+        whanauSector = Sector.objects.get(name="Whānau")
+
+        if not isWhanauOrGroup:
+            if len(user.profile.affiliation.all()) > 0:
+                for aff in user.profile.affiliation.all():
+                    if aff.kinship_sector_id != whanauSector.id :
+                        user.profile.affiliation.remove(aff.id)
+
         for nest_id in affiliation:
             user.profile.affiliation.add(nest_id)
+
+
+        return Response({'user': 'ok' })
+
+
+class DeleteWhanauAffiliation(APIView):
+    def post(self, request):
+        userid = request.data['user']
+        nestid = request.data['nest']
+
+        user = User.objects.get(pk=userid)
+        user.profile.affiliation.remove(nestid)
+
+        return Response({'user': 'ok' })
+
+
+class SetUserAsStaff(APIView):
+
+    @transaction.atomic
+    def post(self, request):
+        userid = request.data['user']
+        is_staff = request.data['is_staff']
+
+        user = User.objects.get(pk=userid)
+        user.is_staff = is_staff
+        user.save()
+
+        allStaff = User.objects.all().filter(is_staff=True, is_superuser=False)
+        if len(allStaff) == 0:
+            raise ValidationError("Your last action could not be executed since the tool must have at least one tool manager assigned.")
+
+        user_serializer = UserSerializer(user)
+
+        return Response(user_serializer.data)
+
+
+class GetStoryPublications(APIView):
+    def get(self, request):
+        storyid = request.GET.get('story')
+        if storyid is not None:
+            publications = Publication.objects.filter(story = storyid)
+            publication_serializer = PublicationSerializer(publications, many=True)
+            return Response(publication_serializer.data)
+
+        return Response({})
+
+
+class setStoryPublication(APIView):
+    def post(self, request):
+        action = request.data['action']
+        story = request.data['story']
+        nests = request.data['nests']
+        sector = request.data['sector']
+
+        story_instance = Story.objects.get(id=story['id'])
+
+        publications = Publication.objects.filter(story=story['id'], nest__in=nests)
+
+        for nestid in nests:
+            nest_instance = Nest.objects.get(id=nestid)
+
+            if sector == 'Whānau':
+                if action == 'submit' or action == 'publish':
+                    if nestid not in publications:
+                        Publication.objects.create(story=story_instance, nest=nest_instance, status='PUBLISHED')
+                    else:
+                        publication = publications.filter(nest=nestid)
+                        publication.status = 'PUBLISHED'
+                        publication.save()
+            else:
+                if action == 'submit':
+                    if nestid not in publications:
+                        Publication.objects.create(story=story_instance, nest=nest_instance, status='SUBMITTED')
+                    else:
+                        publication = publications.filter(nest=nestid)
+                        publication.status = 'SUBMITTED'
+                        publication.save()
+                if action == 'publish':
+                    publication = publications.filter(nest=nestid)
+                    if publication.status == 'ACCEPTED':
+                        publication.status = 'PUBLISHED'
+                        publication.save()
+                    else:
+                        print("Couldn't published the narrative since it is not accepted yet.")
+
+
+            if action == 'unpublish':
+                publication = publications.filter(nest=nestid)
+                if publication.status == 'PUBLISHED':
+                    publication.status = 'UNPUBLISHED'
+                    publication.save()
+                else:
+                    print("Couldn't unpublished the narrative since it is not published yet.")
+
+        newpublications = Publication.objects.filter(story=story['id'], nest__in=nests)
+        publication_serializer = PublicationSerializer(newpublications, many=True)
+
+        return Response(publication_serializer.data)
 
         return Response({'user': 'ok' })
 
