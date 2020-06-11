@@ -987,4 +987,5 @@ class FilterStories(APIView):
         for ea in result_list:
             contains = temp[ea['id']]['contains']
             ea['contains']= contains
+        result_list.sort(key = lambda x: len(str(x['contains']).split(',')), reverse=True)
         return JsonResponse(result_list, safe=False)

@@ -1495,7 +1495,12 @@ export default {
     },
     reinitialiseBootstrapSelect () {
       $(function () {
-        $('.selectpicker').selectpicker('refresh');
+        if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $('.selectpicker').selectpicker();
+        }
+        else {
+          $('.selectpicker').removeClass('selectpicker');
+        }
       })
     },
     printStory (title) {

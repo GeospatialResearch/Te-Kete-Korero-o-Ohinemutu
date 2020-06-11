@@ -115,7 +115,7 @@ reset-db:
 	docker-compose $(DEV) stop db
 	docker-compose $(DEV) rm --force db
 	docker-compose $(DEV) up -d db && sleep 10
-	make migrate
+	# make migrate
 
 initialise-db: create-superuser load-translations load-atua load-storytypes load-contenttypes
 
