@@ -733,8 +733,8 @@
                   </p>
                   <div class="ml-md-5 mr-md-5">
                     <select v-model="setStoryPublication.nests" class="selectpicker form-control form-control-sm mb-3" multiple>
-                      <option v-for="affiliatednest in affiliationBySector[setStoryPublication.sector]" :key="'nest_'+affiliatednest" :value="affiliatednest">
-                        {{ nests.filter(x => x.id == affiliatednest)[0].name }}
+                      <option v-for="affiliatednest in affiliationBySector[setStoryPublication.sector].filter(id=> !publishedGroups.includes(id))" :key="'nest_'+affiliatednest" :value="affiliatednest">
+                        {{ nests.filter(x =>x.id === affiliatednest)[0].name }}
                       </option>
                     </select>
                   </div>
@@ -1021,6 +1021,13 @@ export default {
         }
       }
       return tatouNestId
+    },
+    publishedGroups(){
+      var groupids
+      if(this.storyPublications) {
+        groupids = this.storyPublications.map(item=>item.nest.id)
+      }
+      return groupids
     }
   },
   watch: {
