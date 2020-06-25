@@ -229,7 +229,7 @@
               Users
             </h5>
             <div v-if="userPK && inviteToNest.nest && inviteToNest.nest.members">
-              <vue-bootstrap-typeahead ref="inviteMemberAutocomplete" v-model="usersquery" :serializer="s => s.username" :data="allOtherUsers.filter(user=>!inviteToNest.nest.members.map(member => member.user_id).includes(user.id) && !inviteToNest.nest.invitations.map(inv => inv.invitee.id && inv.accepted==null).includes(user.id))" placeholder="Type a username" @hit="setWhanauMember($event)" />
+              <vue-bootstrap-typeahead ref="inviteMemberAutocomplete" v-model="usersquery" :serializer="s => s.username +' - '+ s.first_name +' '+ s.last_name" :data="allOtherUsers.filter(user=>!inviteToNest.nest.members.map(member => member.user_id).includes(user.id) && !inviteToNest.nest.invitations.filter(inv => inv.accepted==null).map(member => member.invitee_id).includes(user.id))" placeholder="Type a username" @hit="setWhanauMember($event)" />
             </div>
           </div>
           <div class="modal-footer">
@@ -390,6 +390,7 @@ export default {
       })
     },
     inviteMember (nest) {
+      this.inviteToNest.invitee = null
       if (this.$refs.inviteMemberAutocomplete) {
         this.$refs.inviteMemberAutocomplete.inputValue = ''
       }
@@ -400,7 +401,9 @@ export default {
       this.inviteToNest.invitee = value
     },
     sendInvite () {
-      this.$store.dispatch('addWhanauInvitation', {'nest_id':  this.inviteToNest.nest.id, 'invitee_id':  this.inviteToNest.invitee.id})
+      if (this.inviteToNest.invitee) {
+        this.$store.dispatch('addWhanauInvitation', {'nest_id':  this.inviteToNest.nest.id, 'invitee_id':  this.inviteToNest.invitee.id})
+      }
     },
     acceptInvitation (invitationId) {
       this.$store.dispatch('acceptWhanauInvitation', {'id': invitationId, 'accepted': true})

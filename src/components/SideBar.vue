@@ -159,11 +159,9 @@
                         <span v-if="layer.visible"><font-awesome-icon icon="check-square" /></span>
                         <span v-else><font-awesome-icon icon="square" /></span>
                       </span>
-                      <span v-if="layer.assigned_name">
-                        &emsp;{{ layer.assigned_name }}
-                      </span>
-                      <span v-else>
-                        &emsp;{{ layer.name }}
+                      <span class="inline-text">
+                        <span v-if="layer.assigned_name" class="ml-2 ellipsis-text">{{ layer.assigned_name }}</span>
+                        <span v-else class="ml-2 ellipsis-text">{{ layer.name }}</span>
                       </span>
                       <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Layer Options" :data-content="createPopoverLayerOptions(layer)">
                         <font-awesome-icon icon="ellipsis-v" />
@@ -755,8 +753,14 @@
                       <h6 title="Narrative summary" class="ml-4">
                         <i>{{ story.summary.eng }}</i>
                       </h6>
-                      <i v-if="authenticated && allUsers" class="ml-4"><small>Story by {{ allUsers.filter(x=>x.id === story.owner)[0].username }}</small></i>
-                      <i class="ml-4"><small><b>Contains: {{ story.contains[0] }}{{ story.contains[1] }}{{ story.contains[2] }}</b></small></i>
+                      <p class="ml-4">
+                        <i v-if="authenticated && allUsers">
+                          <small>Story by {{ allUsers.filter(x=>x.id === story.owner)[0].username }}</small>
+                        </i>
+                        <i class="ml-4">
+                          <small><b>Contains: {{ story.contains[0] }}{{ story.contains[1] }}{{ story.contains[2] }}</b></small>
+                        </i>
+                      </p>
                     </div>
                     <div v-if="stories.filter(s=>s.id === story.id).length != 0" class="col-sm-3 text-center">
                       <button type="button" class="btn btn-sm btn-primary" title="Open narrative" @click="openNarrative(story.id)">
@@ -797,7 +801,7 @@
               Users
             </h5>
             <div v-if="userPK">
-              <vue-bootstrap-typeahead ref="usersAutocomplete" v-model="user_query" :serializer="s => s.username" :data="allOtherUsers.filter(user=>!layerSharedWith.includes(user.id))" placeholder="Type a username" @hit="setLayerSharedWith($event)" />
+              <vue-bootstrap-typeahead ref="usersAutocomplete" v-model="user_query" :serializer="s => s.username +' - '+ s.first_name +' '+ s.last_name" :data="allOtherUsers.filter(user=>!layerSharedWith.includes(user.id))" placeholder="Type a username" @hit="setLayerSharedWith($event)" />
               <div class="coauthor-box">
                 <ul class="coauthor-list">
                   <li v-for="userid in layerSharedWith" :key="userid" class="coauthor col-md-12">
@@ -805,7 +809,7 @@
                       <div class="user-image">
                         <img src="static/img/user.jpg">
                       </div>
-                      {{ allOtherUsers.filter(user=>user.id === userid)[0].username }}
+                      {{ getAuthFullName(userid) }}
                     </div>
                     <div class="col-md-2 vertical-align-middle">
                       <font-awesome-icon icon="times-circle" size="lg" color="grey" class="float-right" @click="stopSharingLayerModalOpen(userid)" />
@@ -1408,6 +1412,10 @@
       },
       closeSearchCollapse(){
         $('#advancedFilters').collapse('hide');
+      },
+      getAuthFullName(userid){
+        let author = this.allOtherUsers.filter(user=>user.id === userid)[0]
+        return `${author.username} ( ${author.first_name} ${author.last_name} )`
       }
     }
   }

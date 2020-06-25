@@ -481,15 +481,16 @@
               Users
             </h5>
             <div v-if="userPK">
-              <vue-bootstrap-typeahead ref="usersAutocomplete" v-model="query" :serializer="s => s.username" :data="allOtherUsers.filter(user=>!coAuthors.includes(user.id))" placeholder="Type a co-author's name" @hit="setCoAuthors($event)" />
+              <vue-bootstrap-typeahead ref="usersAutocomplete" v-model="query" :serializer="s => s.username +' - '+ s.first_name +' '+ s.last_name" :data="allOtherUsers.filter(user=>!coAuthors.includes(user.id))" placeholder="Type a co-author's name" @hit="setCoAuthors($event)" />
               <div class="coauthor-box">
                 <ul class="coauthor-list">
                   <li v-for="item in coAuthors" :key="item" class="coauthor col-md-12">
-                    <div class="col-md-10">
+                    <div class="col-md-10 center-content-vertically">
                       <div class="user-image">
-                        <img src="static/img/user.jpg">
+                        <img v-if="getAuthAvatar(item)" class="img-responsive" :src="mediaRoot + getAuthAvatar(item)" alt="User picture">
+                        <img v-else class="img-responsive" src="static/img/user.jpg" alt="User picture">
                       </div>
-                      {{ allOtherUsers.filter(user=>user.id === item)[0].username }}
+                      <span>{{ getAuthFullName(item) }}</span>
                     </div>
                     <div class="col-md-2 vertical-align-middle">
                       <font-awesome-icon icon="times-circle" size="lg" color="grey" class="float-right" @click="deleteCoAuthorModalOpen(item)" />
@@ -871,8 +872,7 @@ export default {
         [{'align': ''}, {'align': 'center'}, {'align': 'right'}, {'align': 'justify'}],
         [{ 'list': 'ordered'}, { 'list': 'bullet' }],
         [{ 'script': 'sub'}, { 'script': 'super' }],
-        [{ 'color': [] }, { 'background': [] }],
-        ['link']
+        [{ 'color': [] }, { 'background': [] }]
       ],
       tempMediaDescriptionEng: null,
       tempMediaDescriptionMao: null,
@@ -896,9 +896,6 @@ export default {
     }
   },
   computed: {
-    draggingInfo() {
-      return this.dragging ? "under drag" : ""
-    },
     getOrientation(){
       return this.$store.state.orientation
     },
@@ -1638,7 +1635,22 @@ export default {
     },
     showNarrativeInfoOpenModal () {
       $('#showNarrativeInfoModal').modal('show')
-    }
+    },
+    getAuthFullName(item){
+      let author = this.allOtherUsers.filter(user=>user.id === item)[0]
+      if (author.first_name || author.first_name) {
+        return `${author.username} ( ${author.first_name} ${author.last_name} )`
+      } else {
+        return `${author.username}`
+      }
+    },
+    getAuthAvatar(item){
+      let author = this.allOtherUsers.filter(user=>user.id === item)[0]
+      if (author.profile.avatar) {
+        return author.profile.avatar.split('/media/')[1]
+      }
+      return
+    },
   }
   };
   </script>

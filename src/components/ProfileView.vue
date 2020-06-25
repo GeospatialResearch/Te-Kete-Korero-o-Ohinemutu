@@ -200,7 +200,7 @@ export default {
   computed: {
     user () {
       return this.$store.state.user
-    }
+    },
   },
   watch: {
     user: {
@@ -214,6 +214,15 @@ export default {
           this.inputs.bio = newVal.profile.bio
         }
       }
+    }
+  },
+  mounted: function () {
+    this.inputs = {
+      first_name: this.user.first_name,
+      last_name: this.user.last_name,
+      date_birth: this.user.profile.birth_date,
+      pepeha: this.user.profile.pepeha,
+      bio: this.user.profile.bio
     }
   },
   methods: {
