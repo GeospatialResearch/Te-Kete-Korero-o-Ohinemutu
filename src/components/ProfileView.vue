@@ -250,7 +250,7 @@ export default {
     reinitialiseBootstrapSelect () {
       $(function () {
         if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            $('.selectpicker').selectpicker();
+            $('.selectpicker').selectpicker('refresh');
         }
         else {
           $('.selectpicker').removeClass('selectpicker');
