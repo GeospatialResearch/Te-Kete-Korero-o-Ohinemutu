@@ -385,9 +385,10 @@
             <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <font-awesome-icon icon="share-alt" class="mr-2" />
             </button>
-            <div class="dropdown-menu">
+            <div v-if="story" class="dropdown-menu">
               <a class="dropdown-item" href="#" @click="inviteCoAuthorOpenModal()">Co-create narrative</a>
               <a class="dropdown-item" href="#" @click="setStoryPublicationOpenModal('submit')">Submit narrative</a>
+              <a v-if="publishedGroups && publishedGroups.length >0" class="dropdown-item" href="#" @click="setStoryUnPublicationOpenModal('unpublish')">Unpublish narrative</a>
               <!-- <a class="dropdown-item" href="#" @click="setStoryPublicationOpenModal('publish')">Publish narrative</a> -->
             </div>
           </div>
@@ -760,6 +761,45 @@
       </div>
     </div>
 
+    <div id="setStoryUnPublicationModal" class="modal fade" data-backdrop="static">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4>
+              <span v-if="setStoryPublication.action">{{ setStoryPublication.action.charAt(0).toUpperCase() + setStoryPublication.action.slice(1) }} </span>
+              your narrative
+            </h4>
+          </div>
+          <div class="modal-body">
+            <div>
+              <form>
+                <div v-if="publishedGroups && publishedGroups.length > 0">
+                  <p>
+                    Select the nest in which you want to {{ setStoryPublication.action }} your narrative<br>
+                  </p>
+                  <div class="ml-md-5 mr-md-5">
+                    <select v-model="nestsToUnpublish" class="selectpicker form-control form-control-sm mb-3" multiple @change="reinitialiseBootstrapSelect()">
+                      <option v-for="nest in publishedGroups" :key="nest" :value="nest">
+                        {{ nests.filter(x =>x.id === nest)[0].name }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-dismiss="modal" @click="clearSetStoryPublication()">
+              Close
+            </button>
+            <button disabled class="btn btn-success" data-dismiss="modal" @click="sendSetStoryUnPublication()">
+              Submit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="showNarrativeInfoModal" class="modal fade">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -798,7 +838,12 @@
                     <tbody>
                       <tr v-for="publication in storyPublications" :key="publication.id">
                         <td>
-                          <span class="badge badge-secondary">{{ publication.status }}</span>
+                          <span v-if="publication.status == 'SUBMITTED'" class="badge badge-secondary">{{ publication.status }}</span>
+                          <span v-else-if="publication.status == 'PUBLISHED'" class="badge badge-success">{{ publication.status }}</span>
+                          <span v-else-if="publication.status == 'UNPUBLISHED'" class="badge badge-dark">{{ publication.status }}</span>
+                          <span v-else-if="publication.status == 'REVIEWED'" class="badge badge-warning">{{ publication.status }}</span>
+                          <span v-else-if="publication.status == 'ACCEPTED'" class="badge badge-info">{{ publication.status }}</span>
+                          <span v-else class="badge badge-light">{{ publication.status }}</span>
                         </td>
                         <td>
                           {{ publication.nest.kinship_sector.name }} {{ publication.nest.name }}
@@ -848,6 +893,7 @@ import { EventBus } from 'store/event-bus'
 import { disableEventListenerSingleClick, enableEventListenerSingleClick } from 'utils/mapUtils'
 import CommentsView from 'components/Comments'
 import VueBootstrapTypeahead from 'vue-bootstrap-typeahead'
+import { success as notifySuccess } from 'utils/notify'
 
 export default {
   components: {
@@ -892,7 +938,8 @@ export default {
         action: null,
         sector: null,
         nests: []
-      }
+      },
+      nestsToUnpublish: []
     }
   },
   computed: {
@@ -1022,7 +1069,7 @@ export default {
     publishedGroups(){
       var groupids
       if(this.storyPublications) {
-        groupids = this.storyPublications.map(item=>item.nest.id)
+        groupids = this.storyPublications.filter(item=>item.status=== 'PUBLISHED').map(item=>item.nest.id)
       }
       return groupids
     }
@@ -1335,6 +1382,11 @@ export default {
       this.setStoryPublication.action = action
       $('#setStoryPublicationModal').modal('show')
     },
+    setStoryUnPublicationOpenModal(action) {
+      this.reinitialiseBootstrapSelect()
+      this.setStoryPublication.action = action
+      $('#setStoryUnPublicationModal').modal('show')
+    },
     settingsElementModal: function (element) {
       if (!this.isDrawMode) {
         this.selectedElement = element
@@ -1631,6 +1683,22 @@ export default {
     sendSetStoryPublication () {
       this.setStoryPublication.story = this.story
       this.$store.dispatch('setStoryPublication', this.setStoryPublication)
+      .then((response) => {
+        if (response.ok) {
+          notifySuccess("&nbsp;&nbsp;The narrative was successfully <strong>published</strong> in the selected nests.")
+        }
+      })
+      this.clearSetStoryPublication()
+    },
+    sendSetStoryUnPublication () {
+      this.setStoryPublication.story = this.story
+      this.setStoryPublication.nests = this.nestsToUnpublish
+      this.$store.dispatch('setStoryPublication', this.setStoryPublication)
+      .then((response) => {
+        if (response.ok) {
+          notifySuccess("&nbsp;&nbsp;The narrative was successfully <strong>unpublished</strong> from the selected nests.")
+        }
+      })
       this.clearSetStoryPublication()
     },
     showNarrativeInfoOpenModal () {

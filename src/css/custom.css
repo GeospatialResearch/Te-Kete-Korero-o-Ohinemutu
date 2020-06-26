@@ -5,7 +5,7 @@ html, body {
   color: #403c3c;
 }
 
-h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, span, small, label {
+h1, h2, h3, h4, h5, h6, p, div, input, .btn, a, small, label {
   font-family: 'Inter', sans-serif;
   /* font-family: sans-serif; */
   font-weight: 300;
@@ -433,6 +433,7 @@ b {
 
 .story-summary {
   font-style: italic;
+  font-weight: 400;
 }
 
 .story-elem-geom {

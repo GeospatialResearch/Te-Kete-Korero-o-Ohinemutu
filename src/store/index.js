@@ -902,8 +902,9 @@ const store = new Vuex.Store({
     },
     setStoryPublication (store, payload) {
       return api.post(apiRoot + '/set_story_publication/', payload, { headers: getAuthHeader() })
-        .then(() => {
+        .then((response) => {
           store.dispatch('getStoryPublications', payload.story.id)
+          return response
         })
         .catch((error) => store.commit('API_FAIL', error))
     },

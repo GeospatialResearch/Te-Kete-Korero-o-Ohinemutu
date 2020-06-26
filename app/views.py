@@ -29,6 +29,7 @@ from django.conf import settings
 from tempfile import NamedTemporaryFile
 from django.core.files.storage import default_storage
 from django.db.models import Q
+import datetime
 
 # Util Functions
 def get_layer_from_file(file_obj, directory, request):
@@ -898,31 +899,32 @@ class setStoryPublication(APIView):
 
             if sector == 'Whānau':
                 if action == 'submit' or action == 'publish':
-                    if nestid not in publications:
+                    if not publications or not publications.filter(nest=nestid).exists():
                         Publication.objects.create(story=story_instance, nest=nest_instance, status='PUBLISHED')
                     else:
-                        publication = publications.filter(nest=nestid)
+                        publication = publications.filter(nest=nestid)[0]
                         publication.status = 'PUBLISHED'
                         publication.save()
             else:
                 if action == 'submit':
-                    if nestid not in publications:
+                    if not publications or not publications.filter(nest=nestid).exists():
                         Publication.objects.create(story=story_instance, nest=nest_instance, status='SUBMITTED')
                     else:
-                        publication = publications.filter(nest=nestid)
+                        publication = publications.filter(nest=nestid)[0]
                         publication.status = 'SUBMITTED'
                         publication.save()
+
                 if action == 'publish':
-                    publication = publications.filter(nest=nestid)
+                    publication = publications.filter(nest=nestid)[0]
                     if publication.status == 'ACCEPTED':
                         publication.status = 'PUBLISHED'
                         publication.save()
                     else:
                         print("Couldn't published the narrative since it is not accepted yet.")
 
-
             if action == 'unpublish':
-                publication = publications.filter(nest=nestid)
+                publication = publications.filter(nest=nestid)[0]
+
                 if publication.status == 'PUBLISHED':
                     publication.status = 'UNPUBLISHED'
                     publication.save()
