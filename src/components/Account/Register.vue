@@ -30,6 +30,22 @@
               <div class="input-group mb-2">
                 <div class="input-group-append">
                   <span class="input-group-text">
+                    <i><font-awesome-icon icon="user" /></i>
+                  </span>
+                </div>
+                <input v-model="inputs.first_name" value="" type="text" name="" class="form-control input_user" placeholder="Enter first name" required @keyup.enter="createAccount()">
+              </div>
+              <div class="input-group mb-2">
+                <div class="input-group-append">
+                  <span class="input-group-text">
+                    <i><font-awesome-icon icon="user" /></i>
+                  </span>
+                </div>
+                <input v-model="inputs.last_name" value="" type="text" name="" class="form-control input_user" placeholder="Enter last name" required @keyup.enter="createAccount()">
+              </div>
+              <div class="input-group mb-2">
+                <div class="input-group-append">
+                  <span class="input-group-text">
                     <i><font-awesome-icon icon="at" /></i>
                   </span>
                 </div>
@@ -96,6 +112,8 @@ export default {
     return {
       inputs: {
         username: '',
+        first_name: '',
+        last_name: '',
         email: '',
         password1: '',
         password2: ''

@@ -18,25 +18,16 @@
             </span>
             <span v-if="user.is_superuser" class="badge badge-pill badge-secondary mt-3 role-badge">Administrator</span>
             <span v-if="user.is_staff && !user.is_superuser" class="badge badge-pill badge-secondary mt-3 role-badge">Tool Manager</span>
-            <!-- <span v-if="user.is_superuser" class="badge badge-pill badge-secondary mt-3 role-badge">Kaitiaki</span> -->
-            <!-- <span class="user-status mt-0">Whanau: </span>
-            <span class="user-status mt-0">Hapu: </span>
-            <span class="user-status mt-0">Iwi: </span> -->
-            <!-- <span class="user-role">Administrator</span> -->
-            <!-- <span class="user-status">
-              <i><font-awesome-icon icon="circle" /></i>
-              <span>Online</span>
-            </span> -->
           </div>
         </div>
 
         <!-- sidebar-menu  -->
         <div :class="[authenticated ? 'sidebar-item': '', 'sidebar-menu']">
           <ul>
-            <li class="header-menu">
+            <!-- <li class="header-menu">
               <span>General</span>
-            </li>
-            <li @click="$store.commit('TOGGLE_CONTENT', 'map')">
+            </li> -->
+            <li v-if="contentToShow != 'map'" class="mt-4" @click="$store.commit('TOGGLE_CONTENT', 'map')">
               <a href="#">
                 <!-- <i class="fa fa-map" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="map" /></i>
@@ -490,11 +481,11 @@
             <a class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'themes')">Look & Feel</a>
           </div>
         </div>
-        <div>
+        <!-- <div>
           <a href="#">
             <i><font-awesome-icon icon="power-off" /></i>
           </a>
-        </div>
+        </div> -->
         <div class="pinned-footer">
           <a href="#">
             <i><font-awesome-icon icon="ellipsis-h" /></i>

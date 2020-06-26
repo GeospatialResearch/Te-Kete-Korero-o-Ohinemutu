@@ -491,7 +491,7 @@
                         <img v-if="getAuthAvatar(item)" class="img-responsive" :src="mediaRoot + getAuthAvatar(item)" alt="User picture">
                         <img v-else class="img-responsive" src="static/img/user.jpg" alt="User picture">
                       </div>
-                      <span>{{ getAuthFullName(item) }}</span>
+                      <span class="vertical-align-middle">{{ getAuthFullName(item) }}</span>
                     </div>
                     <div class="col-md-2 vertical-align-middle">
                       <font-awesome-icon icon="times-circle" size="lg" color="grey" class="float-right" @click="deleteCoAuthorModalOpen(item)" />
