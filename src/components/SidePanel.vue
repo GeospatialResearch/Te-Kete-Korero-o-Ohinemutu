@@ -846,8 +846,8 @@
                           <span v-else class="badge badge-light">{{ publication.status }}</span>
                         </td>
                         <td>
-                          {{ publication.nest.kinship_sector.name }} {{ publication.nest.name }}
-                          <strong v-if="user.profile.affiliation.includes(publication.nest.id)">(You are member)</strong>
+                          <span v-if="user.profile.affiliation.includes(publication.nest.id)">{{ publication.nest.kinship_sector.name }} {{ publication.nest.name }} <strong>(You are member)</strong></span>
+                          <span v-else>{{ publication.nest.kinship_sector.name }} --- <strong>(You are not member)</strong></span>
                         </td>
                         <td>{{ publication.status_modified_on | moment("MMMM Do, YYYY") }}</td>
                       </tr>
@@ -1069,7 +1069,7 @@ export default {
     publishedGroups(){
       var groupids
       if(this.storyPublications) {
-        groupids = this.storyPublications.filter(item=>item.status=== 'PUBLISHED').map(item=>item.nest.id)
+        groupids = this.storyPublications.filter(item=>item.status=== 'PUBLISHED' && (this.user && this.user.profile.affiliation.includes(item.id))).map(item=>item.nest.id)
       }
       return groupids
     }
