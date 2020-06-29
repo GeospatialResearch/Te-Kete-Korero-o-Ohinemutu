@@ -812,7 +812,7 @@
             <div class="row">
               <div v-if="story && story.title" class="col-sm-12">
                 <h6 class="text-muted">
-                  <span title="Narrative title"><i><font-awesome-icon icon="book-open" /></i>&nbsp;&nbsp;{{ story.title.eng }}</span> &mdash; <small title="Type of Narrative"><i>{{ story.story_type.type }}</i></small>
+                  <span title="Narrative title"><i><font-awesome-icon icon="book-open" /></i>&nbsp;&nbsp;{{ story.title.eng }}</span> &mdash; <small title="Type of Narrative"><i v-if="story.story_type">{{ story.story_type.type }}</i></small>
                 </h6>
                 <h6 title="Narrative summary" class="ml-4">
                   <i>{{ story.summary.eng }}</i>
