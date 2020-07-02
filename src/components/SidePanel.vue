@@ -1069,7 +1069,7 @@ export default {
     publishedGroups(){
       var groupids
       if(this.storyPublications) {
-        groupids = this.storyPublications.filter(item=>item.status=== 'PUBLISHED' && (this.user && this.user.profile.affiliation.includes(item.id))).map(item=>item.nest.id)
+        groupids = this.storyPublications.filter(item=>item.status=== 'PUBLISHED' && (this.user && this.user.profile.affiliation.includes(item.nest.id))).map(item=>item.nest.id)
       }
       return groupids
     }
