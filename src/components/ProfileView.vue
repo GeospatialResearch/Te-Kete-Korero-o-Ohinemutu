@@ -79,8 +79,8 @@
                 </div>
               </form>
               <div class="row col-lg-12 mt-5">
-                <button type="button" class="btn btn-success" @click="requestTribalVerification()">
-                  Request Tribal Membership verification
+                <button :disabled="editingProfile" type="button" class="btn btn-success" @click="requestAccess()">
+                  Request Access To Wider Nests
                 </button>
               </div>
             </div>
@@ -132,36 +132,37 @@
       </div>
     </div>
 
-    <div id="tribalMemberVerificationModal" class="modal fade" data-backdrop="static">
+    <div id="RequestAccessModal" class="modal fade" data-backdrop="static">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="mb-0">
-              Request Tribal Membership verification
+              Request access to wider nests
             </h4>
           </div>
           <div class="modal-body">
-            <p class="text-center">
-              <b>Functionality under development...</b>
+            <p v-if="isDisabled">
+              <code>{{ bgdetailError }}</code>
             </p>
-            <p>
-              Please insert your tribal register number and select your whakapapa using the select boxes below
+            <p else>
+              Please insert your phone number and a brief summary about your connections and select your whakapapa using the select boxes below
             </p>
+
+            <label for="background_info"><strong>Explain your connections</strong></label>
             <div class="input-group mb-4">
-              <div class="input-group-append">
-                <span class="input-group-text">
-                  <i><font-awesome-icon icon="fingerprint" /></i>
-                </span>
-              </div>
-              <input v-model="membership_number" value="" type="text" name="" class="form-control input_pass" placeholder="Tribal register number">
+              <textarea v-model="background_info" class="form-control form-control-sm" type="text" rows="5" placeholder="Explain your connections..." required />
             </div>
-            <affiliation-form v-if="user" :user-profile="user.profile" prefix="profile" />
+            <label for="phone_number"><strong>Phone number</strong></label>
+            <div class="input-group mb-4">
+              <input v-model="phone_number" value="" type="number" name="" class="form-control input_pass" placeholder="Phone number" required>
+            </div>
+            <affiliation-form v-if="user" :key="user.useraccessrequests.length" :access-requests="user.useraccessrequests" :user-profile="user.profile" prefix="profile" @childToParentAffiliation="getAffiliation($event)" />
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="cancelRequest()">
               Cancel
             </button>
-            <button disabled class="btn btn-danger btn-ok" data-dismiss="modal" @click="sendRequest()">
+            <button class="btn btn-danger btn-ok" @click="sendRequest()">
               Send request
             </button>
           </div>
@@ -173,8 +174,10 @@
 
 <script>
 import { VueAvatar } from 'vue-avatar-editor-improved'
-// import { each } from 'underscore'
+import { each } from 'underscore'
 import AffiliationForm from 'components/AffiliationForm'
+import { success as notifySuccess } from 'utils/notify'
+
 
 export default {
   components: {
@@ -194,13 +197,63 @@ export default {
         pepeha: '',
         bio: ''
       },
-      membership_number: null
+      background_info: '',
+      phone_number: '',
+      selected_affiliationBySector: {},
+      bgdetailError: ''
     }
   },
   computed: {
     user () {
       return this.$store.state.user
     },
+    sectors () {
+      var sectors = this.$store.state.sectors
+      var sorted_sectors = []
+      if (sectors) {
+        sorted_sectors = sectors.sort((a,b) => (a.id > b.id) ? 1 : ((b.id > a.id) ? -1 : 0))
+      }
+      return sorted_sectors
+    },
+    nests () {
+      return this.$store.state.nests
+    },
+    nestsBySector () {
+      var nestsBySector = {}
+
+      if (this.sectors && this.nests) {
+        var sectors_names = this.sectors.filter(x=>x.name !== 'Tātou' && x.name !== 'Whānau').map(x => x.name)
+        each(sectors_names, (name) => {
+          nestsBySector[name] = []
+        })
+        each(this.nests, (nest) => {
+          if (nest.kinship_sector) {
+            if (nestsBySector[nest.kinship_sector.name]) {
+              nestsBySector[nest.kinship_sector.name].push(nest)
+            }
+          }
+        })
+      }
+      return nestsBySector
+    },
+    affiliationBySector () {
+      var affiliationBySector = {}
+
+      if (this.sectors && this.nests) {
+        var sectors_names = this.sectors.filter(x=>x.name !== 'Tātou' && x.name !== 'Whānau').map(x => x.name)
+        each(sectors_names, (name) => {
+          affiliationBySector[name] = []
+        })
+      }
+      each(this.nests, (nest) => {
+        if (this.user.profile && this.user.profile.affiliation.includes(nest.id)) {
+          if (affiliationBySector[nest.kinship_sector.name]) {
+            affiliationBySector[nest.kinship_sector.name].push(nest.id)
+          }
+        }
+      })
+      return affiliationBySector
+    }
   },
   watch: {
     user: {
@@ -212,9 +265,11 @@ export default {
           this.inputs.date_birth = newVal.profile.birth_date
           this.inputs.pepeha = newVal.profile.pepeha
           this.inputs.bio = newVal.profile.bio
+          this.background_info = newVal.profile.background_info
+          this.phone_number = newVal.profile.phone_number
         }
       }
-    }
+    },
   },
   mounted: function () {
     this.inputs = {
@@ -224,6 +279,8 @@ export default {
       pepeha: this.user.profile.pepeha,
       bio: this.user.profile.bio
     }
+    this.background_info = this.user.profile.background_info
+    this.phone_number = this.user.profile.phone_number
   },
   methods: {
     changePicture () {
@@ -252,9 +309,9 @@ export default {
         bio: this.user.profile.bio
       }
     },
-    requestTribalVerification () {
-      $('#tribalMemberVerificationModal').modal('show')
+    requestAccess () {
       this.reinitialiseBootstrapSelect()
+      $('#RequestAccessModal').modal('show')
     },
     reinitialiseBootstrapSelect () {
       $(function () {
@@ -267,10 +324,77 @@ export default {
       })
     },
     cancelRequest() {
-      // this.affiliationBySector = null
+      this.selected_affiliationBySector = null
+      this.bgdetailError = null
+      this.background_info = this.user.profile.background_info
+      this.phone_number = this.user.profile.phone_number
+    },
+    gatherSelectedAffiliation()
+    {
+      let affiliation = []
+      // Save affiliation
+      if (this.selected_affiliationBySector && Object.keys(this.selected_affiliationBySector).length > 0) {
+
+        each(this.selected_affiliationBySector, (value) => {
+          if(!this.user.useraccessrequests.map(item=>item.nest_id).includes(value[0])){
+            affiliation.push(...value)
+          }
+        })
+
+      }
+      return affiliation
+    },
+    isDisabled() {
+      let affiliation = this.gatherSelectedAffiliation()
+
+      //validation
+      if(this.background_info == '' || this.phone_number == '' || (affiliation.length == 0 && !this.noMoreWiderNests()))
+      {
+        this.bgdetailError = 'Please insert'
+        if(this.background_info == '')
+          this.bgdetailError = this.bgdetailError + ' a brief summary about your connections'
+        if(this.phone_number == '')
+         this.bgdetailError = this.bgdetailError + ' - your phone number'
+        if(affiliation.length == 0 && !this.noMoreWiderNests())
+          this.bgdetailError = this.bgdetailError + ' - atleast one nest in dropdown'
+        return true;
+      }
+      else{
+        return false;
+      }
     },
     sendRequest () {
-    }
+      if(!this.isDisabled())
+      {
+        let affiliation = this.gatherSelectedAffiliation()
+        // Saves affiliation requests in WiderGroupAccessRequest table
+        if(affiliation.length > 0){
+          this.$store.dispatch('saveRequest', {'user': this.user.id, 'affiliation': affiliation, 'background_info': this.background_info,'phone_number': this.phone_number})
+        }
+        else{
+          // Saves the background_info,phone no details in the profile table
+          this.$store.dispatch('saveUserbackgroundInfo', {'user': this.user.id, 'affiliation': affiliation, 'background_info': this.background_info,'phone_number': this.phone_number})
+        }
+        this.bgdetailError = null
+        $('#RequestAccessModal').modal('hide')
+        notifySuccess("&nbsp;&nbsp;Your request to access wider group(s) was sent.")
+      }
+      else {
+        return false
+      }
+    },
+    getAffiliation (value) {
+      this.selected_affiliationBySector = value
+    },
+    noMoreWiderNests(){
+        let result = true
+          each(this.nestsBySector, (sector,sectorkey) => {
+            if(sector.length > 0 && sector.filter(item=>!this.affiliationBySector[sectorkey].includes(item.id) && !this.user.useraccessrequests.map(item=>item.nest_id).includes(item.id)).length > 0){
+              result = false
+            }
+          })
+        return result
+    },
   }
 }
 </script>

@@ -2,7 +2,6 @@ from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField, ArrayField
 import uuid
 from model_utils import Choices
-from rest_framework.exceptions import ValidationError
 from django.db.models import Q
 from django.contrib.auth.models import User
 
@@ -64,7 +63,9 @@ class NestQuerySet(models.QuerySet):
             return self.filter(Q(members__id=user.profile.id) | ~Q(kinship_sector_id=whanausector.id)).distinct()
         # Regular user? Get only the nests the user is member
         else:
-            return self.filter(Q(members__id=user.profile.id))
+            # return self.filter(Q(members__id=user.profile.id)
+            # to display all available nests for the normal user to view
+            return self.all()
 
 
 class WhanauGroupInvitationQuerySet(models.QuerySet):
@@ -76,6 +77,18 @@ class WhanauGroupInvitationQuerySet(models.QuerySet):
             return self.all()
         else:
             return self.filter(Q(nest__created_by=user)) | self.filter(Q(invitee=user))
+
+
+class WiderGroupAccessRequestQuerySet(models.QuerySet):
+    def for_user(self, user):
+        # Not logged in? Don't have access
+        if not user.is_authenticated:
+            return
+        if user.is_superuser or user.is_staff:
+            return self.all()
+        else:
+            return self.filter(user=user)
+            # return self.all()
 
 
 # Create your models here.
@@ -268,7 +281,8 @@ class Profile(models.Model):
     birth_date = models.DateField(blank=True, null=True)
     membership_number = models.CharField(max_length=100, blank=True, null=True)
     affiliation = models.ManyToManyField(Nest, related_name="members")
-
+    phone_number = models.CharField(max_length=17, blank=True, null=True)
+    background_info = models.TextField(max_length=2000, blank=True, null=True)
 
 class WhanauGroupInvitation(models.Model):
     nest = models.ForeignKey(Nest, related_name='invitations', on_delete=models.CASCADE)
@@ -277,6 +291,13 @@ class WhanauGroupInvitation(models.Model):
     accepted = models.BooleanField(blank=True, null=True)
     objects = WhanauGroupInvitationQuerySet.as_manager()
 
+class WiderGroupAccessRequest(models.Model):
+    nest = models.ForeignKey(Nest, related_name='accessrequests', on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', related_name='accessrequests', on_delete=models.CASCADE)
+    sent_on = models.DateTimeField(auto_now_add=True)
+    accepted = models.BooleanField(blank=True, null=True)
+    accepted_by = models.ForeignKey('auth.User', related_name='grantedaccess', on_delete=models.CASCADE, blank=True, null=True)
+    objects = WiderGroupAccessRequestQuerySet.as_manager()
 
 class Publication(models.Model):
     STATUS = Choices(

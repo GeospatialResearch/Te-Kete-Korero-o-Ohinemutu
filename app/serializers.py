@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer, ListField, SerializerMethodField, JSONField, PrimaryKeyRelatedField, ReadOnlyField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Dataset, CoAuthor, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest, WhanauGroupInvitation, Publication
+from .models import Dataset, CoAuthor, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest, WhanauGroupInvitation, Publication, WiderGroupAccessRequest
 from django.contrib.gis.geos import GEOSGeometry
 from rest_auth.serializers import PasswordResetSerializer
 from django.contrib.auth.models import User
@@ -316,7 +316,7 @@ class ProfileSimpleSerializer(ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('user_id', 'avatar', 'username')
+        fields = ('user_id', 'avatar', 'username', 'background_info', 'phone_number')
 
 
 
@@ -342,6 +342,7 @@ class NestSerializer(ModelSerializer):
     kaitiaki = UserSimpleSerializer(read_only=True, many=True)
     members = SerializerMethodField()
     invitations = SerializerMethodField()
+    accessrequests = SerializerMethodField()
     publications = SerializerMethodField()
 
     class Meta:
@@ -357,6 +358,11 @@ class NestSerializer(ModelSerializer):
     def get_invitations(self, nest):
         invitations = nest.invitations.all()
         serializer = WhanauGroupInvitationSerializer(instance=invitations, many=True)
+        return serializer.data
+
+    def get_accessrequests(self, nest):
+        accessrequests = nest.accessrequests.all()
+        serializer = WiderGroupAccessRequestSerializer(instance=accessrequests, many=True)
         return serializer.data
 
     def get_publications(self, nest):
@@ -400,6 +406,38 @@ class WhanauGroupInvitationSerializer(ModelSerializer):
         invitation = WhanauGroupInvitation.objects.create(invitee=invitee, nest=nest)
         return invitation
 
+class WiderGroupAccessRequestSerializer(ModelSerializer):
+    user_id = PrimaryKeyRelatedField(queryset=User.objects.all())
+    user = UserSimpleSerializer(read_only=True)
+
+    nest_id = PrimaryKeyRelatedField(queryset=Nest.objects.all(), required=False)
+    nest = NestSimpleSerializer(read_only=True)
+
+    accepted_by_id = PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+    accepted_by = UserSimpleSerializer(read_only=True)
+
+    nests = ListField(write_only=True)
+    class Meta:
+        model = WiderGroupAccessRequest
+        fields = '__all__'
+        depth = 1
+
+    def create(self, validated_data):
+        user = validated_data.pop('user_id')
+        nest = validated_data.pop('nests')
+        accessrequest = None
+        # accepted_by = validated_data.pop('accepted_by_id')
+        for nes in nest:
+            accessrequest = WiderGroupAccessRequest.objects.create(user_id=user.id, nest_id=nes)
+        return accessrequest
+
+    def update(self, instance, validated_data):
+        accepted_by= validated_data.pop('accepted_by_id')
+        accepted= validated_data.pop('accepted')
+        instance.accepted = accepted
+        instance.accepted_by = accepted_by
+        instance.save()
+        return instance
 
 class PublicationSerializer(ModelSerializer):
     nest = NestSerializer()

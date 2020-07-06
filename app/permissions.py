@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from .models import Story, StoryBodyElement, StoryGeomAttrib, StoryGeomAttribMedia, CoAuthor, Nest, WhanauGroupInvitation, Sector
+from .models import Story, StoryBodyElement, StoryGeomAttrib, StoryGeomAttribMedia, CoAuthor, Nest, WhanauGroupInvitation, Sector, WiderGroupAccessRequest
 # from django.contrib.auth.models import User
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -77,3 +77,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
         if isinstance(obj, WhanauGroupInvitation):
             return obj.invitee == request.user
+
+        if isinstance(obj, WiderGroupAccessRequest):
+            # return obj.user == request.user
+            return True

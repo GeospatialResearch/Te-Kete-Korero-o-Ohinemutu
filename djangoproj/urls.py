@@ -44,6 +44,7 @@ router.register(r'comments', views.CommentViewSet)
 router.register(r'sectors', views.SectorViewSet)
 router.register(r'nests', views.NestViewSet)
 router.register(r'whanaugroupinvitation', views.WhanauGroupInvitationViewSet)
+router.register(r'WiderGroupAccessRequest', views.WiderGroupAccessRequestViewSet)
 
 v1 = router.urls + [
     url(r'^upload_file/', views.UploadFileView.as_view()),
@@ -72,7 +73,9 @@ v1 = router.urls + [
     url(r'^set_staff/', views.SetUserAsStaff.as_view()),
     url(r'^get_story_publications/$', views.GetStoryPublications.as_view()),
     url(r'^set_story_publication/', views.setStoryPublication.as_view()),
-    url(r'^filter_stories/$', views.FilterStories.as_view())
+    url(r'^filter_stories/$', views.FilterStories.as_view()),
+    url(r'^get_users_access_requests/', views.GetUsersAccessRequests.as_view()),
+    url(r'^save_bg_info/', views.SaveBGInfo.as_view()),
 
 ]
 

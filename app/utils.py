@@ -2,7 +2,6 @@ import re
 import os
 import tarfile
 from zipfile import ZipFile
-from rest_framework.exceptions import ValidationError
 
 from geoserver.catalog import Catalog
 

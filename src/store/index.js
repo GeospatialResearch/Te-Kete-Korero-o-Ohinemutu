@@ -373,6 +373,9 @@ const store = new Vuex.Store({
     UPDATE_INVITATION (state, response) {
       state.user.invitations.find(inv => inv.id == response.body.id).accepted = response.body.accepted
     },
+    UPDATE_ACCESS_REQUESTS (state, response) {
+      state.user.accessrequests.find(req => req.id == response.id).accepted = response.accepted
+    },
     SET_STORY_PUBLICATIONS (state, response) {
       state.storyPublications = response.body
     },
@@ -391,6 +394,9 @@ const store = new Vuex.Store({
     },
     SET_STORY_DETECTABLE(state, value) {
       state.storyDetectable = value
+    },
+    SET_USERS_ACCESS_REQUESTS(state, value) {
+      state.user.useraccessrequests= value
     },
     // SET_DETECTABLE_STORIES (state, response) {
     //   state.detectableStories = response
@@ -815,6 +821,32 @@ const store = new Vuex.Store({
         })
         .catch((error) => store.commit('API_FAIL', error))
     },
+    saveUserbackgroundInfo (store, payload) {
+      return api.post(apiRoot + '/save_bg_info/', payload, { headers: getAuthHeader() })
+        .then(() => {
+          // console.log("justsaved.......saveUserbackgroundInfo");
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+
+    },
+    updateUserAccessRequests(store) {
+      return api.get(apiRoot + '/get_users_access_requests/', { headers: getAuthHeader() })
+        .then((response) => {
+          store.commit('SET_USERS_ACCESS_REQUESTS', response.data)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    saveRequest (store, payload) {
+     return api.post(apiRoot + '/save_bg_info/', payload, { headers: getAuthHeader() })
+        .then(() => {
+          if(payload.affiliation)
+          {
+            store.dispatch('addWiderGroupAccessRequest',payload)
+          }
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+        // return true
+    },
     getSectors (store) {
       return api.get(apiRoot + '/sectors/', { headers: getAuthHeader() })
         .then((response) => {
@@ -852,6 +884,31 @@ const store = new Vuex.Store({
         store.dispatch('getNests')
       })
       .catch((error) => store.commit('API_FAIL', error))
+    },
+    addWiderGroupAccessRequest (store, payload) {
+       api.post(apiRoot + '/WiderGroupAccessRequest/', { 'user_id': payload.user, 'nests': payload.affiliation},  { headers: getAuthHeader() })
+        .then(() => {
+          store.dispatch('updateUserAccessRequests')
+          store.dispatch('getNests')
+          store.dispatch('getProfiles')
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+
+    },
+    acceptRequestToWiderGroup(store, payload) {
+      return api.patch(apiRoot + '/WiderGroupAccessRequest/' + payload.id + '/', payload, { headers: getAuthHeader() })
+        .then((response) => {
+          store.dispatch('saveAffiliation', {'user': response.data.user_id, 'affiliation': [response.data.nest_id], 'isWhanauOrGroup': true})
+          store.commit('UPDATE_ACCESS_REQUESTS', payload)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    declineRequestToWiderGroup(store, payload) {
+      return api.patch(apiRoot + '/WiderGroupAccessRequest/' + payload.id + '/', payload, { headers: getAuthHeader() })
+        .then(() => {
+          store.commit('UPDATE_ACCESS_REQUESTS', payload)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
     },
     addWhanauInvitation (store, payload) {
       return api.post(apiRoot + '/whanaugroupinvitation/', payload, { headers: getAuthHeader() })

@@ -1,9 +1,62 @@
 <template>
   <div class="content-info">
     <div class="row p-5">
-      <div class="col-lg-12 settings-title">
-        <h2>Users settings</h2>
+      <div class="col-lg-12 mt-3 mb-3">
+        <h4>Pending Access Requests</h4>
+        <div v-if="user && user.accessrequests && user.accessrequests.filter(req => req.accepted==null).length > 0">
+          <div>
+            <table class="table table-hover table-borderless">
+              <thead>
+                <tr>
+                  <th scope="col" class="fit" colspan="2">
+                    User
+                  </th>
+                  <th scope="col" class="fit">
+                    Nest
+                  </th>
+                  <th scope="col" class="fit">
+                    Sent on
+                  </th>
+                  <th scope="col" />
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="accessrequest in user.accessrequests.filter(req => req.accepted==null)" :key="'req'+accessrequest.id">
+                  <td class="fit pr-0">
+                    <div class="user-image">
+                      <img v-if="accessrequest.user.profile.avatar" class="img-responsive" :src="mediaRoot + accessrequest.user.profile.avatar" alt="User picture">
+                      <img v-else class="img-responsive" src="static/img/user.jpg" alt="User picture">
+                    </div>
+                  </td>
+                  <td class="fit pl-0 vertical-align-middle">
+                    {{ accessrequest.user.username }}
+                  </td>
+                  <td class="fit vertical-align-middle">
+                    {{ accessrequest.nest.kinship_sector.name }} {{ accessrequest.nest.name }}
+                  </td>
+                  <td class="fit vertical-align-middle">
+                    {{ accessrequest.sent_on | moment("MMMM Do, YYYY") }} <span class="date-extra-info">({{ accessrequest.sent_on | moment('from', 'now') }})</span>
+                  </td>
+                  <td class="ml-auto">
+                    <a href="#" class="btn btn-info" title="User details" @click="showUserDetailModal(accessrequest.user.profile.background_info,accessrequest.user.profile.phone_number)"><i class="fa fa-id-card" aria-hidden="true" /></a>
+                    <a href="#" class="btn btn-primary" @click="acceptRequest(accessrequest.id)">Accept</a>
+                    <a href="#" class="btn btn-danger" @click="declineRequest(accessrequest.id)">Decline</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p v-else class="text-muted">
+          You don't have pending access requests
+        </p>
       </div>
+      <hr>
+
+      <div class="col-lg-12 settings-title">
+        <h4>Users settings</h4>
+      </div>
+
       <div class="col-lg-12 pt-4 pt-lg-5 nests-table">
         <table class="table table-hover">
           <thead>
@@ -109,6 +162,28 @@
         </div>
       </div>
     </div>
+
+    <div id="UserDetailModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="mb-0">
+              User Details
+            </h4>
+          </div>
+          <div class="modal-body">
+            <label for="requestorBackgroundInfo"><strong>Connections</strong></label>
+            <div class="input-group mb-4">
+              <textarea v-model="requestorBackgroundInfo" disabled class="form-control form-control-sm" type="text" rows="5" placeholder="Explain your connections..." />
+            </div>
+            <label for="requestorPhoneNo"><strong>Phone number</strong></label>
+            <div class="input-group mb-4">
+              <input v-model="requestorPhoneNo" disabled value="" type="text" name="" class="form-control input_pass" placeholder="Phone number">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -126,7 +201,9 @@ export default {
       mediaRoot: process.env.API_HOST,
       affiliationBySector: {},
       isStaff: null,
-      staffWarningMessage: ''
+      staffWarningMessage: '',
+      requestorPhoneNo: '',
+      requestorBackgroundInfo: ''
     }
   },
   computed: {
@@ -221,6 +298,17 @@ export default {
     },
     getStaffSetting (value) {
       this.isStaff = value
+    },
+    acceptRequest (requestId) {
+      this.$store.dispatch('acceptRequestToWiderGroup', {'id': requestId, 'accepted': true, 'accepted_by_id': this.user.id})
+    },
+    declineRequest (requestId) {
+      this.$store.dispatch('declineRequestToWiderGroup', {'id': requestId, 'accepted': false, 'accepted_by_id': this.user.id})
+    },
+    showUserDetailModal(requestorBackgroundInfo,requestorPhoneNo){
+      this.requestorBackgroundInfo = requestorBackgroundInfo
+      this.requestorPhoneNo = requestorPhoneNo
+      $('#UserDetailModal').modal('show')
     }
   }
 }

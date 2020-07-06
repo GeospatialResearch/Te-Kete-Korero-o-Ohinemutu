@@ -722,13 +722,12 @@
                   Select the sector in which you want to {{ setStoryPublication.action }} your narrative<br>
                 </p>
                 <div class="ml-md-5 mr-md-5">
-                  <select v-if="sectors" v-model="setStoryPublication.sector" class="selectpicker form-control form-control-sm mb-3" @change="reinitialiseBootstrapSelect()">
-                    <option v-for="sector in sectors" :key="sector.id" :value="sector.name">
+                  <select v-if="sectors && affiliationBySector" v-model="setStoryPublication.sector" class="selectpicker form-control form-control-sm mb-3" @change="reinitialiseBootstrapSelect()">
+                    <option v-for="sector in sectors.filter(item => affiliationBySector[item.name].length > 0)" :key="sector.id" :value="sector.name">
                       {{ sector.name }}
                     </option>
                   </select>
                 </div>
-
                 <div v-if="setStoryPublication.sector">
                   <p>
                     Select the nest(s) you want to {{ setStoryPublication.action }} your narrative<br>
@@ -1072,7 +1071,7 @@ export default {
         groupids = this.storyPublications.filter(item=>item.status=== 'PUBLISHED' && (this.user && this.user.profile.affiliation.includes(item.nest.id))).map(item=>item.nest.id)
       }
       return groupids
-    }
+    },
   },
   watch: {
     allUsers: {

@@ -7,9 +7,9 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import UserSerializer, UserSimpleSerializer, CoAuthorSerializer, DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer, CommentSerializer, ProfileSerializer, ProfileSimpleSerializer, SectorSerializer, NestSerializer, WhanauGroupInvitationSerializer, PublicationSerializer
+from .serializers import UserSerializer, UserSimpleSerializer, CoAuthorSerializer, DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer, CommentSerializer, ProfileSerializer, ProfileSimpleSerializer, SectorSerializer, NestSerializer, WhanauGroupInvitationSerializer, PublicationSerializer,WiderGroupAccessRequestSerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, CoAuthor, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest, WhanauGroupInvitation, Publication
+from .models import Dataset, Story, CoAuthor, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest, WhanauGroupInvitation, Publication, WiderGroupAccessRequest
 from django.contrib.auth.models import User
 from tempfile import TemporaryDirectory
 import zipfile
@@ -618,6 +618,16 @@ class WhanauGroupInvitationViewSet(viewsets.ModelViewSet):
     def perform_create(self,serializer):
         serializer.save()
 
+class WiderGroupAccessRequestViewSet(viewsets.ModelViewSet):
+    serializer_class = WiderGroupAccessRequestSerializer
+    queryset = WiderGroupAccessRequest.objects.all()
+
+    def get_queryset(self):
+        return self.queryset.for_user(self.request.user)
+
+    @transaction.atomic
+    def perform_create(self,serializer):
+        serializer.save()
 
 ### I had to turn the following method into an APIView in order to the request.user don't be AnonymousUser
 # def dataset_list(request):
@@ -725,6 +735,12 @@ class GetAllUsers(APIView):
 
         return Response({'users': users_serializer.data})
 
+class GetUsersAccessRequests(APIView):
+    def get(self, request):
+        if request.user is not None and not request.user.is_anonymous:
+            user_requests = WiderGroupAccessRequest.objects.filter(user=request.user)
+            userwidergroupaccess_serializer = WiderGroupAccessRequestSerializer(user_requests, many=True)
+            return Response (userwidergroupaccess_serializer.data)
 
 class GetUser(APIView):
     def get(self, request):
@@ -735,6 +751,14 @@ class GetUser(APIView):
             userdata = user_serializer.data
             userdata['profile'] = profile_serializer.data
             userdata['invitations'] = userinvitations_serializer.data
+            user_requests = WiderGroupAccessRequest.objects.filter(user=request.user)
+            userwidergroupaccess_serializer = WiderGroupAccessRequestSerializer(user_requests, many=True)
+            userdata['useraccessrequests'] = userwidergroupaccess_serializer.data
+            if request.user.is_staff:
+                all_requests = WiderGroupAccessRequest.objects.all().order_by('-sent_on')
+                userwidergroupaccess_serializer = WiderGroupAccessRequestSerializer(all_requests, many=True)
+                # userwidergroupaccess_serializer = WiderGroupAccessRequestSerializer(request.user.accessrequests, many=True)
+                userdata['accessrequests'] = userwidergroupaccess_serializer.data
             # return Response({'user': {'email': request.user.email, 'username': request.user.username, 'first_name': request.user.first_name, 'last_name': request.user.last_name, 'pk' : request.user.pk, 'profile': profile_serializer.data, 'invitations': userinvitations_serializer.data }})
             return Response({'user': userdata})
         else:
@@ -815,7 +839,21 @@ class SaveProfile(APIView):
 
         profile_serializer = ProfileSerializer(request.user.profile)
 
-        return Response({'user': {'email': request.user.email, 'username': request.user.username, 'first_name': request.user.first_name, 'last_name': request.user.last_name, 'pk' : request.user.pk, 'profile': profile_serializer.data}})
+        return Response({'user': {'email': request.user.email, 'username': request.user.username, 'phone_number': request.user.phone_number, 'background_info': request.user.background_info, 'first_name': request.user.first_name, 'last_name': request.user.last_name, 'pk' : request.user.pk, 'profile': profile_serializer.data}})
+
+
+class SaveBGInfo(APIView):
+    def post(self, request):
+        userid = request.data['user']
+        phone_number = request.data['phone_number']
+        background_info = request.data['background_info']
+
+        user = User.objects.get(pk=userid)
+        user.profile.phone_number = phone_number
+        user.profile.background_info = background_info
+        user.save()
+
+        return Response({'user': 'ok' })
 
 
 class SaveAffiliation(APIView):
@@ -823,9 +861,7 @@ class SaveAffiliation(APIView):
         userid = request.data['user']
         affiliation = request.data['affiliation']
         isWhanauOrGroup = request.data.get('isWhanauOrGroup', None)
-
         user = User.objects.get(pk=userid)
-
         whanauSector = Sector.objects.get(name="Whānau")
 
         if not isWhanauOrGroup:
@@ -836,7 +872,6 @@ class SaveAffiliation(APIView):
 
         for nest_id in affiliation:
             user.profile.affiliation.add(nest_id)
-
 
         return Response({'user': 'ok' })
 

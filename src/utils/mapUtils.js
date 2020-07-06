@@ -356,7 +356,10 @@ var addAllStoriesGeomsLayer = function (geoms) {
     style: getClusterStyle,
     zIndex: 30
   });
-  map.addLayer(clusterLayer);
+  if(map)
+  {
+    map.addLayer(clusterLayer);
+  }
 
   // Add features to layer
   var featuresToAdd = []
@@ -395,15 +398,16 @@ var addAllStoriesGeomsLayer = function (geoms) {
 var removeStoryGeomsFromStoriesGeomsLayer = function () {
   const map = store.state.map
   var storyfeaturesId = []
-
-  map.getLayers().forEach( (layer) => {
-    if (layer.get('name') === 'storyGeomsLayer') {
-      var storyfeatures = layer.getSource().getFeatures()
-      _.each(storyfeatures, (feature) => {
-        storyfeaturesId.push(feature.getProperties().name)
-      })
-    }
-  })
+  if(map){
+    map.getLayers().forEach( (layer) => {
+      if (layer.get('name') === 'storyGeomsLayer') {
+        var storyfeatures = layer.getSource().getFeatures()
+        _.each(storyfeatures, (feature) => {
+          storyfeaturesId.push(feature.getProperties().name)
+        })
+      }
+    })
+  }
 
   if (storyfeaturesId.length > 0) {
     map.getLayers().forEach( (layer) => {

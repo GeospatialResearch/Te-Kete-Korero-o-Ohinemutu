@@ -1,17 +1,33 @@
 <template>
   <div :id="prefix + '_affiliationForm'">
-    <h5>Affiliation</h5>
     <form v-if="affiliationBySector" class="p-2">
-      <div v-for="(sector, sectorkey) in nestsBySector" :key="prefix+'_sector'+sectorkey">
-        <label :for="sectorkey"><strong>{{ sectorkey }}</strong></label>
-        <select v-if="sector.length > 0" v-model="affiliationBySector[sectorkey]" class="selectpicker form-control form-control-sm mb-3" multiple :title="'Select one or more ' + sectorkey" @change="sendAffiliation()">
-          <option v-for="nest in sector" :key="prefix+'_nest'+nest.id" :value="nest.id">
-            {{ nest.name }}
-          </option>
-        </select>
-        <p v-else class="text-muted">
-          There are no {{ sectorkey }} nests defined yet
-        </p>
+      <div v-if="formPrefix == 'profile'">
+        <div v-for="(sector, sectorkey) in nestsBySector" :key="prefix+'_sector'+sectorkey">
+          <div v-if="sector.length > 0 && sector.filter(item=>!affiliationBySector[sectorkey].includes(item.id) && !Requests.map(item=>item.nest_id).includes(item.id)).length > 0">
+            <label :for="sectorkey"><strong>{{ sectorkey }}</strong></label>
+            <select v-model="affiliationBySector[sectorkey]" class="selectpicker form-control form-control-sm mb-3" multiple :title="'Select one or more ' + sectorkey" @change="sendAffiliation()">
+              <option v-for="nest in sector.filter(item=>!affiliationBySector[sectorkey].includes(item.id) && !Requests.map(item=>item.nest_id).includes(item.id))" :key="prefix+'_nest'+nest.id" :value="nest.id">
+                {{ nest.name }}
+              </option>
+            </select>
+          </div>
+          <!-- <p v-else class="text-muted">
+            There are no {{ sectorkey }} nests defined yet
+          </p> -->
+        </div>
+      </div>
+      <div v-else>
+        <div v-for="(sector, sectorkey) in nestsBySector" :key="prefix+'_sector'+sectorkey">
+          <label :for="sectorkey"><strong>{{ sectorkey }}</strong></label>
+          <select v-if="sector.length > 0" v-model="affiliationBySector[sectorkey]" class="selectpicker form-control form-control-sm mb-3" multiple :title="'Select one or more ' + sectorkey" @change="sendAffiliation()">
+            <option v-for="nest in sector" :key="prefix+'_nest'+nest.id" :value="nest.id">
+              {{ nest.name }}
+            </option>
+          </select>
+          <p v-else class="text-muted">
+            There are no {{ sectorkey }} nests defined yet
+          </p>
+        </div>
       </div>
     </form>
     <div v-if="formPrefix == 'manageuser_'+profile.user">
@@ -42,13 +58,18 @@ export default {
     prefix: {
       default: '',
       type: String
+    },
+    accessRequests: {
+      default:  function () { return [] },
+      type: Array
     }
   },
   data () {
     return {
       profile: this.userProfile,
       formPrefix: this.prefix,
-      isStaff: this.staff
+      isStaff: this.staff,
+      Requests:this.accessRequests
     }
   },
   computed: {
