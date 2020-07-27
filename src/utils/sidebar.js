@@ -143,7 +143,7 @@ $(function () {
   // Send EventBus on story click option
   $(document.body).on('click', "[id*='_view']" ,function(){
     var story_id = $(this).attr('id').replace("_view", "")
-    EventBus.$emit('openNarrative', story_id)
+    EventBus.$emit('openNarrative', story_id, null)
     // TODO: Open modal with Narrative Info instead of open narrative immediately
   })
   // $(document.body).on('click', "[id*='_edit']" ,function(){

@@ -80,9 +80,13 @@
               <div>
                 <label for="kaitiaki">Kaitiaki</label>
                 <select id="kaitiaki" v-model="nestToEdit.kaitiaki" class="selectpicker form-control form-control-sm mb-3" multiple title="Select one or more kaitiaki">
-                  <option v-for="a_user in allUsers" :key="a_user.id" :value="a_user.id">
-                    {{ a_user.username }}
+                  <option v-for="a_user in allUsers.filter(x => x.username !== 'admin')" :key="a_user.id" :value="a_user.id">
+                    {{ getAuthFullName(a_user.id) }}
                   </option>
+                  <!-- Only nest members (not allUsers) are listed here below to be picked as kaitiaki   -->
+                  <!-- <option v-for="a_user in nestToEdit.members" :key="a_user.user_id" :value="a_user.user_id">
+                    {{ getAuthFullName(a_user.user_id) }}
+                  </option> -->
                 </select>
               </div>
             </form>
@@ -136,7 +140,8 @@ export default {
       nestToEdit: {
         name: null,
         kinship_sector_id: null,
-        kaitiaki: []
+        kaitiaki: [],
+        members: []
       },
       nestToDelete: null
     }
@@ -185,6 +190,7 @@ export default {
       this.nestToEdit.name = nest.name
       this.nestToEdit.kinship_sector_id = nest.kinship_sector.id
       this.nestToEdit.kaitiaki = nest.kaitiaki.map(x => x.id)
+      this.nestToEdit.members = nest.members
       $('#editNestModal').modal('show')
     },
     reinitialiseBootstrapSelect () {
@@ -223,6 +229,10 @@ export default {
       this.reinitialiseBootstrapSelect()
       this.cancelNest()
       $('#editNestModal').modal('show')
+    },
+    getAuthFullName(userid){
+      let author = this.allUsers.filter(user=>user.id === userid)[0]
+      return `${author.username} ( ${author.first_name} ${author.last_name} )`
     }
   }
 }

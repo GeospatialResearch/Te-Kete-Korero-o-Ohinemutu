@@ -356,7 +356,7 @@ export default {
         if(this.phone_number == '')
          this.bgdetailError = this.bgdetailError + ' - your phone number'
         if(affiliation.length == 0 && !this.noMoreWiderNests())
-          this.bgdetailError = this.bgdetailError + ' - atleast one nest in dropdown'
+          this.bgdetailError = this.bgdetailError + ' - at least one nest in dropdown'
         return true;
       }
       else{

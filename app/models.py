@@ -16,12 +16,14 @@ class StoryQuerySet(models.QuerySet):
         if user.is_superuser:
             return self.all()
         else:
+            # stories that user is a kaitiaki
+            stories_kaitiaki = [publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)]
             # stories that user is co-author
             stories_coauthor = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
             # stories published in nests that user belongs to
             stories_published_nest_member = [publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')]
             # the above plus stories that user is ower and stories created by admin
-            return self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=stories_coauthor) | self.filter(id__in=stories_published_nest_member)
+            return self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=stories_coauthor) | self.filter(id__in=stories_published_nest_member)| self.filter(id__in=stories_kaitiaki)
 
 class StoryBodyElementQuerySet(models.QuerySet):
     def for_user(self, user):
@@ -90,6 +92,16 @@ class WiderGroupAccessRequestQuerySet(models.QuerySet):
             return self.filter(user=user)
             # return self.all()
 
+class StoryReviewQuerySet(models.QuerySet):
+    def for_user(self, user):
+        # Not logged in? Don't have access
+        if not user.is_authenticated:
+            return
+        if user.is_superuser or user.is_staff:
+            return self.all()
+        else:
+            # return self.filter(user=user) | self.filter(Q(reviewer=user))
+            return self.all()
 
 # Create your models here.
 class Dataset(models.Model):
@@ -317,3 +329,10 @@ class Publication(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['story', 'nest'], name='unique_story_nest')
         ]
+
+class StoryReview(models.Model):
+    publication = models.ForeignKey(Publication, related_name='reviews', on_delete=models.CASCADE)
+    reviewer = models.ForeignKey('auth.User', related_name='reviews', on_delete=models.CASCADE)
+    reviewed_on = models.DateTimeField(auto_now_add=True)
+    review = models.TextField(max_length=200,blank=True, null=True)
+    objects = StoryReviewQuerySet.as_manager()

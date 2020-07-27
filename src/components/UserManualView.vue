@@ -230,6 +230,9 @@
         Atua and Types of Narratives
       </h5>
       <div class="user-manual-content">
+        <div class="row mb-4 user-manual-p">
+          Within te ao Māori all things in the universe are connected through whakapapa including spiritual guardians, plants and animals, people, past and present. Classify your narrative according to one or more kaitiaki Atua. This will assist those filtering themes and learning within a te ao Māori framework. Below is a list of seven Atua along with types of narratives associated with their guardianship roles.
+        </div>
         <div class="row mb-4">
           <div class="col-md-2 text-center">
             <img class="atua-img" src="static/img/user_manual/tangaroa.png">

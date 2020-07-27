@@ -105,11 +105,8 @@
               <div class="dropdown-item text-muted">
                 Te Kete o Kōrero ki te Ōhinemutu
               </div>
-              <div class="dropdown-item text-muted">
-                Te Tatau o Te Arawa
-              </div>
-              <div class="dropdown-item text-muted">
-                University of Canterbury
+              <div class="dropdown-item text-muted" @click="showAcknowledgementModal()">
+                Acknowledgements
               </div>
             </div>
           </div>
@@ -155,6 +152,7 @@
           <profile-view v-if="contentToShow=='profile'" />
           <whanau-view v-show="contentToShow=='whanau'" />
           <nests-view v-show="contentToShow=='nests'" />
+          <kaitiaki-view v-if="contentToShow=='kaitiaki'" />
           <users-view v-if="contentToShow=='users'" />
           <main-map v-if="contentToShow=='map'" />
           <side-panel v-if="contentToShow=='map'" />
@@ -210,6 +208,7 @@
             <user-manual-view />
           </div>
           <div class="modal-footer">
+            <a href="https://www.dropbox.com/s/e5x5xh2dw8djtvy/User%20manual%20-%20%C5%8Chinemutu.docx?dl=1" class="btn btn-info" role="button">Print</a>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
               Close
             </button>
@@ -259,6 +258,29 @@
         </div>
       </div>
     </div>
+    <div id="acknowledgementModal" class="modal fade">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="mb-0">
+              Acknowledgements
+            </h4>
+          </div>
+          <div class="modal-body">
+            <div class="mb-4" style="font-size:1rem;">
+              <p>
+                Kete o Kōrero te Ōhinemutu been developed in collaboration with Ōhinemutu Development Working Group Incorporated Society, Te Tātou o Te Arawa, the University of Canterbury, and the Geospatial Research Institute. The research was kindly funded by the Ministry of Business, Innovation and Employment through the Endeavour Fund and Vision Mātauranga.
+              </p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -279,6 +301,7 @@
   import UserManualView from 'components/UserManualView'
   import NestsView from 'components/ManageNestsView'
   import UsersView from 'components/ManageUsersView'
+  import KaitiakiView from 'components/KaitiakiView'
 
   export default {
     components: {
@@ -295,7 +318,8 @@
       WelcomeView,
       UserManualView,
       NestsView,
-      UsersView
+      UsersView,
+      KaitiakiView
     },
     data () {
       return {
@@ -363,6 +387,9 @@
       },
       showOtherDataSourcesModal () {
         $('#otherDataSourcesModal').modal('show')
+      },
+      showAcknowledgementModal (){
+        $('#acknowledgementModal').modal('show')
       }
     }
   }

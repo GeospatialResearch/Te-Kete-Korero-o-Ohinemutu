@@ -474,6 +474,7 @@
           <div class="dropdown-menu" aria-labelledby="dropdownMenuMessage">
             <a v-if="authenticated" class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'profile')">My profile</a>
             <a v-if="authenticated" class="dropdown-item" href="#" @click="openWhanauSettings()">Whānau Page</a>
+            <a v-if="authenticated && kaitiakis.includes(user.id)" class="dropdown-item" href="#" @click="openKaitiakiSettings()">Kaitiaki Page</a>
             <a v-if="authenticated && user && (user.is_superuser || user.is_staff)" class="dropdown-item" href="#" @click="openNestsSettings()">Nests settings Page</a>
             <a v-if="authenticated && user && (user.is_superuser || user.is_staff)" class="dropdown-item" href="#" @click="openUsersSettings()">Users settings Page</a>
             <!-- <a v-if="authenticated && user && (user.is_superuser || user.is_staff)" class="dropdown-item" href="#" @click="openUsersSettings()">Kaitiaki Page</a> -->
@@ -958,6 +959,9 @@
       },
       contentToShow () {
         return this.$store.state.contentToShow
+      },
+      kaitiakis(){
+        return this.$store.state.kaitiakis
       }
     },
     watch: {
@@ -1046,7 +1050,7 @@
         this.editor = editorid
         $('#BeingEditedByWarningModal').modal('show')
       })
-
+      
       EventBus.$on('storyIsBeingEditedWarning', () => {
         $('#storyIsBeingEditedWarningModal').modal('show')
       })
@@ -1362,6 +1366,10 @@
         this.getData()
         this.$store.commit('TOGGLE_CONTENT', 'whanau')
       },
+      openKaitiakiSettings () {
+        this.getData()
+        this.$store.commit('TOGGLE_CONTENT', 'kaitiaki')
+      },
       openNestsSettings () {
         this.getData()
         this.$store.commit('TOGGLE_CONTENT', 'nests')
@@ -1376,6 +1384,9 @@
         this.$store.dispatch('getSectors')
         this.$store.dispatch('getNests')
         this.$store.dispatch('getUser') // to update user invitations
+        this.$store.dispatch('getKaitiakis') // to update nest's kaitiakis
+        this.$store.dispatch('getAllPublications') // to get all publications
+        this.$store.dispatch('getStoryReviews') // to get story reviews
       },
       openNarrative(story_id){
         // close the modal

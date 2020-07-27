@@ -33,7 +33,10 @@ var getData = function () {
   store.dispatch('getElementContentTypes'),
   store.dispatch('getWebsiteTranslation'),
   store.dispatch('getSectors'),
-  store.dispatch('getNests')
+  store.dispatch('getNests'),
+  store.dispatch('getKaitiakis')
+  store.dispatch('getAllPublications')
+  store.dispatch('getStoryReviews')
 }
 
 const initialState = {
@@ -100,7 +103,9 @@ const initialState = {
   sectors: null,
   nests: null,
   storyPublications: null,
-  storyDetectable: true
+  storyDetectable: true,
+  kaitiakis: [],
+  submittedPublication: null
 }
 
 const store = new Vuex.Store({
@@ -398,9 +403,18 @@ const store = new Vuex.Store({
     SET_USERS_ACCESS_REQUESTS(state, value) {
       state.user.useraccessrequests= value
     },
-    // SET_DETECTABLE_STORIES (state, response) {
-    //   state.detectableStories = response
-    // },
+    SET_SUBMITTED_PUB (state, value){
+      state.submittedPublication = value
+    },
+    SET_KAITIAKIS(state, response) {
+      state.kaitiakis = response.body.kaitiakis
+    },
+    SET_ALL_PUBLICATIONS(state, response) {
+      state.publications = response.body.publications
+    },
+    SET_STORY_REVIEWS(state, response) {
+      state.reviews = response.body.reviews
+    },
   },
   getters: {
     flavor: state => state.flavor
@@ -972,7 +986,45 @@ const store = new Vuex.Store({
         return response
       })
       .catch((error) => store.commit('API_FAIL', error))
-    }
+    },
+    getKaitiakis() {
+      // To get kaitaiakis
+      return api.get(apiRoot + '/get_kaitiakis/', { headers: getAuthHeader() })
+        .then((response) => {
+          store.commit('SET_KAITIAKIS', response)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    getAllPublications() {
+      // To get all publications
+      return api.get(apiRoot + '/get_all_publications/', { headers: getAuthHeader() })
+        .then((response) => {
+          store.commit('SET_ALL_PUBLICATIONS', response)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    changeStatusStoryPublication (store, payload) {
+      return api.post(apiRoot + '/change_status_story_publication/', payload, { headers: getAuthHeader() })
+        .then(() => {
+          store.dispatch('getAllPublications')
+          store.dispatch('getStoryPublications', payload.story_id)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
+    saveStoryReview (store, payload) {
+      return api.post(apiRoot + '/StoryReview/',  payload,  { headers: getAuthHeader() })
+       .then(() => {
+         store.dispatch('getStoryReviews')
+       })
+       .catch((error) => store.commit('API_FAIL', error))
+    },
+    getStoryReviews() {
+      return api.get(apiRoot + '/get_story_reviews/', { headers: getAuthHeader() })
+        .then((response) => {
+          store.commit('SET_STORY_REVIEWS', response)
+        })
+        .catch((error) => store.commit('API_FAIL', error))
+    },
   }
 })
 

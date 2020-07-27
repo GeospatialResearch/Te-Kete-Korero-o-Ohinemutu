@@ -7,9 +7,9 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .serializers import UserSerializer, UserSimpleSerializer, CoAuthorSerializer, DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer, CommentSerializer, ProfileSerializer, ProfileSimpleSerializer, SectorSerializer, NestSerializer, WhanauGroupInvitationSerializer, PublicationSerializer,WiderGroupAccessRequestSerializer
+from .serializers import UserSerializer, UserSimpleSerializer, CoAuthorSerializer, DatasetSerializer, StorySerializer, StoryGeomAttribSerializer, StoryBodyElementSerializer, MediaFileSerializer, StoryGeomAttribMediaSerializer, WebsiteTranslationSerializer, AtuaSerializer, StoryTypeSerializer, ContentTypeSerializer, CommentSerializer, ProfileSerializer, ProfileSimpleSerializer, SectorSerializer, NestSerializer, WhanauGroupInvitationSerializer, PublicationSerializer,WiderGroupAccessRequestSerializer, StoryReviewSerializer
 from django.http import JsonResponse
-from .models import Dataset, Story, CoAuthor, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest, WhanauGroupInvitation, Publication, WiderGroupAccessRequest
+from .models import Dataset, Story, CoAuthor, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest, WhanauGroupInvitation, Publication, WiderGroupAccessRequest, StoryReview
 from django.contrib.auth.models import User
 from tempfile import TemporaryDirectory
 import zipfile
@@ -629,6 +629,17 @@ class WiderGroupAccessRequestViewSet(viewsets.ModelViewSet):
     def perform_create(self,serializer):
         serializer.save()
 
+class StoryReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = StoryReviewSerializer
+    queryset = StoryReview.objects.all()
+
+    def get_queryset(self):
+        return self.queryset.for_user(self.request.user)
+
+    @transaction.atomic
+    def perform_create(self,serializer):
+        serializer.save()
+
 ### I had to turn the following method into an APIView in order to the request.user don't be AnonymousUser
 # def dataset_list(request):
 #     if request.method == 'GET':
@@ -924,14 +935,15 @@ class setStoryPublication(APIView):
         story = request.data['story']
         nests = request.data['nests']
         sector = request.data['sector']
-
+        if isinstance(nests, int):
+            nests = [nests]
         story_instance = Story.objects.get(id=story['id'])
 
         publications = Publication.objects.filter(story=story['id'], nest__in=nests)
 
         for nestid in nests:
             nest_instance = Nest.objects.get(id=nestid)
-
+            # Whānau pubs have status DRAFT, PUBLISHED, UNPUBLISHED
             if sector == 'Whānau':
                 if action == 'submit' or action == 'publish':
                     if not publications or not publications.filter(nest=nestid).exists():
@@ -940,7 +952,17 @@ class setStoryPublication(APIView):
                         publication = publications.filter(nest=nestid)[0]
                         publication.status = 'PUBLISHED'
                         publication.save()
-            else:
+
+                if action == 'unpublish':
+                    publication = publications.filter(nest=nestid)[0]
+
+                    if publication.status == 'PUBLISHED':
+                        # publication.status = 'UNPUBLISHED'
+                        # publication.save()
+                        publication.delete() #UNPUBLISHED means removing
+                    else:
+                        print("Couldn't unpublish the narrative since it is not published yet.")
+            else: # Wider nest pubs have status DRAFT, SUBMITTED, ACCEPTED, REVIEWED, PUBLISHED. Here UNPUBLISHED means removing. Bcoz only one publication is allowed in wider nest
                 if action == 'submit':
                     if not publications or not publications.filter(nest=nestid).exists():
                         Publication.objects.create(story=story_instance, nest=nest_instance, status='SUBMITTED')
@@ -955,16 +977,18 @@ class setStoryPublication(APIView):
                         publication.status = 'PUBLISHED'
                         publication.save()
                     else:
-                        print("Couldn't published the narrative since it is not accepted yet.")
+                        print("Couldn't publish the narrative since it is not accepted yet.")
 
-            if action == 'unpublish':
-                publication = publications.filter(nest=nestid)[0]
+                if action == 'unpublish':
+                    publication = publications.filter(nest=nestid)[0]
 
-                if publication.status == 'PUBLISHED':
-                    publication.status = 'UNPUBLISHED'
-                    publication.save()
-                else:
-                    print("Couldn't unpublished the narrative since it is not published yet.")
+                    if publication:
+                        review = StoryReview.objects.filter(publication=publication)
+                        if review:
+                            review.delete()
+                        publication.delete()
+                    else:
+                        print("Couldn't unpublish the narrative since it is not published yet.")
 
         newpublications = Publication.objects.filter(story=story['id'], nest__in=nests)
         publication_serializer = PublicationSerializer(newpublications, many=True)
@@ -1026,3 +1050,33 @@ class FilterStories(APIView):
             ea['contains']= contains
         result_list.sort(key = lambda x: len(str(x['contains']).split(',')), reverse=True)
         return JsonResponse(result_list, safe=False)
+
+
+class GetKaitiakis(APIView):
+    def get(self, request):
+        nest_kaitiaki = Nest.objects.all().values_list('kaitiaki', flat=True)
+        kaitiakis = list(filter(None, nest_kaitiaki)) #to get unique values and remove None values in list
+        return Response({'kaitiakis': list(set(kaitiakis))})
+
+
+class GetAllPublications(APIView):
+    def get(self, request):
+        allpubs = Publication.objects.all().order_by('status_modified_on')
+        pubs_serializer = PublicationSerializer(allpubs, many=True)
+        return Response({'publications': pubs_serializer.data})
+
+
+class ChangeStatusStoryPublication(APIView):
+    def post(self, request):
+        pub_id = request.data['pub_id']
+        action = request.data['action']
+        publication = Publication.objects.get(id=pub_id)
+        publication.status = action
+        publication.save()
+        return Response({})
+
+class GetReviews(APIView):
+    def get(self, request):
+        allreviews = StoryReview.objects.all().order_by('-reviewed_on') # To get the latest on top
+        reviews_serializer = StoryReviewSerializer(allreviews, many=True)
+        return Response({'reviews': reviews_serializer.data})

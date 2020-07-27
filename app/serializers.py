@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer, ListField, SerializerMethodField, JSONField, PrimaryKeyRelatedField, ReadOnlyField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Dataset, CoAuthor, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest, WhanauGroupInvitation, Publication, WiderGroupAccessRequest
+from .models import Dataset, CoAuthor, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest, WhanauGroupInvitation, Publication, WiderGroupAccessRequest, StoryReview
 from django.contrib.gis.geos import GEOSGeometry
 from rest_auth.serializers import PasswordResetSerializer
 from django.contrib.auth.models import User
@@ -446,3 +446,21 @@ class PublicationSerializer(ModelSerializer):
         model = Publication
         fields = '__all__'
         depth = 1
+
+class StoryReviewSerializer(ModelSerializer):
+    reviewer_id = PrimaryKeyRelatedField(queryset=User.objects.all())
+    publication_id = PrimaryKeyRelatedField(queryset=Publication.objects.all())
+    publication = PublicationSerializer(read_only=True)
+    reviewer = UserSimpleSerializer(read_only=True)
+
+    class Meta:
+        model = StoryReview
+        fields = '__all__'
+        depth = 1
+
+    def create(self, validated_data):
+        reviewer = validated_data.pop('reviewer_id')
+        publication = validated_data.pop('publication_id')
+        review = validated_data.pop('review')
+        story_review = StoryReview.objects.create(publication=publication, reviewer=reviewer, review = review)
+        return story_review

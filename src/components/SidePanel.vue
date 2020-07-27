@@ -400,6 +400,12 @@
             <font-awesome-icon icon="comments" />
             Comments
           </button>
+          <button v-if="ispublication && ispublication.id && ispublication.story.id == story.id" type="button" class="btn btn-sm btn-info" @click="acceptPub(ispublication)">
+            Accept
+          </button>
+          <button v-if="ispublication && ispublication.id && ispublication.story.id == story.id" type="button" class="btn btn-sm btn-info" @click="reviewPub(ispublication)">
+            Review
+          </button>
           <button v-if="isStoryViewMode" type="button" class="btn btn-sm btn-secondary" @click="closeStory()">
             <font-awesome-icon icon="times" />
             Close
@@ -715,36 +721,34 @@
               <strong>Note: </strong>
               <strong class="text-muted">Narratives submitted into Whānau nests become published immediately, while submissions into wider sectors require validation before publication.</strong>
             </p>
-            <!-- v-if="user && user.profile && user.profile.affiliation.length != 0" -->
             <div>
-              <form>
+              <form id="publishstory">
                 <p>
                   Select the sector in which you want to {{ setStoryPublication.action }} your narrative<br>
                 </p>
-                <div class="ml-md-5 mr-md-5">
-                  <select v-if="sectors && affiliationBySector" v-model="setStoryPublication.sector" class="selectpicker form-control form-control-sm mb-3" @change="reinitialiseBootstrapSelect()">
-                    <option v-for="sector in sectors.filter(item => affiliationBySector[item.name].length > 0)" :key="sector.id" :value="sector.name">
-                      {{ sector.name }}
+                <div v-if="publishedGroups" class="ml-md-5 mr-md-5">
+                  <select v-if="user && sectors && affiliatedNests" v-model="setStoryPublication.sector" class="selectpicker form-control form-control-sm mb-3" required @change="reinitialiseBootstrapSelect()">
+                    <option v-for="sector in sectors.filter(s => affiliatedNests.map(item=>item.kinship_sector.name).includes(s.name))" :key="sector.id" :value="sector.name">
+                       <!-- && !publishedGroups.map(x=>x.nest.kinship_sector.name).includes(s.name) -->
+                      {{ sector.name }} {{ sector.name == 'Whānau' ? '' : '(wider sector)' }}
                     </option>
                   </select>
                 </div>
-                <div v-if="setStoryPublication.sector">
-                  <p>
-                    Select the nest(s) you want to {{ setStoryPublication.action }} your narrative<br>
-                  </p>
-                  <div class="ml-md-5 mr-md-5">
-                    <select v-model="setStoryPublication.nests" class="selectpicker form-control form-control-sm mb-3" multiple>
-                      <option v-for="affiliatednest in affiliationBySector[setStoryPublication.sector].filter(id=> !publishedGroups.includes(id))" :key="'nest_'+affiliatednest" :value="affiliatednest">
+                <div v-if="setStoryPublication.sector" class="ml-md-5 mr-md-5">
+                  <div v-if="affiliationBySector[setStoryPublication.sector] && affiliationBySector[setStoryPublication.sector].filter(id=> !publishedGroups.map(item=>item.nest.id).includes(id)).length > 0">
+                    <p>
+                      Select the nest you want to {{ setStoryPublication.action }} your narrative<br>
+                    </p>
+                    <select v-model="setStoryPublication.nests" class="selectpicker form-control form-control-sm mb-3" required multiple @change="reinitialiseBootstrapSelect()">
+                      <option v-for="affiliatednest in affiliationBySector[setStoryPublication.sector].filter(id=> !publishedGroups.map(item=>item.nest.id).includes(id))" :key="'nest_'+affiliatednest" :value="affiliatednest">
                         {{ nests.filter(x =>x.id === affiliatednest)[0].name }}
                       </option>
                     </select>
                   </div>
+                  <div v-else class="ml-md-5 mr-md-5">
+                    No more nest available to publish
+                  </div>
                 </div>
-                <!-- <select class="selectpicker form-control form-control-sm mb-3">
-                  <option :value="tatouNestId">
-                    Tātou
-                  </option>
-                </select> -->
               </form>
             </div>
           </div>
@@ -752,7 +756,8 @@
             <button class="btn btn-secondary" data-dismiss="modal" @click="clearSetStoryPublication()">
               Close
             </button>
-            <button disabled class="btn btn-success" data-dismiss="modal" @click="sendSetStoryPublication()">
+            <!-- <button :disabled="publishedGroups && publishedGroups.map(item => item.nest.kinship_sector.name).filter(x => x !== 'Whānau').length > 0 && setStoryPublication.sector !== 'Whānau' " class="btn btn-success" @click="sendSetStoryPublication()"> -->
+            <button :disabled="setStoryPublication.nests.length == 0" class="btn btn-success" @click="sendSetStoryPublication()">
               Submit
             </button>
           </div>
@@ -771,15 +776,16 @@
           </div>
           <div class="modal-body">
             <div>
-              <form>
+              <form id="unpublishstory">
                 <div v-if="publishedGroups && publishedGroups.length > 0">
                   <p>
                     Select the nest in which you want to {{ setStoryPublication.action }} your narrative<br>
                   </p>
                   <div class="ml-md-5 mr-md-5">
-                    <select v-model="nestsToUnpublish" class="selectpicker form-control form-control-sm mb-3" multiple @change="reinitialiseBootstrapSelect()">
-                      <option v-for="nest in publishedGroups" :key="nest" :value="nest">
-                        {{ nests.filter(x =>x.id === nest)[0].name }}
+                    <select v-model="nestsToUnpublish" class="selectpicker form-control form-control-sm mb-3" required @change="reinitialiseBootstrapSelect()">
+                      <option v-for="nest in publishedGroups" :key="nest.nest.id" :value="nest.nest.id">
+                        {{ nests.filter(x =>x.id === nest.nest.id)[0].name }}
+                        <!-- {{ nest.name }} -->
                       </option>
                     </select>
                   </div>
@@ -791,7 +797,7 @@
             <button class="btn btn-secondary" data-dismiss="modal" @click="clearSetStoryPublication()">
               Close
             </button>
-            <button disabled class="btn btn-success" data-dismiss="modal" @click="sendSetStoryUnPublication()">
+            <button :disabled="!nestsToUnpublish" class="btn btn-success" @click="sendSetStoryUnPublication()">
               Submit
             </button>
           </div>
@@ -799,6 +805,71 @@
       </div>
     </div>
 
+    <div id="storyReviewModal" class="modal fade" data-backdrop="static">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4>
+              Review
+            </h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="review">Review comments</label>
+              <textarea id="review" v-model="review" class="form-control form-control-sm" type="text" rows="8" placeholder="Write your review here..." />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-dismiss="modal">
+              Close
+            </button>
+            <button disabled class="btn btn-success" data-dismiss="modal" @click="saveReview(publicationSubmitted,review)">
+              Submit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="showStoryAlreadyInWiderNestModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content modal-margin-top">
+          <div class="modal-header">
+            <h5>Attention</h5>
+          </div>
+          <div class="modal-body text-center">
+            <h6>This story was already in the wider nest, if you edit, you have to submit it again. Are you sure you want to edit?</h6>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              No
+            </button>
+            <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="updateStoryStatus()">
+              Yes, I am sure
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="showChangeStatusToSubmitModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content modal-margin-top">
+          <div class="modal-header">
+            <h5>Attention</h5>
+          </div>
+          <div class="modal-body text-center">
+            <h6>As your story has been just updated, would you like to submit to the wider nest now? </h6>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              No, not now
+            </button>
+            <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="resubmitStoryToWiderNest()">
+              Yes, Submit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="showNarrativeInfoModal" class="modal fade">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -832,6 +903,9 @@
                         <th scope="col">
                           Date
                         </th>
+                        <th v-if="story.owner == username " scope="col">
+                          Review Comment
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -849,7 +923,11 @@
                           <span v-else>{{ publication.nest.kinship_sector.name }} --- <strong>(You are not member)</strong></span>
                         </td>
                         <td>{{ publication.status_modified_on | moment("MMMM Do, YYYY") }}</td>
+                        <td v-if="reviews && publication.status == 'REVIEWED' && story.owner == username ">
+                          {{ reviews.filter(x => x.publication_id == publication.id).map(y => y.review)[0] }}
+                        </td>
                       </tr>
+                      <!-- this.storyPublications.filter(x => x.nest.kinship_sector.name  !== 'Whānau').length -->
                     </tbody>
                   </table>
                   <table v-else class="table table-sm table-borderless">
@@ -938,7 +1016,10 @@ export default {
         sector: null,
         nests: []
       },
-      nestsToUnpublish: []
+      nestsToUnpublish: [],
+      publicationSubmitted: '',
+      review: '',
+      widerNestPub: null
     }
   },
   computed: {
@@ -1013,24 +1094,6 @@ export default {
     storyPublications () {
       return this.$store.state.storyPublications
     },
-    affiliationBySector () {
-      var affiliationBySector = {}
-
-      if (this.sectors && this.nests) {
-        var sectors_names = this.sectors.map(x => x.name)
-        each(sectors_names, (name) => {
-          affiliationBySector[name] = []
-        })
-      }
-      each(this.nests, (nest) => {
-        if (this.user && this.user.profile.affiliation.includes(nest.id)) {
-          if (affiliationBySector[nest.kinship_sector.name]) {
-            affiliationBySector[nest.kinship_sector.name].push(nest.id)
-          }
-        }
-      })
-      return affiliationBySector
-    },
     allStoryTypes(){
       return this.$store.state.allStoryTypes
     },
@@ -1055,6 +1118,35 @@ export default {
     sectors () {
       return this.$store.state.sectors
     },
+    affiliationBySector () {
+      var affiliationBySector = {}
+
+      if (this.sectors && this.nests) {
+        var sectors_names = this.sectors.map(x => x.name)
+        each(sectors_names, (name) => {
+          affiliationBySector[name] = []
+        })
+      }
+      each(this.nests, (nest) => {
+        if (this.user && this.user.profile.affiliation.includes(nest.id)) {
+          if (affiliationBySector[nest.kinship_sector.name]) {
+            affiliationBySector[nest.kinship_sector.name].push(nest.id)
+          }
+        }
+      })
+      delete affiliationBySector['Koromatua Hapū'] // just to remove Koromatua Hapū from affiliationBySector for now, becoz only in Ngati Whakaue publications made
+      console.log("affiliationBySector ",affiliationBySector);
+      return affiliationBySector
+    },
+    affiliatedNests(){
+      var affiliatedNests = []
+      each(this.nests, (nest) => {
+        if (this.user && this.user.profile.affiliation.includes(nest.id)) {
+            affiliatedNests.push(nest)
+          }
+      })
+      return affiliatedNests
+    },
     tatouNestId () {
       var tatouNestId
       if (this.nests) {
@@ -1068,9 +1160,15 @@ export default {
     publishedGroups(){
       var groupids
       if(this.storyPublications) {
-        groupids = this.storyPublications.filter(item=>item.status=== 'PUBLISHED' && (this.user && this.user.profile.affiliation.includes(item.nest.id))).map(item=>item.nest.id)
+        groupids = this.storyPublications.filter(item=>item.status !== 'UNPUBLISHED' && item.status !== 'DRAFT'&& (this.user && this.user.profile.affiliation.includes(item.nest.id)))
       }
       return groupids
+    },
+    ispublication(){
+      return this.$store.state.submittedPublication
+    },
+    reviews () {
+      return this.$store.state.reviews
     },
   },
   watch: {
@@ -1147,7 +1245,11 @@ export default {
       this.reinitialiseBootstrapSelect()
     })
 
-    EventBus.$on('openNarrative', (story_id) => {
+    EventBus.$on('openNarrative', (story_id, publication) => {
+      if(publication && publication.status == 'SUBMITTED')
+      {
+        this.$store.commit('SET_SUBMITTED_PUB', publication)
+      }
       this.openNarrative(story_id, null)
     })
 
@@ -1292,6 +1394,10 @@ export default {
         // Create or update
         if (this.story.hasOwnProperty('id')) {
           this.$store.dispatch('saveStoryContent', this.story)
+          if(this.widerNestPub)
+          {
+            $('#showChangeStatusToSubmitModal').modal('show') // To confirm if they want to submit again
+          }
         } else {
           this.$store.dispatch('addStory', this.story)
         }
@@ -1303,6 +1409,16 @@ export default {
       }else {
         storyform.classList.add("was-validated")
         $('#sidePanel').animate({ scrollTop: 0 }, 'fast')
+      }
+    },
+    setWiderNestPub()
+    {
+      var pub
+      if(this.storyPublications) { // get the Ngāti Whakaue pub id
+        pub = this.storyPublications.filter(item => item.nest.name == 'Ngāti Whakaue')[0]
+      }
+      if(pub){
+        this.widerNestPub = pub
       }
     },
     showCancelStorySavingModal: function () {
@@ -1338,17 +1454,43 @@ export default {
         EventBus.$emit("updateMapWidth")
       }
     },
+    resubmitStoryToWiderNest: function () { // changing status from 'DRAFT' to "SUBMITTED"
+      this.$store.dispatch('changeStatusStoryPublication',{'pub_id': this.widerNestPub.id, action:'SUBMITTED','story_id':this.widerNestPub.story.id})
+    },
+    updateStory: function () {
+      this.$store.dispatch('updateEditor', {'story_id': this.story.id,'editor': this.userPK,"action":"set"})
+      if (this.story.story_type) {
+        this.story.story_type_id = this.story.story_type.id
+      }
+      this.$store.commit('SET_STORY_VIEW_MODE', false)
+      this.reinitialiseBootstrapSelect()
+      EventBus.$emit('resetDrawnFeature')
+    },
+    updateStoryStatus: function () {
+      // if already in DRAFT status directly go to editStory
+      if(this.widerNestPub && this.widerNestPub.status == 'DRAFT')
+      {
+        this.updateStory()
+      }
+      else{ // Otherwise change the status to DRAFT and then go to editStory
+        this.$store.dispatch('changeStatusStoryPublication',{'pub_id': this.widerNestPub.id, action:'DRAFT','story_id':this.widerNestPub.story.id})
+        .then(() => {
+              this.updateStory()
+            })
+      }
+    },
     editStory: function () {
       this.$store.dispatch('getStoryContent', this.story.id)
       .then(() => {
         if (!this.story.being_edited_by || this.story.being_edited_by ==  this.userPK) {
-          this.$store.dispatch('updateEditor', {'story_id': this.story.id,'editor': this.userPK,"action":"set"})
-          if (this.story.story_type) {
-            this.story.story_type_id = this.story.story_type.id
+          if(this.storyPublications.length > 0 && this.storyPublications.filter(x => x.nest.name  == 'Ngāti Whakaue').length>0)
+          {
+            this.setWiderNestPub()
+            $('#showStoryAlreadyInWiderNestModal').modal('show')
           }
-          this.$store.commit('SET_STORY_VIEW_MODE', false)
-          this.reinitialiseBootstrapSelect()
-          EventBus.$emit('resetDrawnFeature')
+          else{
+            this.updateStory()
+          }
           }
         else{
           EventBus.$emit('showStoryIsBeingEditedByWarning',this.story.being_edited_by)
@@ -1673,32 +1815,70 @@ export default {
       return { 'cssClasses': cssClasses, 'hrefs': hrefs }
     },
     clearSetStoryPublication () {
+      this.nestsToUnpublish = []
       this.setStoryPublication = {
         action: null,
         sector: null,
         nests: []
       }
+      var publishform = document.getElementById("publishstory")
+      publishform.classList.remove("was-validated")
+      var unpublishform = document.getElementById("unpublishstory")
+      unpublishform.classList.remove("was-validated")
     },
     sendSetStoryPublication () {
-      this.setStoryPublication.story = this.story
-      this.$store.dispatch('setStoryPublication', this.setStoryPublication)
-      .then((response) => {
-        if (response.ok) {
-          notifySuccess("&nbsp;&nbsp;The narrative was successfully <strong>published</strong> in the selected nests.")
-        }
-      })
-      this.clearSetStoryPublication()
+      var publishform = document.getElementById("publishstory")
+      if (publishform.checkValidity()) {
+        // Remove validated class
+        publishform.classList.remove("was-validated")
+        var action = this.setStoryPublication.action
+        var sector = this.setStoryPublication.sector
+        this.setStoryPublication.story = this.story
+          $('#setStoryPublicationModal').modal('hide')
+        this.$store.dispatch('setStoryPublication', this.setStoryPublication)
+        .then((response) => {
+          if (response.ok) {
+            if(action == 'submit' && sector == 'Whānau')
+            {
+              notifySuccess("&nbsp;&nbsp;The narrative was successfully <strong>published</strong> in the selected nest.")
+            }
+            else
+            {
+              notifySuccess("&nbsp;&nbsp;The narrative was successfully <strong>submitted</strong> in the selected wider nest. If accepted it will be published right away. Otherwise it will be reviewed. Please see the narrative status for updates.")
+            }
+          }
+        })
+        this.clearSetStoryPublication()
+      }
+      else{
+        // add validated class
+        publishform.classList.add("was-validated")
+      }
     },
     sendSetStoryUnPublication () {
-      this.setStoryPublication.story = this.story
-      this.setStoryPublication.nests = this.nestsToUnpublish
-      this.$store.dispatch('setStoryPublication', this.setStoryPublication)
-      .then((response) => {
-        if (response.ok) {
-          notifySuccess("&nbsp;&nbsp;The narrative was successfully <strong>unpublished</strong> from the selected nests.")
-        }
-      })
-      this.clearSetStoryPublication()
+      var unpublishform = document.getElementById("unpublishstory")
+      if (unpublishform.checkValidity()) {
+        // Remove validated class
+        unpublishform.classList.remove("was-validated")
+        this.setStoryPublication.story = this.story
+        this.setStoryPublication.nests = this.nestsToUnpublish
+        console.log(this.nests+"this.nestsToUnpublish ",this.nests.filter(x =>x.id === this.nestsToUnpublish)[0].kinship_sector.name);
+        this.setStoryPublication.sector = this.nests.filter(x =>x.id === this.nestsToUnpublish)[0].kinship_sector.name
+        $('#setStoryUnPublicationModal').modal('hide')
+        this.$store.dispatch('setStoryPublication', this.setStoryPublication)
+        .then((response) => {
+          if (response.ok) {
+            notifySuccess("&nbsp;&nbsp;The narrative was successfully <strong>unpublished</strong> from the selected nest.")
+          }
+          this.setWiderNestPub()
+        })
+        this.clearSetStoryPublication()
+      }
+      else {
+        // add validated class
+        unpublishform.classList.add("was-validated")
+      }
+
     },
     showNarrativeInfoOpenModal () {
       $('#showNarrativeInfoModal').modal('show')
@@ -1717,6 +1897,28 @@ export default {
         return author.profile.avatar.split('/media/')[1]
       }
       return
+    },
+    acceptPub(pub) {
+      this.$store.dispatch('saveStoryReview',{'publication_id': pub.id,'reviewer_id': this.user.id,'review' : 'ACCEPTED'})
+      .then(() => {
+        this.$store.dispatch('changeStatusStoryPublication',{'pub_id': pub.id, action:'PUBLISHED', 'story_id':pub.story.id})
+        this.$store.dispatch('getStoryPublications', pub.story.id)
+        this.$store.commit('SET_SUBMITTED_PUB', null)
+        notifySuccess("&nbsp;&nbsp;The narrative was successfully <strong>published</strong> in the selected nest.")
+      })
+    },
+    reviewPub(pub) {
+      this.publicationSubmitted = pub
+      $('#storyReviewModal').modal('show')
+      },
+    saveReview(pub,review) {
+      this.$store.dispatch('saveStoryReview',{'publication_id': pub.id,'reviewer_id': this.user.id,'review' : review})
+      .then(() => {
+        this.$store.dispatch('changeStatusStoryPublication',{'pub_id': pub.id, action:'REVIEWED','story_id':pub.story.id})
+        this.$store.dispatch('getStoryPublications', pub.story.id)
+        this.$store.commit('SET_SUBMITTED_PUB', null)
+        notifySuccess("&nbsp;&nbsp;Your review has been submitted successfully.")
+      })
     },
   }
   };
