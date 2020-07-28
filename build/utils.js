@@ -7,8 +7,8 @@ const parameters = {
   API_HOST: "http://localhost:8000",
   WEB_HOST: "http://localhost",
   GEOSERVER_HOST: "http://localhost:8080/geoserver",
-  LINZ_ACCESS_KEY: "068f37bc27874c79aee57d4fb4d1455d",
-  MFE_ACCESS_KEY: "ddc45ce09b8243a9ac98f12b0b86b254"
+  LINZ_ACCESS_KEY: "686e9f2c49414b88a87fae01d046dc82",
+  MFE_ACCESS_KEY: "16369a2103f04311864cf0fd1cddec3b"
 }
 
 if (process.env.API_HOST) {
