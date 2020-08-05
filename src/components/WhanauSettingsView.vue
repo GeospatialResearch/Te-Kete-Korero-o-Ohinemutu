@@ -401,7 +401,6 @@ export default {
       this.inviteToNest.invitee = value
     },
     sendInvite () {
-      console.log("addWhanauInvitation ");
       if (this.inviteToNest.invitee) {
         this.$store.dispatch('addWhanauInvitation', {'nest_id':  this.inviteToNest.nest.id, 'invitee_id':  this.inviteToNest.invitee.id})
       }

@@ -68,6 +68,8 @@ import { faUserShield } from '@fortawesome/free-solid-svg-icons/faUserShield'
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus'
 import { faIdCard } from '@fortawesome/free-solid-svg-icons/faIdCard'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faSyncAlt } from '@fortawesome/free-solid-svg-icons/faSyncAlt'
+
 
 library.add(
   faCoffee, faBars, faTachometerAlt, faCircle, faSearch, faMapPin, faCog,
@@ -77,7 +79,7 @@ library.add(
   faSearchPlus, faImages, faChevronCircleRight, faChevronCircleLeft, faTrashAlt, faTrash, faMapMarkerAlt, farNewspaper,
   faCheckSquare, faSquare, faFilter, faSearchLocation, faList, faUser, faKey, faAt, faComments, faPen, faSpinner, faPrint,
   faMap, faShoePrints, faSignInAlt, faSignOutAlt, faQuestion, faLightbulb, farCalendarAlt, faFingerprint, farAddressCard,
-  faHourglassHalf, faUserTimes, faUserShield, faPlus, faIdCard
+  faHourglassHalf, faUserTimes, faUserShield, faPlus, faIdCard, faSyncAlt
 )
 
 export {

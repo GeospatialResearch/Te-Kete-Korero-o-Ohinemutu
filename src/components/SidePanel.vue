@@ -729,7 +729,7 @@
                 <div v-if="publishedGroups" class="ml-md-5 mr-md-5">
                   <select v-if="user && sectors && affiliatedNests" v-model="setStoryPublication.sector" class="selectpicker form-control form-control-sm mb-3" required @change="reinitialiseBootstrapSelect()">
                     <option v-for="sector in sectors.filter(s => affiliatedNests.map(item=>item.kinship_sector.name).includes(s.name))" :key="sector.id" :value="sector.name">
-                       <!-- && !publishedGroups.map(x=>x.nest.kinship_sector.name).includes(s.name) -->
+                      <!-- && !publishedGroups.map(x=>x.nest.kinship_sector.name).includes(s.name) -->
                       {{ sector.name }} {{ sector.name == 'Whānau' ? '' : '(wider sector)' }}
                     </option>
                   </select>
@@ -1135,7 +1135,6 @@ export default {
         }
       })
       delete affiliationBySector['Koromatua Hapū'] // just to remove Koromatua Hapū from affiliationBySector for now, becoz only in Ngati Whakaue publications made
-      console.log("affiliationBySector ",affiliationBySector);
       return affiliationBySector
     },
     affiliatedNests(){
@@ -1862,7 +1861,6 @@ export default {
         unpublishform.classList.remove("was-validated")
         this.setStoryPublication.story = this.story
         this.setStoryPublication.nests = this.nestsToUnpublish
-        console.log(this.nests+"this.nestsToUnpublish ",this.nests.filter(x =>x.id === this.nestsToUnpublish)[0].kinship_sector.name);
         this.setStoryPublication.sector = this.nests.filter(x =>x.id === this.nestsToUnpublish)[0].kinship_sector.name
         $('#setStoryUnPublicationModal').modal('hide')
         this.$store.dispatch('setStoryPublication', this.setStoryPublication)

@@ -23,6 +23,12 @@
 
         <!-- sidebar-menu  -->
         <div :class="[authenticated ? 'sidebar-item': '', 'sidebar-menu']">
+          <div :class="[contentToShow == 'map' && authenticated ? 'dark-background': '', 'text-center pt-2']">
+            <span v-if="getDataSpin" style="color:#c7c7c7;">
+              <font-awesome-icon icon="sync-alt" spin />Loading...
+            </span>
+          </div>
+
           <ul>
             <!-- <li class="header-menu">
               <span>General</span>
@@ -251,108 +257,8 @@
                     </span>
                   </div>
                 </div>
-
-                <!-- <div class="input-group input-group-sm">
-                  <input v-model="filter.freeText" type="text" class="form-control search-menu" placeholder="Filter narratives..." @keyup="filterNarratives()">
-                  <div class="input-group-append" title="Advanced filter">
-                    <button class="btn btn-dark" type="button" @click="advancedFilterModal()">
-                      <i aria-hidden="true"><font-awesome-icon icon="filter" /></i>
-                    </button>
-                  </div>
-                  <div class="input-group-append" title="Clear filter">
-                    <button class="btn btn-dark" type="button" @click="clearNarrativesFilter()">
-                      <i aria-hidden="true"><font-awesome-icon icon="times" /></i>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="m-2">
-                  <span v-for="atua in filter.atua" :key="atua" class="badge badge-pill badge-light m-1" title="Atua">{{ allAtuas.find(x => x.id == atua).name }}</span>
-                  <span v-for="type in filter.storyType" :key="type" class="badge badge-pill badge-light m-1" title="Type of Narrative">{{ allStoryTypes.find(x => x.id == type).type }}</span>
-                </div> -->
               </div>
             </div>
-
-            <!-- # Just commented for the time being. Need to put beck. DO NOT DELETE this li -->
-            <!-- <li v-show="filter.freeText || filter.atua.length !== 0 || filter.storyType.length !== 0" class="sidebar-dropdown">
-              <a href="#" @click="dropdownSidebarDropdow($event)">
-                <i><font-awesome-icon icon="book-open" /></i>
-                <span class="menu-text">Filtered narratives</span>
-                <span class="badge badge-pill badge-secondary">{{ filteredStories.length }}</span>
-              </a>
-              <div v-if="!filter.freeText && filter.atua.length == 0 && filter.storyType.length == 0" class="sidebar-submenu">
-                <div class="text-center">
-                  <span>No filter defined</span>
-                </div>
-              </div>
-              <div v-else class="sidebar-submenu">
-                <div v-if="filteredStories.length === 0">
-                  <div class="text-center">
-                    <span>No narratives matching the filter</span>
-                  </div>
-                </div>
-                <div v-else>
-                  <ul>
-                    <li v-for="story in filteredStories" :key="story.id">
-                      <a href="#" class="justify-content-between" :title="story.title.eng">
-                        <small><font-awesome-icon :icon="['far', 'circle']" size="xs" /></small>
-                        <span class="inline-text">
-                          <span class="ml-2 ellipsis-text"> {{ story.title.eng }}</span>
-                        </span>
-                        <span class="float-right pl-2" data-toggle="popover" data-placement="right" data-trigger="click" title="Narrative Options" :data-content="createPopoverStoryOptions(story)">
-                          <font-awesome-icon icon="ellipsis-v" />
-                        </span>
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </li> -->
-
-            <!-- <li class="sidebar-dropdown">
-              <a href="#">
-                <i class="fa fa-tachometer-alt" />
-                <span class="menu-text">Dashboard</span>
-                <span class="badge badge-pill badge-warning">New</span>
-              </a>
-              <div class="sidebar-submenu">
-                <ul>
-                  <li>
-                    <a href="#">
-                      Dashboard 1
-                      <span class="badge badge-pill badge-success">Pro</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#">Dashboard 2</a>
-                  </li>
-                  <li>
-                    <a href="#">Dashboard 3</a>
-                  </li>
-                </ul>
-              </div>
-            </li> -->
-            <!-- <li class="header-menu">
-              <span>Extra</span>
-            </li>
-            <li>
-              <a href="#">
-                <i class="fa fa-book" />
-                <span class="menu-text">Documentation</span>
-              </a>
-            </li> -->
-            <!-- <li>
-              <a href="#">
-                <i class="fa fa-calendar" />
-                <span class="menu-text">Calendar</span>
-              </a>
-            </li> -->
-            <!-- <li>
-              <a href="#">
-                <i class="fa fa-folder" />
-                <span class="menu-text">Examples</span>
-              </a>
-            </li> -->
           </ul>
         </div>
         <!-- sidebar-menu  -->
@@ -361,110 +267,11 @@
 
       <!-- sidebar-footer  -->
       <div class="sidebar-footer">
-        <!-- <div class="dropdown">
-          <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i class="text-info"><font-awesome-icon icon="bell" /></i>
-            <span class="badge badge-pill badge-warning notification">3</span>
+        <div>
+          <a href="#" title="Refresh data" @click="refresh()">
+            <i v-if="getDataSpin"><font-awesome-icon icon="sync-alt" spin /></i>
+            <i v-else><font-awesome-icon icon="sync-alt" /></i>
           </a>
-          <div class="dropdown-menu notifications" aria-labelledby="dropdownMenuMessage">
-            <div class="notifications-header">
-              <i class="text-info"><font-awesome-icon icon="bell" /></i>
-              Notifications
-            </div>
-            <div class="dropdown-divider" />
-            <a class="dropdown-item" href="#">
-              <div class="notification-content">
-                <div class="icon border border-success text-center">
-                  <i class="text-success"><font-awesome-icon icon="check" /></i>
-                </div>
-                <div class="content">
-                  <div class="notification-detail">Lorem ipsum dolor sit amet consectetur adipisicing elit. In totam explicabo</div>
-                  <div class="notification-time"> 6 minutes ago</div>
-                </div>
-              </div>
-            </a>
-            <a class="dropdown-item" href="#">
-              <div class="notification-content">
-                <div class="icon border border-info text-center">
-                  <i class="text-info"><font-awesome-icon icon="exclamation" /></i>
-                </div>
-                <div class="content">
-                  <div class="notification-detail">Lorem ipsum dolor sit amet consectetur adipisicing elit. In totam explicabo</div>
-                  <div class="notification-time">Today</div>
-                </div>
-              </div>
-            </a>
-            <a class="dropdown-item" href="#">
-              <div class="notification-content">
-                <div class="icon border border-warning text-center">
-                  <i class="text-warning"><font-awesome-icon icon="exclamation-triangle" /></i>
-                </div>
-                <div class="content">
-                  <div class="notification-detail">Lorem ipsum dolor sit amet consectetur adipisicing elit. In totam explicabo</div>
-                  <div class="notification-time">Yesterday</div>
-                </div>
-              </div>
-            </a>
-            <div class="dropdown-divider" />
-            <a class="dropdown-item text-center" href="#">View all notifications</a>
-          </div>
-        </div> -->
-        <div class="dropdown">
-          <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i><font-awesome-icon icon="envelope" /></i>
-            <!-- <span class="badge badge-pill badge-success notification">7</span> -->
-          </a>
-          <div class="dropdown-menu messages" aria-labelledby="dropdownMenuMessage">
-            <div class="messages-header">
-              <i><font-awesome-icon icon="envelope" /></i>
-              Messages
-            </div>
-            <div class="dropdown-divider" />
-            <a class="dropdown-item" href="#">
-              <div class="message-content">
-                <div class="pic">
-                  <img src="static/img/user.jpg" alt="">
-                </div>
-                <div class="content">
-                  <div class="message-title">
-                    <strong> Jhon doe</strong>
-                  </div>
-                  <div class="message-detail">Lorem ipsum dolor sit amet consectetur adipisicing elit. In totam explicabo
-                  </div>
-                </div>
-              </div>
-            </a>
-            <a class="dropdown-item" href="#">
-              <div class="message-content">
-                <div class="pic">
-                  <img src="static/img/user.jpg" alt="">
-                </div>
-                <div class="content">
-                  <div class="message-title">
-                    <strong> Jhon doe</strong>
-                  </div>
-                  <div class="message-detail">Lorem ipsum dolor sit amet consectetur adipisicing elit. In totam explicabo
-                  </div>
-                </div>
-              </div>
-            </a>
-            <a class="dropdown-item" href="#">
-              <div class="message-content">
-                <div class="pic">
-                  <img src="static/img/user.jpg" alt="">
-                </div>
-                <div class="content">
-                  <div class="message-title">
-                    <strong> Jhon doe</strong>
-                  </div>
-                  <div class="message-detail">Lorem ipsum dolor sit amet consectetur adipisicing elit. In totam explicabo
-                  </div>
-                </div>
-              </div>
-            </a>
-            <div class="dropdown-divider" />
-            <a class="dropdown-item text-center" href="#">View all messages</a>
-          </div>
         </div>
         <div class="dropdown">
           <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -883,7 +690,8 @@
         layerToShare: null,
         userToRemoveFromLayerSharing: null,
         mediaRoot: process.env.API_HOST,
-        allOtherUsers: []
+        allOtherUsers: [],
+        getDataSpin: false
       }
     },
     computed: {
@@ -1050,7 +858,7 @@
         this.editor = editorid
         $('#BeingEditedByWarningModal').modal('show')
       })
-      
+
       EventBus.$on('storyIsBeingEditedWarning', () => {
         $('#storyIsBeingEditedWarningModal').modal('show')
       })
@@ -1375,8 +1183,10 @@
         this.$store.commit('TOGGLE_CONTENT', 'nests')
       },
       openUsersSettings () {
+        this.getDataSpin = true
         this.getData()
         this.$store.commit('TOGGLE_CONTENT', 'users')
+        this.getDataSpin = false
       },
       getData () {
         this.$store.dispatch('getUsers')
@@ -1387,6 +1197,11 @@
         this.$store.dispatch('getKaitiakis') // to update nest's kaitiakis
         this.$store.dispatch('getAllPublications') // to get all publications
         this.$store.dispatch('getStoryReviews') // to get story reviews
+      },
+      refresh () {
+        this.getDataSpin = true
+        this.getData()
+        this.getDataSpin = false
       },
       openNarrative(story_id){
         // close the modal

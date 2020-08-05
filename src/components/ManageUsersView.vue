@@ -74,6 +74,9 @@
                 Affiliation
               </th>
               <th scope="col">
+                Email
+              </th>
+              <th scope="col">
                 Is Tool Manager
               </th>
               <th scope="col" />
@@ -99,6 +102,9 @@
                     </p>
                   </div>
                 </div>
+              </td>
+              <td class="user-name text-center" :title="a_user.email">
+                <a :href="'mailto:'+a_user.email" target="_blank"><font-awesome-icon icon="envelope" /></a>
               </td>
               <td>
                 <span v-if="a_user.is_staff">Yes</span>
