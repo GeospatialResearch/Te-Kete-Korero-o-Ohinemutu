@@ -23,7 +23,7 @@ class StoryQuerySet(models.QuerySet):
             # stories published in nests that user belongs to
             stories_published_nest_member = [publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')]
             # the above plus stories that user is owner and stories created by admin
-            return self.filter(id__in=stories_kaitiaki) | self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=stories_coauthor) | self.filter(id__in=stories_published_nest_member)
+            return self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=stories_coauthor) | self.filter(id__in=stories_kaitiaki) | self.filter(id__in=stories_published_nest_member)
 
 class StoryBodyElementQuerySet(models.QuerySet):
     def for_user(self, user):
@@ -34,8 +34,14 @@ class StoryBodyElementQuerySet(models.QuerySet):
         if user.is_superuser:
             return self.all()
         else:
-            stories = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
-            return self.filter(Q(story__owner=user)) | self.filter(Q(story__owner__is_superuser=True)) | self.filter(story__id__in=stories)
+            # stories that user is a kaitiaki
+            stories_kaitiaki = [publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)]
+            # stories that user is co-author
+            stories_coauthor = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
+            # stories published in nests that user belongs to
+            stories_published_nest_member = [publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')]
+            # the above plus stories that user is owner and stories created by admin
+            return self.filter(Q(story__owner=user)) | self.filter(Q(story__owner__is_superuser=True)) | self.filter(story__id__in=stories_coauthor) | self.filter(story__id__in=stories_kaitiaki) | self.filter(story__id__in=stories_published_nest_member)
 
 
 class DatasetQuerySet(models.QuerySet):
