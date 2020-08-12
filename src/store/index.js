@@ -68,6 +68,7 @@ const initialState = {
     status: 'DRAFT',
     storyBodyElements: [],
     atua: [],
+    hapu: [],
     story_type_id: '',
     approx_time: {
       type: '',
@@ -272,6 +273,7 @@ const store = new Vuex.Store({
         status: 'DRAFT',
         storyBodyElements: [],
         atua: [],
+        hapu: [],
         story_type_id: '',
         approx_time: {
           type: '',
@@ -575,6 +577,7 @@ const store = new Vuex.Store({
       story.storyBodyElements_temp = story.storyBodyElements
       delete story['storyBodyElements']
       story.atua_temp = story.atua
+      story.hapu_temp = story.hapu
       story.title = {
         eng: story.titleeng,
         mao: story.titlemao,
@@ -584,6 +587,7 @@ const store = new Vuex.Store({
         mao: story.summarymao,
       }
       delete story['atua']
+      delete story['hapu']
       delete story['titleeng']
       delete story['titlemao']
       delete story['summaryeng']
@@ -611,6 +615,7 @@ const store = new Vuex.Store({
       story.storyBodyElements_temp = story.storyBodyElements
       delete story['storyBodyElements']
       story.atua_temp = story.atua
+      story.hapu_temp = story.hapu
       story.title = {
         eng: story.titleeng,
         mao: story.titlemao
@@ -620,6 +625,7 @@ const store = new Vuex.Store({
         mao: story.summarymao
       }
       delete story['atua']
+      delete story['hapu']
       delete story['titleeng']
       delete story['titlemao']
       delete story['summaryeng']

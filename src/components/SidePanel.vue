@@ -78,11 +78,20 @@
               </small>
             </span>
           </p>
-          <div v-if="story.atua" class="float-right" style="font-size:13px;">
+          <!-- <div v-if="story.atua" class="float-right" style="font-size:13px;"> -->
+          <div v-if="story.atua" style="font-size:13px;">
             Atua:
             <i v-for="atua in allAtuas" :key="atua.id">
               <strong v-if="story.atua.includes(atua.id)" :key="atua.id">
                 {{ atua.name }}&nbsp;
+              </strong>
+            </i>
+          </div>
+          <div v-if="story.hapu && story.hapu.length > 0" style="font-size:13px;">
+            Hapu:
+            <i v-for="hapu in hapus" :key="hapu.id">
+              <strong v-if="story.hapu.includes(hapu.id)" :key="hapu.id">
+                {{ hapu.name }}&nbsp;
               </strong>
             </i>
           </div>
@@ -230,6 +239,15 @@
           <span class="text-muted pl-1" @click="showUserManualModal('Atua')"><font-awesome-icon icon="info-circle" class="pointer" /></span>
           <select v-model="story.atua" required class="selectpicker form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Atua">
             <option v-for="item in allAtuas" :key="item.id" :value="item.id">
+              {{ item.name }}
+            </option>
+          </select>
+
+          <h5 v-if="story.hapu" class="mb-0">
+            Hapu
+          </h5>
+          <select v-model="story.hapu" class="selectpicker form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Hapu" @change="reinitialiseBootstrapSelect()">
+            <option v-for="item in hapus" :key="item.id" :value="item.id">
               {{ item.name }}
             </option>
           </select>
@@ -814,16 +832,19 @@
             </h4>
           </div>
           <div class="modal-body">
+            <div v-show="isEmptyReview">
+              Please type review comment
+            </div>
             <div class="form-group">
               <label for="review">Review comments</label>
-              <textarea id="review" v-model="review" class="form-control form-control-sm" type="text" rows="8" placeholder="Write your review here..." />
+              <textarea id="review" v-model="review" required class="form-control form-control-sm" type="text" rows="8" placeholder="Write your review here..." />
             </div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" data-dismiss="modal">
               Close
             </button>
-            <button disabled class="btn btn-success" data-dismiss="modal" @click="saveReview(publicationSubmitted,review)">
+            <button class="btn btn-primary" @click="saveReview(publicationSubmitted,review)">
               Submit
             </button>
           </div>
@@ -903,7 +924,7 @@
                         <th scope="col">
                           Date
                         </th>
-                        <th v-if="story.owner == username " scope="col">
+                        <th v-if="story.owner == username || kaitiakis.includes(user.id) || story.co_authors.includes(user.id)" scope="col">
                           Review Comment
                         </th>
                       </tr>
@@ -923,7 +944,7 @@
                           <span v-else>{{ publication.nest.kinship_sector.name }} --- <strong>(You are not member)</strong></span>
                         </td>
                         <td>{{ publication.status_modified_on | moment("MMMM Do, YYYY") }}</td>
-                        <td v-if="reviews && publication.status == 'REVIEWED' && story.owner == username ">
+                        <td v-if="reviews && publication.status == 'REVIEWED' && (story.owner == username || kaitiakis.includes(user.id) || story.co_authors.includes(user.id))">
                           {{ reviews.filter(x => x.publication_id == publication.id).map(y => y.review)[0] }}
                         </td>
                       </tr>
@@ -1018,8 +1039,9 @@ export default {
       },
       nestsToUnpublish: [],
       publicationSubmitted: '',
-      review: '',
-      widerNestPub: null
+      review: null,
+      widerNestPub: null,
+      isEmptyReview: false
     }
   },
   computed: {
@@ -1168,6 +1190,17 @@ export default {
     },
     reviews () {
       return this.$store.state.reviews
+    },
+    kaitiakis(){
+      return this.$store.state.kaitiakis
+    },
+    hapus() {
+      var hapuIds
+      var koromatuaHapuSector = this.sectors.filter(x=>x.name =='Koromatua Hapū')[0]
+      if (this.nests && koromatuaHapuSector) {
+        hapuIds = this.nests.filter(x=>x.kinship_sector.id == koromatuaHapuSector.id)
+      }
+      return hapuIds
     },
   },
   watch: {
@@ -1910,13 +1943,21 @@ export default {
       $('#storyReviewModal').modal('show')
       },
     saveReview(pub,review) {
-      this.$store.dispatch('saveStoryReview',{'publication_id': pub.id,'reviewer_id': this.user.id,'review' : review})
-      .then(() => {
-        this.$store.dispatch('changeStatusStoryPublication',{'pub_id': pub.id, action:'REVIEWED','story_id':pub.story.id})
-        this.$store.dispatch('getStoryPublications', pub.story.id)
-        this.$store.commit('SET_SUBMITTED_PUB', null)
-        notifySuccess("&nbsp;&nbsp;Your review has been submitted successfully.")
-      })
+      if(!review || review == ' ')
+      {
+        this.isEmptyReview = true
+        return false
+      }
+      else{
+        this.$store.dispatch('saveStoryReview',{'publication_id': pub.id,'reviewer_id': this.user.id,'review' : review})
+        .then(() => {
+          this.$store.dispatch('changeStatusStoryPublication',{'pub_id': pub.id, action:'REVIEWED','story_id':pub.story.id})
+          this.$store.dispatch('getStoryPublications', pub.story.id)
+          this.$store.commit('SET_SUBMITTED_PUB', null)
+          notifySuccess("&nbsp;&nbsp;Your review has been submitted successfully.")
+          $('#storyReviewModal').modal('hide')
+        })
+      }
     },
   }
   };

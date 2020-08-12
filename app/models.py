@@ -156,6 +156,24 @@ class Atua(models.Model):
         ordering = ['name']
 
 
+class Sector(models.Model):
+    name = models.CharField(max_length=300)
+    def __str__(self):
+        return self.name
+
+
+class Nest(models.Model):
+    name = models.CharField(max_length=300)
+    kinship_sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
+    kaitiaki = models.ManyToManyField(User)
+    created_by = models.ForeignKey('auth.User', related_name='creatednests', on_delete=models.CASCADE, blank=True, null=True)
+    created_on = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    objects = NestQuerySet.as_manager()
+
+    def __str__(self):
+        return self.name
+
+
 class Story(models.Model):
     DATE_TYPE = Choices(
         ('PRECISE_DATE', 'PRECISE DATE'),
@@ -172,6 +190,7 @@ class Story(models.Model):
     summary = JSONField(default=None, blank=True, null=True)
     approx_time = JSONField(default=None, blank=True, null=True)
     atua =  models.ManyToManyField("Atua")
+    hapu =  models.ManyToManyField("Nest", blank=True)
     story_type = models.ForeignKey(StoryType, blank=True, null=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='stories', on_delete=models.CASCADE)
     is_detectable = models.BooleanField(default=True, blank=True, null=True)
@@ -271,24 +290,6 @@ class Comment(models.Model):
 #     koromatua = models.CharField(max_length=300)
 #     whanau = ArrayField(models.CharField(max_length=300))
 #     membership_number = models.CharField(max_length=100)
-
-
-class Sector(models.Model):
-    name = models.CharField(max_length=300)
-    def __str__(self):
-        return self.name
-
-
-class Nest(models.Model):
-    name = models.CharField(max_length=300)
-    kinship_sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
-    kaitiaki = models.ManyToManyField(User)
-    created_by = models.ForeignKey('auth.User', related_name='creatednests', on_delete=models.CASCADE, blank=True, null=True)
-    created_on = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    objects = NestQuerySet.as_manager()
-
-    def __str__(self):
-        return self.name
 
 
 class Profile(models.Model):

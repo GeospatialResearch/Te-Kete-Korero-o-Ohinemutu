@@ -1531,7 +1531,9 @@ export default {
     fixContentHeight () {
       var navBarHeight = $("#navbar").outerHeight()
       $("#map").height($(window)[0].innerHeight - navBarHeight)
-      this.$store.state.map.updateSize()
+      if(this.$store.state.map){
+        this.$store.state.map.updateSize()
+      }
     },
     fixContentWidth () {
       // if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {

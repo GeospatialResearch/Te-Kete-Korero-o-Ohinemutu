@@ -45,7 +45,7 @@
                 <td>
                   {{ item.nest.kinship_sector.name }} {{ item.nest.name }}
                 </td>
-                <td v-if="reviews" scope="col" class="fit" colspan="2">
+                <td v-if="reviews">
                   {{ getAuthFullName(reviews.filter(x => x.publication.id == item.id).map(y => y.reviewer_id)[0]) }}
                 </td>
                 <td v-if="item.story.owner !== user.id">
