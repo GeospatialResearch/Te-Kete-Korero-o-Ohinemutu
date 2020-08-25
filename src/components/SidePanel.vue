@@ -841,7 +841,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" data-dismiss="modal">
+            <button class="btn btn-secondary" data-dismiss="modal" @click="review = null">
               Close
             </button>
             <button class="btn btn-primary" @click="saveReview(publicationSubmitted,review)">
@@ -924,7 +924,7 @@
                         <th scope="col">
                           Date
                         </th>
-                        <th v-if="story.owner == username || kaitiakis.includes(user.id) || story.co_authors.includes(user.id)" scope="col">
+                        <th v-if="story.owner == username || kaitiakis.includes(user.id) || (story.co_authors && story.co_authors.includes(user.id))" scope="col">
                           Review Comment
                         </th>
                       </tr>
@@ -944,7 +944,7 @@
                           <span v-else>{{ publication.nest.kinship_sector.name }} --- <strong>(You are not member)</strong></span>
                         </td>
                         <td>{{ publication.status_modified_on | moment("MMMM Do, YYYY") }}</td>
-                        <td v-if="reviews && publication.status == 'REVIEWED' && (story.owner == username || kaitiakis.includes(user.id) || story.co_authors.includes(user.id))">
+                        <td v-if="reviews && publication.status == 'REVIEWED' && (story.owner == username || kaitiakis.includes(user.id) || (story.co_authors && story.co_authors.includes(user.id)))">
                           {{ reviews.filter(x => x.publication_id == publication.id).map(y => y.review)[0] }}
                         </td>
                       </tr>
@@ -1901,7 +1901,7 @@ export default {
           if (response.ok) {
             notifySuccess("&nbsp;&nbsp;The narrative was successfully <strong>unpublished</strong> from the selected nest.")
           }
-          this.setWiderNestPub()
+          this.widerNestPub = null
         })
         this.clearSetStoryPublication()
       }

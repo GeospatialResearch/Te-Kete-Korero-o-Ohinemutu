@@ -1526,7 +1526,9 @@ export default {
 
     },
     updateSizeMap () {
-      this.$store.state.map.updateSize()
+      if(this.$store.state.map){
+        this.$store.state.map.updateSize()
+      }
     },
     fixContentHeight () {
       var navBarHeight = $("#navbar").outerHeight()

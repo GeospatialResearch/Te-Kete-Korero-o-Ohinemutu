@@ -47,7 +47,6 @@ def get_catalog():
 
 
 def send_email(emaildata, emailtype):
-
     text_content = ''
     htmly = get_template('../templates/app/' + emailtype + '.html')
     html_content = htmly.render(emaildata)

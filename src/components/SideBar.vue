@@ -1193,6 +1193,7 @@
         this.$store.dispatch('getProfiles')
         this.$store.dispatch('getSectors')
         this.$store.dispatch('getNests')
+        this.$store.dispatch('getStories')
         this.$store.dispatch('getUser') // to update user invitations
         this.$store.dispatch('getKaitiakis') // to update nest's kaitiakis
         this.$store.dispatch('getAllPublications') // to get all publications
