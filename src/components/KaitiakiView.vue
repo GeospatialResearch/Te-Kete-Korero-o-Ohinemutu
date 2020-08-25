@@ -68,6 +68,7 @@
 
 <script>
 import { EventBus } from 'store/event-bus'
+import { delay } from 'underscore'
 
 export default {
   data () {
@@ -95,7 +96,7 @@ export default {
       return this.$store.state.allUsers
     },
     allPublications(){
-      return this.$store.state.publications.filter(pub => pub.nest.kaitiaki.map(item => item.id).includes(this.user.id)).filter(x => x.status !== "DRAFT")
+      return this.$store.state.publications.filter(pub => pub.nest.kaitiaki.map(item => item.id).includes(this.user.id)).filter(x => x.status !== "DRAFT").reverse()
     },
     reviews(){
       return this.$store.state.reviews
@@ -114,9 +115,10 @@ export default {
 
     },
     openNarrative(story_id, publication){
-        this.$store.commit('TOGGLE_CONTENT', 'map')
+      this.$store.commit('TOGGLE_CONTENT', 'map')
+      delay(() => {
         EventBus.$emit('openNarrative', story_id, publication)
-
+        }, 10)
     }
   }
 }

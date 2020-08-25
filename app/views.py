@@ -30,6 +30,7 @@ from tempfile import NamedTemporaryFile
 from django.core.files.storage import default_storage
 from django.db.models import Q
 import datetime
+from .utils import send_email
 
 # Util Functions
 def get_layer_from_file(file_obj, directory, request):
@@ -1071,8 +1072,27 @@ class ChangeStatusStoryPublication(APIView):
         pub_id = request.data['pub_id']
         action = request.data['action']
         publication = Publication.objects.get(id=pub_id)
+        story = publication.story
+        title = story.title['eng'] if story.title['eng'] else story.title['mao']
         publication.status = action
         publication.save()
+        if action == "REVIEWED" or action == "PUBLISHED":
+            host = str(request.get_host()).split(":", 1)[0]
+            if 'api' in host:
+                host = host.replace("api", "www")
+
+            emaildata = {
+                'host': host,
+                'title': title,
+                'is_secure': request.is_secure(),
+                'mailing_list': [story.owner.email],
+                'status': action,
+                'subject': '[He Pito Mata tool] Story status'
+            }
+
+            send_email(emaildata, 'pub_email')
+
+
         return Response({})
 
 class GetReviews(APIView):
