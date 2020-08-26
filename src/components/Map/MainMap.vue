@@ -1204,7 +1204,6 @@ export default {
         EventBus.$emit('zoomToMapView')
 
       } else {
-
         var featuresToAdd = []
         var geomAttrStyles = {}
         var ol_geom

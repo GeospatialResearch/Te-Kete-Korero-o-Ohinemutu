@@ -68,7 +68,7 @@
 
 <script>
 import { EventBus } from 'store/event-bus'
-import { delay } from 'underscore'
+// import { delay } from 'underscore'
 
 export default {
   data () {
@@ -116,9 +116,16 @@ export default {
     },
     openNarrative(story_id, publication){
       this.$store.commit('TOGGLE_CONTENT', 'map')
-      delay(() => {
-        EventBus.$emit('openNarrative', story_id, publication)
-        }, 10)
+      if(publication && publication.status == 'SUBMITTED')
+      {
+        this.$store.commit('SET_SUBMITTED_PUB', publication)
+      }
+      this.$store.dispatch('getStoryContent', story_id)
+      .then((story) => {
+        this.$store.commit('SET_STORY_VIEW_MODE', true)
+        this.$store.commit('SET_PANEL_OPEN', true)
+        EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
+      })
     }
   }
 }
