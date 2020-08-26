@@ -24,18 +24,18 @@ var getAuthHeader = function () {
 }
 
 var getData = function () {
-  store.dispatch('getDatasets')
-  store.dispatch('getStories'),
-  store.dispatch('getAtuas'),
   store.dispatch('getUsers'),
-  store.dispatch('getProfiles'),
-  store.dispatch('getStoryTypes'),
-  store.dispatch('getElementContentTypes'),
   store.dispatch('getWebsiteTranslation'),
   store.dispatch('getSectors'),
   store.dispatch('getNests'),
-  store.dispatch('getKaitiakis')
-  store.dispatch('getAllPublications')
+  store.dispatch('getKaitiakis'),
+  store.dispatch('getDatasets'),
+  store.dispatch('getStories'),
+  store.dispatch('getAtuas'),
+  store.dispatch('getProfiles'),
+  store.dispatch('getStoryTypes'),
+  store.dispatch('getElementContentTypes'),
+  store.dispatch('getAllPublications'),
   store.dispatch('getStoryReviews')
 }
 
