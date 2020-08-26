@@ -797,15 +797,17 @@ export default {
     // Set internal layers and other stuff before creating the map
     Promise.all([
       this.$store.dispatch('getDatasets'),
-      this.$store.dispatch('getStories'),
-      this.$store.dispatch('getAtuas'),
       this.$store.dispatch('getUsers'),
-      this.$store.dispatch('getProfiles'),
-      this.$store.dispatch('getStoryTypes'),
-      this.$store.dispatch('getElementContentTypes'),
       this.$store.dispatch('getWebsiteTranslation'),
       this.$store.dispatch('getSectors'),
-      this.$store.dispatch('getNests')
+      this.$store.dispatch('getNests'),
+      this.$store.dispatch('getAllPublications'),
+      this.$store.dispatch('getKaitiakis'),
+      this.$store.dispatch('getStories'),
+      this.$store.dispatch('getAtuas'),
+      this.$store.dispatch('getProfiles'),
+      this.$store.dispatch('getStoryTypes'),
+      this.$store.dispatch('getElementContentTypes')
     ]).then(() => {
       // Create the map
       this.initMap()
