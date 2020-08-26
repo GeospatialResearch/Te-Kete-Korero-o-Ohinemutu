@@ -1276,12 +1276,12 @@ export default {
     EventBus.$on('initialiseBootstrapSelect', () => {
       this.reinitialiseBootstrapSelect()
     })
-
-    EventBus.$on('openNarrative', (story_id, publication) => {
-      if(publication && publication.status == 'SUBMITTED')
-      {
-        this.$store.commit('SET_SUBMITTED_PUB', publication)
-      }
+    EventBus.$on('openNarrative', (story_id) => {
+    //EventBus.$on('openNarrative', (story_id, publication) => {
+      // if(publication && publication.status == 'SUBMITTED')
+      // {
+      //   this.$store.commit('SET_SUBMITTED_PUB', publication)
+      // }
       this.openNarrative(story_id, null)
     })
 
@@ -1695,7 +1695,7 @@ export default {
       if (!this.isStoryViewMode) {
         EventBus.$emit('storyIsBeingEditedWarning')
       } else {
-        this.$store.dispatch('getStoryPublications', story_id)
+        //this.$store.dispatch('getStoryPublications', story_id)
         this.$store.dispatch('getStoryContent', story_id)
         .then((story) => {
           this.$store.commit('SET_STORY_VIEW_MODE', true)
