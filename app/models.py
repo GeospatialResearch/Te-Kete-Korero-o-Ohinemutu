@@ -18,7 +18,6 @@ class StoryQuerySet(models.QuerySet):
         else:
             # stories that user is a kaitiaki
             stories_kaitiaki = [publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)]
-            print("stories_kaitiaki ",len(stories_kaitiaki))
             # stories that user is co-author
             stories_coauthor = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
             # stories published in nests that user belongs to
