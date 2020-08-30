@@ -88,7 +88,7 @@ export default {
       var nestsBySector = {}
 
       if (this.sectors && this.nests) {
-        var sectors_names = this.sectors.filter(x=>x.name !== 'Tātou' && x.name !== 'Whānau').map(x => x.name)
+        var sectors_names = this.sectors.filter(x=>x.name !== 'Tātou' && x.name !== 'Whānau' && x.name !== 'Koromatua Hapū' && x.name !== 'Hapū').map(x => x.name)
         each(sectors_names, (name) => {
           nestsBySector[name] = []
         })
@@ -106,7 +106,7 @@ export default {
       var affiliationBySector = {}
 
       if (this.sectors && this.nests) {
-        var sectors_names = this.sectors.filter(x=>x.name !== 'Tātou' && x.name !== 'Whānau').map(x => x.name)
+        var sectors_names = this.sectors.filter(x=>x.name !== 'Tātou' && x.name !== 'Whānau' && x.name !== 'Koromatua Hapū' && x.name !== 'Hapū').map(x => x.name)
         each(sectors_names, (name) => {
           affiliationBySector[name] = []
         })

@@ -1876,7 +1876,7 @@ export default {
             }
             else
             {
-              notifySuccess("&nbsp;&nbsp;The narrative was successfully <strong>submitted</strong> in the selected wider nest. If accepted it will be published right away. Otherwise it will be reviewed. Please see the narrative status for updates.")
+              notifySuccess("&nbsp;&nbsp;The narrative was successfully <strong>submitted</strong> in the wider nest Ngāti Whakaue. If accepted it will be published right away. Otherwise it will be reviewed. Please see the narrative status for updates.")
             }
           }
         })
