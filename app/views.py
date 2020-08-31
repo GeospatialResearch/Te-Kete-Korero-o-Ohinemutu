@@ -963,7 +963,7 @@ class setStoryPublication(APIView):
                         publication.delete() #UNPUBLISHED means removing
                     else:
                         print("Couldn't unpublish the narrative since it is not published yet.")
-            else: # Wider nest pubs have status DRAFT, SUBMITTED, ACCEPTED, REVIEWED, PUBLISHED. Here UNPUBLISHED means removing. Bcoz only one publication is allowed in wider nest
+            else: # Wider nest pubs have status DRAFT, SUBMITTED, REVIEWED, PUBLISHED. Here UNPUBLISHED means removing. Bcoz only one publication is allowed in wider nest which is Ngati Whakaue
                 if action == 'submit':
                     if not publications or not publications.filter(nest=nestid).exists():
                         Publication.objects.create(story=story_instance, nest=nest_instance, status='SUBMITTED')

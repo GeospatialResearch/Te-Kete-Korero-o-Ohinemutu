@@ -152,7 +152,7 @@
           <profile-view v-if="contentToShow=='profile'" />
           <whanau-view v-show="contentToShow=='whanau'" />
           <nests-view v-show="contentToShow=='nests'" />
-          <kaitiaki-view v-if="contentToShow=='kaitiaki'" />
+          <!-- <kaitiaki-view v-if="contentToShow=='kaitiaki'" /> -->
           <users-view v-if="contentToShow=='users'" />
           <main-map v-if="contentToShow=='map'" />
           <side-panel v-if="contentToShow=='map'" />
@@ -301,7 +301,7 @@
   import UserManualView from 'components/UserManualView'
   import NestsView from 'components/ManageNestsView'
   import UsersView from 'components/ManageUsersView'
-  import KaitiakiView from 'components/KaitiakiView'
+  // import KaitiakiView from 'components/KaitiakiView'
 
   export default {
     components: {
@@ -319,7 +319,7 @@
       UserManualView,
       NestsView,
       UsersView,
-      KaitiakiView
+      // KaitiakiView
     },
     data () {
       return {

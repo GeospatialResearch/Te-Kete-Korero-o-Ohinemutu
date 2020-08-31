@@ -39,11 +39,11 @@
                   {{ k.username }}<span v-if="key != nest.kaitiaki.length - 1">,</span>
                 </span>
               </td>
-              <td>
+              <td v-if="nest.kinship_sector.name == 'Iwi'">
                 <a href="#" type="button" class="btn btn-sm btn-primary" title="Edit nest" @click="editNest(nest)">
                   <i><font-awesome-icon icon="pen" /></i>
                 </a>
-                <a href="#" type="button" class="btn btn-sm btn-danger" title="Delete nest" @click="deleteNestOpenModal(nest)">
+                <a v-if="user && user.is_superuser" href="#" type="button" class="btn btn-sm btn-danger" title="Delete nest" @click="deleteNestOpenModal(nest)">
                   <i><font-awesome-icon icon="trash" /></i>
                 </a>
               </td>
@@ -72,7 +72,8 @@
                   <font-awesome-icon icon="info-circle" size="lg" color="grey" title="The users create their own whanau nests" />
                 </span>
                 <select v-if="sectors" id="kinshipSector" v-model="nestToEdit.kinship_sector_id" class="selectpicker form-control form-control-sm mb-3" title="Select one political unit">
-                  <option v-for="sector in sectors.filter(x=>x.name !== 'Whānau')" :key="sector.id" :value="sector.id">
+                  <!-- <option v-for="sector in sectors.filter(x=>x.name !== 'Whānau')" :key="sector.id" :value="sector.id"> -->
+                  <option v-for="sector in sectors.filter(x=>x.name == 'Iwi')" :key="sector.id" :value="sector.id">
                     {{ sector.name }}
                   </option>
                 </select>
@@ -164,7 +165,9 @@ export default {
         if (this.user && this.user.is_superuser) {
           sectors_names = this.sectors.map(x => x.name)
         } else {
-          sectors_names = this.sectors.filter(x=>x.name !== 'Whānau').map(x => x.name)
+          // sectors_names = this.sectors.filter(x=>x.name !== 'Whānau').map(x => x.name)
+          // To have only ngati whakaue where the kaitiaki can be assigned
+          sectors_names = this.sectors.filter(x=>x.name == 'Iwi').map(x => x.name)
         }
         each(sectors_names, (name) => {
           nestsBySector[name] = []
