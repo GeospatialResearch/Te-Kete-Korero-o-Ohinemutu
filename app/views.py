@@ -878,9 +878,14 @@ class SaveAffiliation(APIView):
 
         if not isWhanauOrGroup:
             if len(user.profile.affiliation.all()) > 0:
+                user_requests = WiderGroupAccessRequest.objects.filter(user=user,accepted=True)
                 for aff in user.profile.affiliation.all():
                     if aff.kinship_sector_id != whanauSector.id :
                         user.profile.affiliation.remove(aff.id)
+                        if (user_requests.filter(nest=aff.id).exists()):
+                            request_to_delete = WiderGroupAccessRequest.objects.filter(user=user,accepted=True,nest=aff.id)
+                            request_to_delete.delete()
+
 
         for nest_id in affiliation:
             user.profile.affiliation.add(nest_id)

@@ -80,7 +80,7 @@
               </form>
               <div class="row col-lg-12 mt-5">
                 <button :disabled="editingProfile" type="button" class="btn btn-success" @click="requestAccess()">
-                  Request Access To Wider Nests
+                  Request Access To Ngāti Whakaue Nest
                 </button>
               </div>
             </div>
@@ -137,7 +137,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="mb-0">
-              Request access to wider nests
+              Request access to Ngāti Whakaue nest
             </h4>
           </div>
           <div class="modal-body">
@@ -145,7 +145,7 @@
               <code>{{ bgdetailError }}</code>
             </p>
             <p else>
-              Please insert your phone number and a brief summary about your connections and select your whakapapa using the select boxes below
+              Please insert your phone number and a brief summary about your connections and select your Iwi.
             </p>
 
             <label for="background_info"><strong>Explain your connections</strong></label>
@@ -222,7 +222,8 @@ export default {
       var nestsBySector = {}
 
       if (this.sectors && this.nests) {
-        var sectors_names = this.sectors.filter(x=>x.name !== 'Tātou' && x.name !== 'Whānau').map(x => x.name)
+        // var sectors_names = this.sectors.filter(x=>x.name !== 'Tātou' && x.name !== 'Whānau').map(x => x.name)
+        var sectors_names = this.sectors.filter(x=>x.name !== 'Tātou' && x.name !== 'Whānau' && x.name !== 'Whānau' && x.name !== 'Koromatua Hapū').map(x => x.name)
         each(sectors_names, (name) => {
           nestsBySector[name] = []
         })
@@ -240,7 +241,8 @@ export default {
       var affiliationBySector = {}
 
       if (this.sectors && this.nests) {
-        var sectors_names = this.sectors.filter(x=>x.name !== 'Tātou' && x.name !== 'Whānau').map(x => x.name)
+        // var sectors_names = this.sectors.filter(x=>x.name !== 'Tātou' && x.name !== 'Whānau').map(x => x.name)
+        var sectors_names = this.sectors.filter(x=>x.name !== 'Tātou' && x.name !== 'Whānau').map(x => x.name && x.name !== 'Koromatua Hapū')
         each(sectors_names, (name) => {
           affiliationBySector[name] = []
         })
@@ -348,15 +350,27 @@ export default {
       let affiliation = this.gatherSelectedAffiliation()
 
       //validation
-      if(this.background_info == '' || this.phone_number == '' || (affiliation.length == 0 && !this.noMoreWiderNests()))
+      // if(!this.noMoreWiderNests())
+      // {
+      //   this.bgdetailError = "You already belong to Ngāti Whakaue nest. No need to send request anymore. Click cancel."
+      //   return true;
+      // }
+      // else
+      if(!this.background_info || !this.phone_number || (affiliation.length == 0 && !this.noMoreWiderNests()))
       {
         this.bgdetailError = 'Please insert'
-        if(this.background_info == '')
+        if(!this.background_info)
+        {
           this.bgdetailError = this.bgdetailError + ' a brief summary about your connections'
-        if(this.phone_number == '')
-         this.bgdetailError = this.bgdetailError + ' - your phone number'
+        }
+        if(!this.phone_number)
+        {
+          this.bgdetailError = this.bgdetailError + ' - your phone number'
+        }
         if(affiliation.length == 0 && !this.noMoreWiderNests())
+        {
           this.bgdetailError = this.bgdetailError + ' - at least one nest in dropdown'
+        }
         return true;
       }
       else{
@@ -388,11 +402,11 @@ export default {
     },
     noMoreWiderNests(){
         let result = true
-          each(this.nestsBySector, (sector,sectorkey) => {
-            if(sector.length > 0 && sector.filter(item=>!this.affiliationBySector[sectorkey].includes(item.id) && !this.user.useraccessrequests.map(item=>item.nest_id).includes(item.id)).length > 0){
-              result = false
-            }
-          })
+        each(this.nestsBySector, (sector,sectorkey) => {
+          if(sector.length > 0 && sector.filter(item=>!this.affiliationBySector[sectorkey].includes(item.id) && !this.user.useraccessrequests.map(item=>item.nest_id).includes(item.id)).length > 0){
+            result = false
+          }
+        })
         return result
     },
   }

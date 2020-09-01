@@ -597,6 +597,7 @@ const store = new Vuex.Store({
         .then((response) => {
           store.dispatch('getStories')
           store.commit('SET_STORY_CONTENT', response.body)
+          store.dispatch('getStoryPublications', response.body.id)
         })
         .catch((error) => store.commit('API_FAIL', error))
     },

@@ -1695,9 +1695,10 @@ export default {
       if (!this.isStoryViewMode) {
         EventBus.$emit('storyIsBeingEditedWarning')
       } else {
-        //this.$store.dispatch('getStoryPublications', story_id)
+        this.$store.dispatch('getStoryPublications', story_id) //need this for status in narrative info
         this.$store.dispatch('getStoryContent', story_id)
         .then((story) => {
+          console.log(story_id==story.id);
           this.$store.commit('SET_STORY_VIEW_MODE', true)
           this.$store.commit('SET_PANEL_OPEN', true)
           EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)
