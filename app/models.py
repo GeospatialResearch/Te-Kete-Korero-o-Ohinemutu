@@ -21,9 +21,11 @@ class StoryQuerySet(models.QuerySet):
     def for_user(self, user):
         # Not logged in? Only public data or data created by admin
         if not user.is_authenticated:
+            logging.debug(self.filter(Q(owner__is_superuser=True)))
             return self.filter(Q(owner__is_superuser=True))
         # Super user? All the data!
         if user.is_superuser:
+            logging.debug(self.all())
             return self.all()
         else:
             logging.debug("STORY************")
