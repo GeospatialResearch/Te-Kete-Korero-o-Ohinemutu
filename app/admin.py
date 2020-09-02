@@ -1,13 +1,14 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin, register
 from django.contrib.gis.admin import GeoModelAdmin
-from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest
+from .models import Dataset, Story, StoryGeomAttrib, StoryBodyElement, MediaFile, StoryGeomAttribMedia, WebsiteTranslation, Atua, StoryType, ContentType, Comment, Profile, Sector, Nest, Publication
 # TribalRegisterList
 
 # Register your models here.
 
 admin.site.register(Comment)
 admin.site.register(Profile)
+admin.site.register(Publication)
 # admin.site.register(TribalRegisterList)
 
 @register(Dataset)
