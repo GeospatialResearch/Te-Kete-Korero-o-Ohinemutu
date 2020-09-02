@@ -4,6 +4,16 @@ import uuid
 from model_utils import Choices
 from django.db.models import Q
 from django.contrib.auth.models import User
+import logging
+from django.conf import settings
+
+fmt = getattr(settings, 'LOG_FORMAT', None)
+lvl = getattr(settings, 'LOG_LEVEL', logging.DEBUG)
+
+logging.basicConfig(format=fmt, level=lvl)
+logging.debug("Logging started on %s for %s" % (logging.root.name, logging.getLevelName(lvl)))
+logging.debug("Models.............!")
+
 
 # QuerySets
 class StoryQuerySet(models.QuerySet):
@@ -16,16 +26,16 @@ class StoryQuerySet(models.QuerySet):
         if user.is_superuser:
             return self.all()
         else:
-            print("STORY************")
+            logging.debug("STORY************")
             # stories that user is a kaitiaki
             stories_kaitiaki = [publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)]
-            print("STORY***stories_kaitiaki ---> ",stories_kaitiaki)
+            logging.debug("STORY***stories_kaitiaki ---> %s" %(stories_kaitiaki))
             # stories that user is co-author
             stories_coauthor = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
-            print("STORY***stories_coauthor ---> ",stories_coauthor)
+            logging.debug("STORY***stories_coauthor ---> %s" %(stories_coauthor))
             # stories published in nests that user belongs to
             stories_published_nest_member = [publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')]
-            print("STORY***stories_published_nest_member ---> ",stories_published_nest_member)
+            logging.debug("STORY***stories_published_nest_member ---> %s" %(stories_published_nest_member))
             # the above plus stories that user is owner and stories created by admin
             return self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=stories_coauthor) | self.filter(id__in=stories_kaitiaki) | self.filter(id__in=stories_published_nest_member)
 
@@ -38,16 +48,16 @@ class StoryBodyElementQuerySet(models.QuerySet):
         if user.is_superuser:
             return self.all()
         else:
-            print("STORYBODYELEMENT^^^^^^^^^^^^^^^^")
+            logging.debug("STORYBODYELEMENT^^^^^^^^^^^^^^^^")
             # stories that user is a kaitiaki
             stories_kaitiaki = [publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)]
-            print("STORYBODYELEMENT^^^^^^^^^^^^^^^^stories_kaitiaki ---> ",stories_kaitiaki)
+            logging.debug("STORYBODYELEMENT^^^^^^^^^^^^^^^^stories_kaitiaki ---> %s" %(stories_kaitiaki))
             # stories that user is co-author
             stories_coauthor = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
-            print("STORYBODYELEMENT^^^^^^^^^^^^^^^^stories_coauthor ---> ",stories_coauthor)
+            logging.debug("STORYBODYELEMENT^^^^^^^^^^^^^^^^stories_coauthor ---> %s" %(stories_coauthor))
             # stories published in nests that user belongs to
             stories_published_nest_member = [publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')]
-            print("STORYBODYELEMENT^^^^^^^^^^^^^^^^stories_published_nest_member ---> ",stories_published_nest_member)
+            logging.debug("STORYBODYELEMENT^^^^^^^^^^^^^^^^stories_published_nest_member ---> %s" %(stories_published_nest_member))
             # the above plus stories that user is owner and stories created by admin
             return self.filter(Q(story__owner=user)) | self.filter(Q(story__owner__is_superuser=True)) | self.filter(story__id__in=stories_coauthor) | self.filter(story__id__in=stories_kaitiaki) | self.filter(story__id__in=stories_published_nest_member)
 
