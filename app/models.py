@@ -33,18 +33,19 @@ class StoryQuerySet(models.QuerySet):
             logging.debug("STORY logedin user************")
             # stories that user is a kaitiaki
             stories_kaitiaki = [publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)]
-            logging.debug(stories_kaitiaki)
+            logging.debug([publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)])
             # stories that user is co-author
             stories_coauthor = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
-            logging.debug(stories_coauthor)
+            logging.debug([co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)])
             # stories published in nests that user belongs to
             stories_published_nest_member = [publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')]
-            logging.debug(stories_published_nest_member)
+            logging.debug([publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')])
 
             logging.debug("RETURNING STORY logedin user************")
-            logging.debug(self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=stories_coauthor) | self.filter(id__in=stories_kaitiaki) | self.filter(id__in=stories_published_nest_member))
+            logging.debug(self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=[co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]) | self.filter(id__in=[publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)]) | self.filter(id__in=[publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')]))
             # the above plus stories that user is owner and stories created by admin
-            return self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=stories_coauthor) | self.filter(id__in=stories_kaitiaki) | self.filter(id__in=stories_published_nest_member)
+            # return self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=stories_coauthor) | self.filter(id__in=stories_kaitiaki) | self.filter(id__in=stories_published_nest_member)
+            return self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=[co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]) | self.filter(id__in=[publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)]) | self.filter(id__in=[publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')])
 
 class StoryBodyElementQuerySet(models.QuerySet):
     def for_user(self, user):
