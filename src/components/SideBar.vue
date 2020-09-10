@@ -770,14 +770,16 @@
       },
       kaitiakis(){
         return this.$store.state.kaitiakis
-      }
+      },
+      unVerifiedPublications(){
+      return this.$store.state.publications.filter(pub => pub.nest.kaitiaki.map(item => item.id).includes(this.user.id)).filter(x => x.status == "SUBMITTED" || x.status == "REVIEWED")
+      },
     },
     watch: {
       stories: {
         handler: function () {
           try {
             this.filterNarratives()
-
             this.myNarratives = []
             this.otherNarratives = []
             if (this.authenticated) {
@@ -785,7 +787,10 @@
                 if (story.owner == this.username ||  story.co_authors.indexOf(this.userPK)>=0) {
                   this.myNarratives.push(story)
                 } else {
-                  this.otherNarratives.push(story)
+                  if(!this.unVerifiedPublications.map(x =>x.story.id).includes(story.id))
+                  {
+                    this.otherNarratives.push(story)
+                  }
                 }
               })
             } else {

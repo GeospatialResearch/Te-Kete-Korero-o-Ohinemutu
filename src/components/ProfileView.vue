@@ -78,11 +78,11 @@
                   </button>
                 </div>
               </form>
-              <div class="row col-lg-12 mt-5">
-                <button :disabled="editingProfile" type="button" class="btn btn-success" @click="requestAccess()">
+              <!-- <div class="row col-lg-12 mt-5"> {{ user.profile.affiliation }}
+                <button v-if="alreadyInWiderNest()" :disabled="editingProfile" type="button" class="btn btn-success" @click="requestAccess()">
                   Request Access To Ngāti Whakaue Nest
                 </button>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -145,9 +145,8 @@
               <code>{{ bgdetailError }}</code>
             </p>
             <p else>
-              Please insert your phone number and a brief summary about your connections and select your Iwi.
+              Please insert your phone number and a brief summary about your connections.
             </p>
-
             <label for="background_info"><strong>Explain your connections</strong></label>
             <div class="input-group mb-4">
               <textarea v-model="background_info" class="form-control form-control-sm" type="text" rows="5" placeholder="Explain your connections..." required />
@@ -156,7 +155,7 @@
             <div class="input-group mb-4">
               <input v-model="phone_number" value="" type="number" name="" class="form-control input_pass" placeholder="Phone number" required>
             </div>
-            <affiliation-form v-if="user" :key="user.useraccessrequests.length" :access-requests="user.useraccessrequests" :user-profile="user.profile" prefix="profile" @childToParentAffiliation="getAffiliation($event)" />
+            <affiliation-form v-if="user && user.useraccessrequests" :key="user.useraccessrequests.length" :access-requests="user.useraccessrequests" :user-profile="user.profile" prefix="profile" @childToParentAffiliation="getAffiliation($event)" />
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="cancelRequest()">
@@ -356,7 +355,8 @@ export default {
       //   return true;
       // }
       // else
-      if(!this.background_info || !this.phone_number || (affiliation.length == 0 && !this.noMoreWiderNests()))
+      // if(!this.background_info || !this.phone_number || (affiliation.length == 0 && !this.noMoreWiderNests()))
+      if(!this.background_info || !this.phone_number)
       {
         this.bgdetailError = 'Please insert'
         if(!this.background_info)
@@ -400,13 +400,28 @@ export default {
     getAffiliation (value) {
       this.selected_affiliationBySector = value
     },
-    noMoreWiderNests(){
-        let result = true
-        each(this.nestsBySector, (sector,sectorkey) => {
-          if(sector.length > 0 && sector.filter(item=>!this.affiliationBySector[sectorkey].includes(item.id) && !this.user.useraccessrequests.map(item=>item.nest_id).includes(item.id)).length > 0){
-            result = false
-          }
-        })
+    // noMoreWiderNests(){
+    //     let result = true
+    //     each(this.nestsBySector, (sector,sectorkey) => {
+    //       if(sector.length > 0 && sector.filter(item=>!this.affiliationBySector[sectorkey].includes(item.id) && !this.user.useraccessrequests.map(item=>item.nest_id).includes(item.id)).length > 0){
+    //         result = false
+    //       }
+    //     })
+    //     return result
+    // },
+    alreadyInWiderNest(){
+      let result = true
+      let nestid = this.nests.filter(x=>x.name == 'Ngāti Whakaue').map(y => y.id)[0]
+      console.log("alreadyInWiderNest (((((((((((((()))))))))))))) ",nestid);
+        if (this.user.profile && this.user.profile.affiliation && this.user.profile.affiliation.includes(nestid)) {
+          console.log("1.aff");
+          result = false
+        }
+        if(this.user.useraccessrequests && this.user.useraccessrequests.length > 0){
+          console.log("2.useraccessreq");
+          result = false
+        }
+        console.log("result --> ",result);
         return result
     },
   }

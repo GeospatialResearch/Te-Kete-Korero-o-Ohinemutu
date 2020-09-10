@@ -851,8 +851,9 @@ class SaveProfile(APIView):
 
         profile_serializer = ProfileSerializer(request.user.profile)
 
-        return Response({'user': {'email': request.user.email, 'username': request.user.username, 'phone_number': request.user.phone_number, 'background_info': request.user.background_info, 'first_name': request.user.first_name, 'last_name': request.user.last_name, 'pk' : request.user.pk, 'profile': profile_serializer.data}})
-
+        # return Response({'user': {'email': request.user.email, 'username': request.user.username, 'phone_number': request.user.phone_number, 'background_info': request.user.background_info, 'first_name': request.user.first_name, 'last_name': request.user.last_name, 'pk' : request.user.pk, 'profile': profile_serializer.data}})
+        return Response({'user': {'email': request.user.email, 'username': request.user.username, 'first_name': request.user.first_name, 'last_name': request.user.last_name, 'pk' : request.user.pk, 'profile': profile_serializer.data}})
+        
 
 class SaveBGInfo(APIView):
     def post(self, request):
