@@ -4,15 +4,16 @@ import uuid
 from model_utils import Choices
 from django.db.models import Q
 from django.contrib.auth.models import User
-import logging
-from django.conf import settings
 
-fmt = getattr(settings, 'LOG_FORMAT', None)
-lvl = getattr(settings, 'LOG_LEVEL', logging.DEBUG)
-
-logging.basicConfig(format=fmt, level=lvl)
-logging.debug("Logging started on %s for %s" % (logging.root.name, logging.getLevelName(lvl)))
-logging.debug("Models.............!")
+# import logging
+# from django.conf import settings
+#
+# fmt = getattr(settings, 'LOG_FORMAT', None)
+# lvl = getattr(settings, 'LOG_LEVEL', logging.DEBUG)
+#
+# logging.basicConfig(format=fmt, level=lvl)
+# logging.debug("Logging started on %s for %s" % (logging.root.name, logging.getLevelName(lvl)))
+# logging.debug("Models.............!")
 
 
 # QuerySets
@@ -26,25 +27,17 @@ class StoryQuerySet(models.QuerySet):
         if user.is_superuser:
             return self.all()
         else:
-            # nest_kaitiaki = Nest.objects.all().values_list('kaitiaki', flat=True)
-            # kaitiakis = list(filter(None, nest_kaitiaki))
-            # if user.profile.id in kaitiakis:
-            #     nest = Nest.objects.get(name = 'Ngāti Whakaue')
-            #     stories_kaitiaki =Publication.objects.filter(nest = nest)
-            # else:
-            #     stories_kaitiaki = []
-            # logging.debug(stories_kaitiaki)
             stories_kaitiaki = [publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id, status='SUBMITTED')]
-            logging.debug([publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)])
+            # logging.debug([publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)])
             # stories that user is co-author
             stories_coauthor = [co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]
-            logging.debug([co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)])
+            # logging.debug([co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)])
             # stories published in nests that user belongs to
             stories_published_nest_member = [publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')]
-            logging.debug([publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')])
+            # logging.debug([publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')])
 
-            logging.debug("RETURNING STORY logedin user************")
-            logging.debug(self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=[co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]) | self.filter(id__in=[publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)]) | self.filter(id__in=[publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')]))
+            # logging.debug("RETURNING STORY logedin user************")
+            # logging.debug(self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=[co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]) | self.filter(id__in=[publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)]) | self.filter(id__in=[publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')]))
             # the above plus stories that user is owner and stories created by admin
             # return self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=stories_coauthor) | self.filter(id__in=stories_kaitiaki) | self.filter(id__in=stories_published_nest_member)
             return self.filter(Q(owner=user)) | self.filter(Q(owner__is_superuser=True)) | self.filter(id__in=[co_author.story.id for co_author in CoAuthor.objects.filter(co_author=user)]) | self.filter(id__in=[publication.story.id for publication in Publication.objects.filter(nest__kaitiaki__id=user.profile.id)]) | self.filter(id__in=[publication.story.id for publication in Publication.objects.filter(nest__members__id=user.profile.id, status='PUBLISHED')])
