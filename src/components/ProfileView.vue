@@ -14,7 +14,7 @@
               <img v-else class="img-responsive img-rounded mb-2 profile-avatar" src="static/img/user.jpg" alt="User picture">
             </div>
             <div class="center-content">
-              <button type="button" class="btn btn-primary btn-sm" @click="changePicture()">
+              <button type="button" :disabled="editingProfile" class="btn btn-primary btn-sm" @click="changePicture()">
                 Change picture
               </button>
             </div>

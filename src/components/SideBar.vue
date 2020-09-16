@@ -285,8 +285,8 @@
             <a v-if="authenticated && user && (user.is_superuser || user.is_staff)" class="dropdown-item" href="#" @click="openNestsSettings()">Nests settings Page</a>
             <a v-if="authenticated && user && (user.is_superuser || user.is_staff)" class="dropdown-item" href="#" @click="openUsersSettings()">Users settings Page</a>
             <!-- <a v-if="authenticated && user && (user.is_superuser || user.is_staff)" class="dropdown-item" href="#" @click="openUsersSettings()">Kaitiaki Page</a> -->
-            <a class="dropdown-item" href="#">Help</a>
-            <a class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'themes')">Look & Feel</a>
+            <!-- <a class="dropdown-item" href="#">Help</a>
+            <a class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'themes')">Look & Feel</a> -->
           </div>
         </div>
         <!-- <div>
