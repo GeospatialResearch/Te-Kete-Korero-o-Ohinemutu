@@ -1,7 +1,7 @@
 <template>
   <div class="content-info">
     <div class="row p-5">
-      <div class="col-lg-12 mt-3 mb-3">
+      <!-- <div class="col-lg-12 mt-3 mb-3">
         <h4>Pending Access Requests</h4>
         <div v-if="user && user.accessrequests && user.accessrequests.filter(req => req.accepted==null).length > 0">
           <div>
@@ -51,7 +51,7 @@
           You don't have pending access requests
         </p>
       </div>
-      <hr>
+      <hr> -->
 
       <div class="col-lg-12 settings-title">
         <h4>Users settings</h4>
