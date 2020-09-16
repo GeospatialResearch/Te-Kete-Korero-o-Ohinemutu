@@ -853,7 +853,7 @@ class SaveProfile(APIView):
 
         # return Response({'user': {'email': request.user.email, 'username': request.user.username, 'phone_number': request.user.phone_number, 'background_info': request.user.background_info, 'first_name': request.user.first_name, 'last_name': request.user.last_name, 'pk' : request.user.pk, 'profile': profile_serializer.data}})
         return Response({'user': {'email': request.user.email, 'username': request.user.username, 'first_name': request.user.first_name, 'last_name': request.user.last_name, 'pk' : request.user.pk, 'profile': profile_serializer.data}})
-        
+
 
 class SaveBGInfo(APIView):
     def post(self, request):
@@ -1093,7 +1093,7 @@ class ChangeStatusStoryPublication(APIView):
                 'is_secure': request.is_secure(),
                 'mailing_list': [story.owner.email],
                 'status': action,
-                'subject': '[He Pito Mata tool] Story status'
+                'subject': '[Te Kete Kōrero o Ōhinemutu tool] Story status'
             }
 
             send_email(emaildata, 'pub_email')
