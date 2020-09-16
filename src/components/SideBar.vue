@@ -4,7 +4,7 @@
       <div class="sidebar-content">
         <!-- sidebar-brand  -->
         <div class="sidebar-item sidebar-brand text-center">
-          <a href="#" @click="$store.commit('TOGGLE_CONTENT', 'welcome')">{{ translationObj.culturalNarratives[lang] }}</a>
+          <a href="#" @click="$store.commit('TOGGLE_CONTENT', 'welcome')">{{ translationObj.culturalnarratives[lang] }}</a>
         </div>
 
         <!-- sidebar-header  -->
@@ -14,7 +14,7 @@
             <img v-else class="img-responsive img-rounded" src="static/img/user.jpg" alt="User picture">
           </div>
           <div v-if="authenticated" class="user-info">
-            <span class="user-name">Welcome, <strong>{{ username }}</strong>
+            <span class="user-name">{{ translationObj.welcome[lang] }}, <strong>{{ username }}</strong>
             </span>
             <span v-if="user.is_superuser" class="badge badge-pill badge-secondary mt-3 role-badge">Administrator</span>
             <span v-if="user.is_staff && !user.is_superuser" class="badge badge-pill badge-secondary mt-3 role-badge">Tool Manager</span>
@@ -37,19 +37,19 @@
               <a href="#">
                 <!-- <i class="fa fa-map" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="map" /></i>
-                <span class="menu-text">Go to {{ translationObj.map[lang] }}</span>
+                <span class="menu-text">{{ translationObj.gotomap[lang] }}</span>
               </a>
             </li>
 
             <!-- sidebar import dataset  -->
             <div v-if="contentToShow=='map'" class="sidebar-item sidebar-search pointer">
               <li class="header-menu">
-                <span>Layers</span>
+                <span>{{ translationObj.layers[lang] }}</span>
               </li>
               <div v-if="authenticated">
                 <div class="input-group input-group-sm">
                   <div class="form-control search-menu text-center label-info" @click="uploadDatasetClicked">
-                    {{ translationObj.uploadDataset[lang] }}
+                    {{ translationObj.uploadlayer[lang] }}
                   </div>
                   <div class="input-group-append">
                     <span class="input-group-text">
@@ -63,7 +63,7 @@
               <a href="#" title="Data uploaded by you" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
-                <span class="menu-text">{{ translationObj.myLayers[lang] }}</span>
+                <span class="menu-text">{{ translationObj.mylayers[lang] }}</span>
               </a>
               <div class="sidebar-submenu">
                 <div v-if="Object.keys(myLayers).length === 0" class="text-center">
@@ -105,7 +105,7 @@
               <a href="#" title="Data from External Data Services" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
-                <span class="menu-text">{{ translationObj.extLayers[lang] }}</span>
+                <span class="menu-text">{{ translationObj.externallayers[lang] }}</span>
               </a>
               <div class="sidebar-submenu">
                 <ul>
@@ -131,7 +131,7 @@
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
                 <span v-if="user && user.is_superuser" class="menu-text">Other layers</span>
-                <span v-else class="menu-text">Internal layers</span>
+                <span v-else class="menu-text">{{ translationObj.internallayers[lang] }}</span>
               </a>
               <div class="sidebar-submenu">
                 <ul>
@@ -172,12 +172,12 @@
             <!-- sidebar open panel  -->
             <div v-if="contentToShow=='map'" class="sidebar-item sidebar-search pointer">
               <li class="header-menu">
-                <span>Narratives</span>
+                <span>{{ translationObj.narratives[lang] }}</span>
               </li>
               <div v-if="authenticated">
                 <div class="input-group input-group-sm">
                   <div class="form-control search-menu text-center label-info" @click="openPanel()">
-                    {{ translationObj.addNewNarrative[lang] }}
+                    {{ translationObj.addnewnarrative[lang] }}
                   </div>
                   <div class="input-group-append">
                     <span class="input-group-text">
@@ -191,7 +191,7 @@
               <a href="#" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-book-open" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="book-open" /></i>
-                <span class="menu-text">{{ translationObj.myNarratives[lang] }}</span>
+                <span class="menu-text">{{ translationObj.mynarratives[lang] }}</span>
                 <!-- <span class="badge badge-pill badge-warning">New</span> -->
               </a>
               <div class="sidebar-submenu">
@@ -221,8 +221,8 @@
               <a href="#" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-book-open" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="book-open" /></i>
-                <span v-if="authenticated" class="menu-text">{{ translationObj.otherNarratives[lang] }}</span>
-                <span v-else class="menu-text">Public Narratives</span>
+                <span v-if="authenticated" class="menu-text">{{ translationObj.othernarratives[lang] }}</span>
+                <span v-else class="menu-text">{{ translationObj.publicnarratives[lang] }}</span>
               </a>
               <div class="sidebar-submenu">
                 <div v-if="!otherNarratives.length" class="text-center">
@@ -249,7 +249,7 @@
               <div>
                 <div class="input-group input-group-sm">
                   <div class="form-control search-menu text-center label-info pointer" @click="searchModal()">
-                    Search Narratives
+                    {{ translationObj.searchnarratives[lang] }}
                   </div>
                   <div class="input-group-append">
                     <span class="input-group-text">
@@ -995,22 +995,22 @@
         var layerOptions
         if (layer.layername === this.allStoriesGeomsLayer.layername) {
           layerOptions = `<div class="layer-options">
-                                <a class="dropdown-item` + disabled +`" id="` + this.allStoriesGeomsLayer.name + `_zoomto" href="#">Zoom to layer</a>
+                                <a class="dropdown-item` + disabled +`" id="` + this.allStoriesGeomsLayer.name + `_zoomto" href="#">`+this.translationObj.zoomtolayer[this.lang]+`</a>
                               </div>`
         } else {
           if (layer.uploaded_by == this.userPK || (this.user && this.user.is_superuser)) {
             layerOptions = `<div class="layer-options">
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.gs_layername + `_zoomto" href="#">Zoom to layer</a>
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_rename" href="#">Rename layer</a>
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_copyright" href="#">Edit copyright</a>
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_restyle" href="#">Edit style</a>
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_share" href="#">Share layer</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.gs_layername + `_zoomto" href="#">`+this.translationObj.zoomtolayer[this.lang]+`</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_rename" href="#">`+this.translationObj.renamelayer[this.lang]+`</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_copyright" href="#">`+this.translationObj.editcopyright[this.lang]+`</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_restyle" href="#">`+this.translationObj.editstyle[this.lang]+`</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_share" href="#">`+this.translationObj.sharelayer[this.lang]+`</a>
                                   <div class="dropdown-divider"></div>
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_deleteLayer" href="#">Delete layer</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.id + `_deleteLayer" href="#">`+this.translationObj.deletelayer[this.lang]+`</a>
                                 </div>`
           } else {
             layerOptions = `<div class="layer-options">
-                                  <a class="dropdown-item` + disabled +`" id="` + layer.gs_layername + `_zoomto" href="#">Zoom to layer</a>
+                                  <a class="dropdown-item` + disabled +`" id="` + layer.gs_layername + `_zoomto" href="#">`+this.translationObj.zoomtolayer[this.lang]+`</a>
                                 </div>`
           }
         }
@@ -1063,15 +1063,18 @@
         // }
 
         if (story.owner === this.username || (this.user && this.user.is_superuser)) {
+          // storyOptions = `<div class="layer-options">
+          //                   <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
+          //                   <div class="dropdown-divider"></div>
+          //                   <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">Delete narrative</a>
+          //                 </div>`
           storyOptions = `<div class="layer-options">
-                            <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">Delete narrative</a>
+                            <a class="dropdown-item" id="` + story.id + `_view" href="#">`+this.translationObj.viewnarrative[this.lang]+`</a>
                           </div>`
 
         } else {
           storyOptions = `<div class="layer-options">
-                            <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
+                            <a class="dropdown-item" id="` + story.id + `_view" href="#">`+this.translationObj.viewnarrative[this.lang]+`</a>
                           </div>`
         }
 

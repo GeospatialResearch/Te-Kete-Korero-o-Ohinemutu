@@ -28,7 +28,7 @@
           <div class="dropdown" title="User Manual">
             <span id="navbarDropdownUserManual" class="dropdown-toggle navbar-elem ml-4 ml-md-5 pointer" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <font-awesome-icon class="navbar-icon" icon="book" />
-              <span class="navbar-text"> User Manual</span>
+              <span class="navbar-text"> {{ translationObj.usermanual[lang] }}</span>
             </span>
             <div class="dropdown-menu ml-md-5" aria-labelledby="navbarDropdownUserManual">
               <h5 class="dropdown-header pl-3" style="font-size:1.1rem;">
@@ -99,7 +99,7 @@
           <div class="dropdown" title="About">
             <span id="navbarDropdownAbout" class="dropdown-toggle navbar-elem ml-3 ml-md-5 pointer" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <font-awesome-icon class="navbar-icon" icon="question" />
-              <span class="navbar-text"> About</span>
+              <span class="navbar-text">{{ translationObj.about[lang] }}</span>
             </span>
             <div class="dropdown-menu ml-md-5" aria-labelledby="navbarDropdownAbout">
               <div class="dropdown-item text-muted">
@@ -113,33 +113,33 @@
           <div class="dropdown" title="More Info">
             <span id="navbarDropdownMoreInfo" class="dropdown-toggle navbar-elem ml-3 ml-md-5 pointer" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <font-awesome-icon class="navbar-icon" icon="lightbulb" />
-              <span class="navbar-text"> More info</span>
+              <span class="navbar-text">{{ translationObj.moreinfo[lang] }}</span>
             </span>
             <div class="dropdown-menu ml-md-5" aria-labelledby="navbarDropdownMoreInfo">
               <div class="dropdown-item pointer" @click="showOtherDataSourcesModal()">
-                Other data sources
+                {{ translationObj.otherdatasources[lang] }}
               </div>
-              <div class="dropdown-item text-muted">
+              <!-- <div class="dropdown-item text-muted">
                 Tips and Tricks
               </div>
               <div class="dropdown-item text-muted">
                 Website walkthrough
-              </div>
+              </div> -->
             </div>
           </div>
           <div class="col p-0">
             <div class="float-right">
               <button class="btn btn-sm btn-dark mr-2" type="button" title="Go to Map" @click="$store.commit('TOGGLE_CONTENT', 'map')">
                 <font-awesome-icon icon="map" />
-                <span class="navbar-text p-0"> Map</span>
+                <span class="navbar-text p-0">{{ translationObj.map[lang] }}</span>
               </button>
               <button v-if="!authenticated" class="btn btn-sm btn-success" type="button" title="Login" @click="showLoginModal()">
                 <font-awesome-icon icon="sign-in-alt" />
-                <span class="navbar-text p-0"> Login</span>
+                <span class="navbar-text p-0">{{ translationObj.login[lang] }}</span>
               </button>
               <button v-else class="btn btn-sm btn-outline-danger" type="button" title="Logout" @click="showLogoutModal()">
                 <font-awesome-icon icon="sign-out-alt" />
-                <span class="navbar-text p-0"> Logout</span>
+                <span class="navbar-text p-0"> {{ translationObj.logout[lang] }}</span>
               </button>
             </div>
           </div>
@@ -287,6 +287,7 @@
 <script>
   import 'utils/sidebar'
   import { EventBus } from 'store/event-bus'
+  import { langObj } from 'utils/initialTranslObj'
   import MainMap from 'components/Map/MainMap'
   import SettingsView from 'components/SettingsView'
   import ProfileView from 'components/ProfileView'
@@ -330,6 +331,16 @@
     computed: {
       contentToShow () {
         return this.$store.state.contentToShow
+      },
+      lang () {
+        return this.$store.state.lang
+      },
+      translationObj () {
+        if (this.$store.state.websiteTranslObj) {
+          return this.$store.state.websiteTranslObj
+        } else {
+          return langObj
+        }
       },
       authenticated () {
         return this.$store.state.authenticated

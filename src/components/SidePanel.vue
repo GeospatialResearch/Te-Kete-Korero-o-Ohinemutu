@@ -88,7 +88,7 @@
             </i>
           </div>
           <div v-if="story.hapu && story.hapu.length > 0" style="font-size:13px;">
-            Hapu:
+            Koromatua:
             <i v-for="hapu in hapus" :key="hapu.id">
               <strong v-if="story.hapu.includes(hapu.id)" :key="hapu.id">
                 {{ hapu.name }}&nbsp;
@@ -244,7 +244,7 @@
           </select>
 
           <h5 v-if="story.hapu" class="mb-0">
-            Hapu
+            Koromatua
           </h5>
           <select v-model="story.hapu" class="selectpicker form-control form-control-sm mb-3" multiple title="Hold the Ctrl key to select more than one Hapu" @change="reinitialiseBootstrapSelect()">
             <option v-for="item in hapus" :key="item.id" :value="item.id">
@@ -282,8 +282,8 @@
         <div class="dropdown-menu">
           <a class="dropdown-item" href="#" @click="addEmptyVueEditor()">New Text field</a>
           <a class="dropdown-item" href="#" @click="uploadFileClicked(isGeomMedia=false)">Upload Media file</a>
-          <a class="dropdown-item" href="#" @click="drawGeometry()">Draw map geometry</a>
-          <a class="dropdown-item" href="#" @click="reuseGeometry()">Reuse map geometry</a>
+          <a class="dropdown-item" href="#" @click="drawGeometry()">Draw location</a>
+          <a class="dropdown-item" href="#" @click="reuseGeometry()">Reuse location</a>
         </div>
       </div>
 
