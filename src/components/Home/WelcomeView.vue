@@ -10,7 +10,6 @@
         <!-- Slide One - Set the background image for this slide in the line below -->
         <div class="carousel-item carousel-item-welcome active" style="background-image: url('static/img/pictures/screenshot_marae.png')">
           <h1 class="welcome-overlay carousel-caption carousel-caption-welcome">
-            <!-- d-none d-md-block -->
             <p class="welcome">
               Nau mai, Haere mai
             </p>
@@ -29,15 +28,16 @@
         </div>
         <!-- Slide Two - Set the background image for this slide in the line below -->
         <div class="carousel-item carousel-item-welcome" style="background-image: url('static/img/pictures/screenshot_ngawha.png')">
-          <div class="carousel-caption">
+          <!-- <div class="carousel-caption">
             <h2 class="display-4">
               Second Slide
             </h2>
             <p class="lead">
               This is a description for the second slide.
             </p>
-          </div>
+          </div> -->
         </div>
+      
         <!-- Slide Three - Set the background image for this slide in the line below -->
         <!-- <div class="carousel-item carousel-item-welcome" style="background-image: url('https://source.unsplash.com/szFUQoyvrxM/1920x1080')">
           <div class="carousel-caption">
@@ -73,7 +73,7 @@
       <h1>Welcome to Te Kete Kōrero o Ōhinemutu</h1>
       <div class="pb-4">
         <h4 class="mt-4" style="color:#777777;">
-          A space where Ōhinemutu whānau can hold narratives and traditional knowledge about their whenua
+          A place where Ōhinemutu whānau can hold narratives and traditional knowledge about their whenua
         </h4>
         <br>
         <h6 v-if="!authenticated">

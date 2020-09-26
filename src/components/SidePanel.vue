@@ -159,16 +159,16 @@
       <form :id="story.id + '_storyform'">
         <div class="row col-md-12">
           <h5 class="mb-0">
-            Title
+            {{ translationObj.title[lang] }}
           </h5>
           <input v-show="storyLang === 'eng'" v-model="story.titleeng" required type="text" class="form-control form-control-sm mb-3" placeholder="Title">
-          <input v-show="storyLang === 'mao'" v-model="story.titlemao" :required="(story.titleeng == null || story.titleeng == '') ? true : false" type="text" class="form-control form-control-sm mb-3" placeholder="Taitara">
+          <input v-show="storyLang === 'mao'" v-model="story.titlemao" :required="(story.titleeng == null || story.titleeng == '') ? true : false" type="text" class="form-control form-control-sm mb-3" placeholder="Title">
           <div class="invalid-feedback">
             Title is mandatory
           </div>
 
           <h5 class="mb-0">
-            Date
+            {{ translationObj.date[lang] }}
           </h5>
           <span class="text-muted pl-1" @click="showUserManualModal('DateTheNarrative')"><font-awesome-icon icon="info-circle" class="pointer" /></span>
           <select v-model="story.approx_time.type" required class="selectpicker form-control form-control-sm mb-3" @change="onChange">
@@ -221,7 +221,7 @@
             </div>
           </div>
           <h5 class="mt-0.5 mb-0">
-            Type of Narrative
+            {{ translationObj.typeofnarrative[lang] }}
           </h5>
           <span class="text-muted pl-1" @click="showUserManualModal('NarrativeType')"><font-awesome-icon icon="info-circle" class="pointer" /></span>
           <select v-model="story.story_type_id" required class="selectpicker form-control form-control-sm mb-3">
@@ -253,10 +253,10 @@
           </select>
 
           <h5 class="mb-0">
-            Summary
+            {{ translationObj.summary[lang] }}
           </h5>
           <textarea v-show="storyLang === 'eng'" v-model="story.summaryeng" required class="form-control form-control-sm" rows="3" placeholder="Summary" />
-          <textarea v-show="storyLang === 'mao'" v-model="story.summarymao" :required="(story.summaryeng == null || story.summaryeng == '') ? true : false" class="form-control form-control-sm" rows="3" placeholder="Whakarāpopototanga" />
+          <textarea v-show="storyLang === 'mao'" v-model="story.summarymao" :required="(story.summaryeng == null || story.summaryeng == '') ? true : false" class="form-control form-control-sm" rows="3" placeholder="Summary" />
           <div class="invalid-feedback">
             Summary is mandatory
           </div>
@@ -277,13 +277,13 @@
       </p>
       <div class="btn-group dropright mb-4">
         <button type="button" :disabled="isDrawMode || isGeomMediaMode || isReuseMode" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Add element to the story
+          {{ translationObj.addelementtostory[lang] }}
         </button>
         <div class="dropdown-menu">
-          <a class="dropdown-item" href="#" @click="addEmptyVueEditor()">New Text field</a>
-          <a class="dropdown-item" href="#" @click="uploadFileClicked(isGeomMedia=false)">Upload Media file</a>
-          <a class="dropdown-item" href="#" @click="drawGeometry()">Draw location</a>
-          <a class="dropdown-item" href="#" @click="reuseGeometry()">Reuse location</a>
+          <a class="dropdown-item" href="#" @click="addEmptyVueEditor()">{{ translationObj.newtextfield[lang] }}</a>
+          <a class="dropdown-item" href="#" @click="uploadFileClicked(isGeomMedia=false)">{{ translationObj.uploadmediafile[lang] }}</a>
+          <a class="dropdown-item" href="#" @click="drawGeometry()">{{ translationObj.drawshape[lang] }}</a>
+          <a class="dropdown-item" href="#" @click="reuseGeometry()">{{ translationObj.reuseshape[lang] }}</a>
         </div>
       </div>
 
@@ -293,7 +293,7 @@
             <div class="col-md-11 mt-3">
               <div class="text-center handle">
                 <span class="btn btn-sm btn-secondary drag-element handle">
-                  Drag me&nbsp;
+                  {{ translationObj.dragme[lang] }}&nbsp;
                   <i><font-awesome-icon icon="arrows-alt" /></i>
                 </span>
               </div>
@@ -326,7 +326,7 @@
                   <vue-editor v-model="element.texteng" required :editor-toolbar="customToolbar" class="custom-ql-editor" placeholder="Text" />
                 </div>
                 <div v-show="storyLang === 'mao'" class="container">
-                  <vue-editor v-model="element.textmao" :editor-toolbar="customToolbar" class="custom-ql-editor" placeholder="Kuputuhi" />
+                  <vue-editor v-model="element.textmao" :editor-toolbar="customToolbar" class="custom-ql-editor" placeholder="Text" />
                 </div>
               </div>
               <div class="align-center">
@@ -362,7 +362,7 @@
     <div class="row mr-2">
       <div class="col-md-12">
         <p class="scroll-story-top float-right" @click="scrollStoryTop()">
-          Scroll top
+          {{ translationObj.scrolltop[lang] }}
         </p>
       </div>
     </div>
@@ -387,46 +387,46 @@
       <div class="row m-0">
         <div class="col-xs-10">
           <button v-if="story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
-            Update story
+            {{ translationObj.updatestory[lang] }}
           </button>
           <button v-if="!story.hasOwnProperty('id') && !isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="saveStory()">
-            Save story
+            {{ translationObj.savestory[lang] }}
           </button>
           <button v-if="!isStoryViewMode" type="button" class="btn btn-sm btn-danger ml-2" @click="showCancelStorySavingModal()">
-            Cancel
+            {{ translationObj.cancel[lang] }}
           </button>
           <button v-if="story.hasOwnProperty('id') && isStoryViewMode && (story.owner === username || (user && user.is_superuser) || story.co_authors.indexOf(userPK) >= 0)" type="button" class="btn btn-sm btn-primary" @click="editStory()">
             <font-awesome-icon icon="pen" />
-            Edit story
+            {{ translationObj.editstory[lang] }}
           </button>
           <div v-if="isStoryViewMode && (story.owner === username || (user && user.is_superuser))" class="btn-group btn-group-sm dropup">
             <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <font-awesome-icon icon="share-alt" class="mr-2" />
             </button>
             <div v-if="story" class="dropdown-menu">
-              <a class="dropdown-item" href="#" @click="inviteCoAuthorOpenModal()">Co-create narrative</a>
-              <a class="dropdown-item" href="#" @click="setStoryPublicationOpenModal('submit')">Submit narrative</a>
-              <a v-if="publishedGroups && publishedGroups.length >0" class="dropdown-item" href="#" @click="setStoryUnPublicationOpenModal('unpublish')">Unpublish narrative</a>
+              <a class="dropdown-item" href="#" @click="inviteCoAuthorOpenModal()">{{ translationObj.cocreatenarrative[lang] }}</a>
+              <a class="dropdown-item" href="#" @click="setStoryPublicationOpenModal('submit')">{{ translationObj.submitnarrative[lang] }}</a>
+              <a v-if="publishedGroups && publishedGroups.length >0" class="dropdown-item" href="#" @click="setStoryUnPublicationOpenModal('unpublish')">{{ translationObj.unpublishnarrative[lang] }}</a>
               <!-- <a class="dropdown-item" href="#" @click="setStoryPublicationOpenModal('publish')">Publish narrative</a> -->
             </div>
           </div>
           <button v-if="story.hasOwnProperty('id') && isStoryViewMode" type="button" class="btn btn-sm btn-primary" @click="printStory(story.title)">
             <font-awesome-icon icon="print" />
-            Print
+            {{ translationObj.print[lang] }}
           </button>
           <button v-if="isStoryViewMode" type="button" class="btn btn-sm btn-success" @click="seeComments()">
             <font-awesome-icon icon="comments" />
-            Comments
+            {{ translationObj.comments[lang] }}
           </button>
           <button v-if="ispublication && ispublication.id && ispublication.story.id == story.id" type="button" class="btn btn-sm btn-info" @click="acceptPub(ispublication)">
-            Accept
+            {{ translationObj.accept[lang] }}
           </button>
           <button v-if="ispublication && ispublication.id && ispublication.story.id == story.id" type="button" class="btn btn-sm btn-info" @click="reviewPub(ispublication)">
-            Review
+            {{ translationObj.review[lang] }}
           </button>
           <button v-if="isStoryViewMode" type="button" class="btn btn-sm btn-secondary" @click="closeStory()">
             <font-awesome-icon icon="times" />
-            Close
+            {{ translationObj.close[lang] }}
           </button>
         </div>
       </div>
@@ -438,7 +438,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">
-              Upload file (video/audio/image)
+              {{ translationObj.uploadmediafile[lang] }}
             </h5>
             <button v-show="!uploadingMedia" type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -645,7 +645,7 @@
           </div>
           <div class="modal-footer">
             <div v-if="isDrawMode" class="btn btn-secondary btn-ok" data-dismiss="modal">
-              Got it!
+              {{ translationObj.gotit[lang] }}
             </div>
             <div v-else>
               <button type="button" class="btn btn-danger" data-dismiss="modal">
@@ -924,7 +924,7 @@
                         <th scope="col">
                           Date
                         </th>
-                        <th v-if="story.owner == username || kaitiakis.includes(user.id) || (story.co_authors && story.co_authors.includes(user.id))" scope="col">
+                        <th v-if="user && (story.owner == username || kaitiakis.includes(user.id) || (story.co_authors && story.co_authors.includes(user.id)))" scope="col">
                           Review Comment
                         </th>
                       </tr>
@@ -940,7 +940,7 @@
                           <span v-else class="badge badge-light">{{ publication.status }}</span>
                         </td>
                         <td>
-                          <span v-if="user.profile.affiliation.includes(publication.nest.id)">{{ publication.nest.kinship_sector.name }} {{ publication.nest.name }} <strong>(You are member)</strong></span>
+                          <span v-if="user && user.profile.affiliation.includes(publication.nest.id)">{{ publication.nest.kinship_sector.name }} {{ publication.nest.name }} <strong>(You are member)</strong></span>
                           <span v-else>{{ publication.nest.kinship_sector.name }} --- <strong>(You are not member)</strong></span>
                         </td>
                         <td>{{ publication.status_modified_on | moment("MMMM Do, YYYY") }}</td>
@@ -992,6 +992,7 @@ import { disableEventListenerSingleClick, enableEventListenerSingleClick } from 
 import CommentsView from 'components/Comments'
 import VueBootstrapTypeahead from 'vue-bootstrap-typeahead'
 import { success as notifySuccess } from 'utils/notify'
+import { langObj } from 'utils/initialTranslObj'
 
 export default {
   components: {
@@ -1056,6 +1057,16 @@ export default {
     },
     isStoryViewMode () {
       return this.$store.state.storyViewMode
+    },
+    lang () {
+      return this.$store.state.lang
+    },
+    translationObj () {
+      if (this.$store.state.websiteTranslObj) {
+        return this.$store.state.websiteTranslObj
+      } else {
+        return langObj
+      }
     },
     isDrawMode () {
       if (this.$store.state.drawMode) {
@@ -1698,7 +1709,6 @@ export default {
         this.$store.dispatch('getStoryPublications', story_id) //need this for status in narrative info
         this.$store.dispatch('getStoryContent', story_id)
         .then((story) => {
-          console.log(story_id==story.id);
           this.$store.commit('SET_STORY_VIEW_MODE', true)
           this.$store.commit('SET_PANEL_OPEN', true)
           EventBus.$emit('addStoryGeomsToMap', story.storyBodyElements)

@@ -103,7 +103,7 @@
             </span>
             <div class="dropdown-menu ml-md-5" aria-labelledby="navbarDropdownAbout">
               <div class="dropdown-item text-muted">
-                Te Kete o Kōrero ki te Ōhinemutu
+                Te Kete Kōrero o Ōhinemutu
               </div>
               <div class="dropdown-item text-muted" @click="showAcknowledgementModal()">
                 Acknowledgements
@@ -177,7 +177,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="mb-0">
-              Attention
+              {{ translationObj.attention[lang] }}
             </h4>
           </div>
           <div class="modal-body">
@@ -187,10 +187,10 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
-              Cancel
+              {{ translationObj.cancel[lang] }}
             </button>
             <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="$store.dispatch('logOut')">
-              Logout
+              {{ translationObj.logout[lang] }}
             </button>
           </div>
         </div>
@@ -269,7 +269,7 @@
           <div class="modal-body">
             <div class="mb-4" style="font-size:1rem;">
               <p>
-                Kete o Kōrero te Ōhinemutu been developed in collaboration with Ōhinemutu Development Working Group Incorporated Society, Te Tātou o Te Arawa, the University of Canterbury, and the Geospatial Research Institute. The research was kindly funded by the Ministry of Business, Innovation and Employment through the Endeavour Fund and Vision Mātauranga.
+                Kete o Kōrero te Ōhinemutu been developed in collaboration with Ōhinemutu Development Working Group Incorporated Society, Te Tatau o Te Arawa, the University of Canterbury, and the Geospatial Research Institute. The research was kindly funded by the Ministry of Business, Innovation and Employment through the Endeavour Fund and Vision Mātauranga.
               </p>
             </div>
           </div>

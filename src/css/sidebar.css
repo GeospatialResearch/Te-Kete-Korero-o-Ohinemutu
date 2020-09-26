@@ -472,6 +472,18 @@ body {
 .sidebar-bg.bg4 .sidebar-wrapper {
   background-image: url(../../static/img/bg4.jpg); }
 
+.sidebar-bg.bg5 .sidebar-wrapper {
+  background-image: url(../../static/img/bg5.png); }
+
+.sidebar-bg.bg6 .sidebar-wrapper {
+  background-image: url(../../static/img/bg6.jpg); }
+
+.sidebar-bg.bg7 .sidebar-wrapper {
+  background-image: url(../../static/img/bg7.png); }
+
+.sidebar-bg.bg8 .sidebar-wrapper {
+  background-image: url(../../static/img/bg8.png); }
+
 [data-bg="bg1"] {
   background-image: url(../../static/img/bg1.jpg); }
 
@@ -483,6 +495,18 @@ body {
 
 [data-bg="bg4"] {
   background-image: url(../../static/img/bg4.jpg); }
+
+[data-bg="bg5"] {
+  background-image: url(../../static/img/bg5.png); }
+
+[data-bg="bg6"] {
+  background-image: url(../../static/img/bg6.jpg); }
+
+[data-bg="bg7"] {
+  background-image: url(../../static/img/bg7.png); }
+
+[data-bg="bg8"] {
+  background-image: url(../../static/img/bg8.png); }
 
 /*---- border-radius ------*/
 .boder-radius-on .sidebar-header .user-pic {

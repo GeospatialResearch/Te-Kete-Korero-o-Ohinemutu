@@ -186,7 +186,8 @@ b {
 }
 
 .navbar {
-  background-color: #303131;
+  /* background-color: #303131; */
+  background-color: #642623;
   padding: 1rem 1.2rem;
   height: 55px;
   align-content: center;

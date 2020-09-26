@@ -37,9 +37,9 @@ var extLayersObj = {
     geomtype: 2
   },
   linz_protected_areas_wfs: {
-    layername: 'Protected Areas',
+    layername: 'DoC Estate',
     attribution_name: 'Land Information New Zealand',
-    attribution: `<p><strong>Layer name:</strong> Protected Areas</p>
+    attribution: `<p><strong>Layer name:</strong> DoC Estate</p>
                   <i>Sourced from the <a href="https://data.linz.govt.nz/" target="_blank">LINZ Data Service</a> and licensed for reuse under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a> licence.</i>`,
     layer_id: 'layer-53564',
     visible: false,

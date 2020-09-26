@@ -45,16 +45,16 @@ var langObj = {
   'addelementtostory': {'eng':'Add element to story','mao':'Tāpiri āhuatanga hōu'},
   'newtextfield': {'eng':'New text field','mao':'Tuhinga hōu'},
   'uploadmediafile': {'eng':'Upload media file','mao':'Tuku konae'},
-  'drawshape': {'eng':'Draw shape','mao':'Tā āhua'},
-  'reuseshape': {'eng':'Reuse shape','mao':'Whakamahi āhua anō'},
+  'drawshape': {'eng':'Draw location','mao':'Tā āhua'},
+  'reuseshape': {'eng':'Reuse location','mao':'Whakamahi āhua anō'},
   'scrolltop': {'eng':'Scroll top','mao':'Panuku'},
-  'Upload file': {'eng':'Upload file (video/audio/image)','mao':'Tuku kōnae atu (whakaataata/oro/whakaahua)'},
+  'uploadfile': {'eng':'Upload file (video/audio/image)','mao':'Tuku kōnae atu (whakaataata/oro/whakaahua)'},
   'gotit': {'eng':'Got it!','mao':'Kua mau!'},
   'add': {'eng':'Add','mao':'Tāpiri'},
   'editstory': {'eng':'Edit story','mao':'Tõrire kōrero'},
   'print': {'eng':'Print','mao':'Tāhia'},
   'comments': {'eng':'Comments','mao':'Pito kōrero'},
-  'cocreate narrative': {'eng':'Co-create narrative','mao':'Hanga whare kōrero'},
+  'cocreatenarrative': {'eng':'Co-create narrative','mao':'Hanga whare kōrero'},
   'submitnarrative': {'eng':'Submit narrative','mao':'Tuku kōrero'},
   'unpublishnarrative': {'eng':'unpublishnarrative','mao':'Tāhia'},
   'viewnarrative': {'eng':'view narrative','mao':'Tirohia te kōrero'},
@@ -70,7 +70,9 @@ var langObj = {
   'dragme': {'eng':'Drag me','mao':'Tōia mai'},
   'updatestory': {'eng':'Update story','mao':'Whakahou te kōrero'},
   'search': {'eng':'Search','mao':'Rapu'},
-  'opennarrative': {'eng':'Open narrative','mao':'Huakina te kōrero'}
+  'opennarrative': {'eng':'Open narrative','mao':'Huakina te kōrero'},
+  'accept': {'eng':'Accept','mao':'Whakaaetia'},
+  'review': {'eng':'Review','mao':'Tātari'},
 }
 
 module.exports = { langObj }
