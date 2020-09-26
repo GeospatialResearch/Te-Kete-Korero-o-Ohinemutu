@@ -66,7 +66,7 @@ $(function () {
   });
 
   // switch between background images
-  var bgs = "bg1 bg2 bg3 bg4";
+  var bgs = "bg1 bg2 bg3 bg4 bg5 bg6 bg7 bg8";
   $('[data-bg]').click(function () {
     $('[data-bg]').removeClass("selected");
     $(this).addClass("selected");

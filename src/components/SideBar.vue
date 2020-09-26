@@ -285,8 +285,8 @@
             <a v-if="authenticated && user && (user.is_superuser || user.is_staff)" class="dropdown-item" href="#" @click="openNestsSettings()">Nests settings Page</a>
             <a v-if="authenticated && user && (user.is_superuser || user.is_staff)" class="dropdown-item" href="#" @click="openUsersSettings()">Users settings Page</a>
             <!-- <a v-if="authenticated && user && (user.is_superuser || user.is_staff)" class="dropdown-item" href="#" @click="openUsersSettings()">Kaitiaki Page</a> -->
-            <!-- <a class="dropdown-item" href="#">Help</a>
-            <a class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'themes')">Look & Feel</a> -->
+            <!-- <a class="dropdown-item" href="#">Help</a>-->
+            <a class="dropdown-item" href="#" @click="$store.commit('TOGGLE_CONTENT', 'themes')">Look & Feel</a>
           </div>
         </div>
         <!-- <div>
@@ -499,7 +499,7 @@
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5>Search Narratives</h5>
+            <h5>{{ translationObj.searchnarratives[lang] }}</h5>
           </div>
           <div class="modal-body pl-5 pr-5">
             <div class="input-group input-group-sm">
@@ -516,7 +516,7 @@
               </div>
               <div class="input-group-append">
                 <button class="btn btn-success" @click="filterStories(filter.freeText, filter.atua, filter.storyType)">
-                  Search
+                  {{ translationObj.search[lang] }}
                 </button>
               </div>
             </div>
@@ -563,14 +563,14 @@
                     </div>
                     <div v-if="stories.filter(s=>s.id === story.id).length != 0" class="col-sm-3 text-center">
                       <button type="button" class="btn btn-sm btn-primary" title="Open narrative" @click="openNarrative(story.id)">
-                        Open narrative
+                        {{ translationObj.opennarrative[lang] }}
                       </button>
                     </div>
-                    <div v-else class="col-sm-3 text-center">
+                    <!-- <div v-else class="col-sm-3 text-center">
                       <button type="button" disabled class="btn btn-sm btn-primary" title="Send mail">
                         Send <i class="fa fa-envelope" />
                       </button>
-                    </div>
+                    </div> -->
                   </div>
                 </div>
               </div>
@@ -578,7 +578,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="closeSearchCollapse()">
-              Close
+              {{ translationObj.close[lang] }}
             </button>
           </div>
         </div>
@@ -1063,15 +1063,11 @@
         // }
 
         if (story.owner === this.username || (this.user && this.user.is_superuser)) {
-          // storyOptions = `<div class="layer-options">
-          //                   <a class="dropdown-item" id="` + story.id + `_view" href="#">View narrative</a>
-          //                   <div class="dropdown-divider"></div>
-          //                   <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">Delete narrative</a>
-          //                 </div>`
           storyOptions = `<div class="layer-options">
                             <a class="dropdown-item" id="` + story.id + `_view" href="#">`+this.translationObj.viewnarrative[this.lang]+`</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" id="` + story.id + `_deleteStory" href="#">`+this.translationObj.deletenarrative[this.lang]+`</a>
                           </div>`
-
         } else {
           storyOptions = `<div class="layer-options">
                             <a class="dropdown-item" id="` + story.id + `_view" href="#">`+this.translationObj.viewnarrative[this.lang]+`</a>

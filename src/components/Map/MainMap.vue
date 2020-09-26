@@ -289,7 +289,7 @@
       <div class="modal-dialog">
         <div class="modal-content modal-margin-top">
           <div class="modal-header">
-            <h5>Attention</h5>
+            <h5>{{ translationObj.attention[lang] }}</h5>
           </div>
           <div class="modal-body text-center">
             <h6>
@@ -310,7 +310,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
-              Got it!
+              {{ translationObj.gotit[lang] }}
             </button>
           </div>
         </div>
@@ -639,6 +639,7 @@ import Geolocation from 'ol/Geolocation'
 import Geocoder from 'ol-geocoder'
 import { flyTo } from 'utils/olHelper'
 import controlOverlay from 'ol-ext/control/Overlay'
+import { langObj } from 'utils/initialTranslObj'
 
 var draw, snap, modify // global so we can remove them later
 var mapDrawingNotify
@@ -759,6 +760,16 @@ export default {
     },
     storyViewLang () {
       return this.$store.state.storyViewLang
+    },
+    lang () {
+      return this.$store.state.lang
+    },
+    translationObj () {
+      if (this.$store.state.websiteTranslObj) {
+        return this.$store.state.websiteTranslObj
+      } else {
+        return langObj
+      }
     },
     isGeomMediaMode () {
       return this.$store.state.geomMediaMode
@@ -1197,6 +1208,7 @@ export default {
       var geoms = []
       each(storyBodyElements, (elem) => {
         if (elem.element_type === 'GEOM') {
+          console.log("pushing geom")
           geoms.push(elem)
         }
       })
@@ -1229,7 +1241,7 @@ export default {
             feature.setStyle(geomAttrStyle)
           }
         })
-
+        console.log("gonna zoom...");
         EventBus.$emit('zoomToStoryGeoms')
       }
 

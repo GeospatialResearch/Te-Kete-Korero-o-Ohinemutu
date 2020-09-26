@@ -4,7 +4,7 @@
       <div class="detail-box">
         <div class="title-box">
           <font-awesome-icon icon="comments" class="mr-2" />
-          <label>Comments
+          <label>{{ translationObj.comments[lang] }}
             <span v-if="story.comments">
               ({{ story.comments.length }})
             </span>
@@ -18,7 +18,7 @@
             <div class="form-group">
               <font-awesome-icon v-if="isLoadingComment" icon="spinner" spin size="lg" />
               <button v-else class="btn btn-sm btn-success float-right" @click="addComment()">
-                Add
+                {{ translationObj.add[lang] }}
               </button>
             </div>
           </form>
@@ -50,7 +50,7 @@
 </template>
 
 <script>
-
+import { langObj } from 'utils/initialTranslObj'
 export default {
   data () {
     return {
@@ -67,6 +67,16 @@ export default {
     },
     user () {
       return this.$store.state.user
+    },
+    lang () {
+      return this.$store.state.lang
+    },
+    translationObj () {
+      if (this.$store.state.websiteTranslObj) {
+        return this.$store.state.websiteTranslObj
+      } else {
+        return langObj
+      }
     }
   },
   methods: {
