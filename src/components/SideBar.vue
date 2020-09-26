@@ -437,14 +437,14 @@
       <div class="modal-dialog">
         <div class="modal-content modal-margin-top">
           <div class="modal-header">
-            <h5>Attention</h5>
+            <h5>{{ translationObj.attention[lang] }}</h5>
           </div>
           <div class="modal-body text-center">
             <h6>Currently this story is being edited by {{ editor?allUsers.filter(user=>user.id === editor)[0].username:'' }}, so please close this story for now and come back later.</h6>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
-              Close
+              {{ translationObj.close[lang] }}
             </button>
           </div>
         </div>
@@ -454,14 +454,14 @@
       <div class="modal-dialog">
         <div class="modal-content modal-margin-top">
           <div class="modal-header">
-            <h5>Attention</h5>
+            <h5>{{ translationObj.attention[lang] }}</h5>
           </div>
           <div class="modal-body text-center">
             <h6>A story is being edited, be sure you save the changes before opening another story or doing other operations.</h6>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
-              Close
+              {{ translationObj.close[lang] }}
             </button>
           </div>
         </div>

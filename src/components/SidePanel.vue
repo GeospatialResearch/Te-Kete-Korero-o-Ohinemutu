@@ -561,14 +561,14 @@
       <div class="modal-dialog">
         <div class="modal-content modal-margin-top">
           <div class="modal-header">
-            <h5>Attention</h5>
+            <h5>{{ translationObj.attention[lang] }}</h5>
           </div>
           <div class="modal-body text-center">
             <h6>Currently this story is being edited by {{ editor?allUsers.filter(user=>user.id === editor)[0].username:'' }}, so you can't delete now, please come back later.</h6>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
-              Close
+              {{ translationObj.close[lang] }}
             </button>
           </div>
         </div>
@@ -632,7 +632,7 @@
       <div class="modal-dialog">
         <div :class="[isDrawMode ? ' modal-margin-top': '', 'modal-content']">
           <div class="modal-header">
-            <h5>Attention</h5>
+            <h5>{{ translationObj.attention[lang] }}</h5>
           </div>
           <div class="modal-body text-center">
             <div v-if="isDrawMode">
@@ -649,10 +649,10 @@
             </div>
             <div v-else>
               <button type="button" class="btn btn-danger" data-dismiss="modal">
-                No
+                {{ translationObj.no[lang] }}
               </button>
               <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="cancelStorySaving()">
-                Yes
+                {{ translationObj.yes[lang] }}
               </button>
             </div>
           </div>
@@ -855,17 +855,17 @@
       <div class="modal-dialog">
         <div class="modal-content modal-margin-top">
           <div class="modal-header">
-            <h5>Attention</h5>
+            <h5>{{ translationObj.attention[lang] }}</h5>
           </div>
           <div class="modal-body text-center">
             <h6>This story was already in the wider nest, if you edit, you have to submit it again. Are you sure you want to edit?</h6>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
-              No
+              {{ translationObj.no[lang] }}
             </button>
             <button class="btn btn-danger btn-ok" data-dismiss="modal" @click="updateStoryStatus()">
-              Yes, I am sure
+              {{ translationObj.yes[lang] }}
             </button>
           </div>
         </div>

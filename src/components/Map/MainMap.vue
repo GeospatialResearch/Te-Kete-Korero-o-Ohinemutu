@@ -1208,7 +1208,6 @@ export default {
       var geoms = []
       each(storyBodyElements, (elem) => {
         if (elem.element_type === 'GEOM') {
-          console.log("pushing geom")
           geoms.push(elem)
         }
       })
@@ -1241,7 +1240,6 @@ export default {
             feature.setStyle(geomAttrStyle)
           }
         })
-        console.log("gonna zoom...");
         EventBus.$emit('zoomToStoryGeoms')
       }
 
