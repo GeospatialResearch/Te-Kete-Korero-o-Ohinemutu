@@ -130,13 +130,21 @@ flake8:
 eslint:
 	docker-compose $(DEV) exec www yarn run lint
 
+build-push-www-test:
+	docker build \
+	    -t geospatialri/bicultool:develop \
+	    --build-arg API_HOST=https://api.maptool.test.geospatial.ac.nz \
+	    --build-arg WEB_HOST=https://www.maptool.test.geospatial.ac.nz \
+	    -f DockerfileNodeNginx \
+	    .
+	docker push geospatialri/bicultool:develop
 # # Careful, these push docker images.
 # # Use this only to avoid bitbucket pipeline usage
 build-push-www:
 	docker build \
 	    -t geospatialri/bicultool:develop \
-	    --build-arg API_HOST=https://api.maptool.test.geospatial.ac.nz \
-	    --build-arg WEB_HOST=https://www.maptool.test.geospatial.ac.nz \
+	    --build-arg API_HOST=https://api.ohinemutukorero.co.nz \
+	    --build-arg WEB_HOST=https://www.ohinemutukorero.co.nz \
 	    -f DockerfileNodeNginx \
 	    .
 	docker push geospatialri/bicultool:develop
