@@ -8,7 +8,7 @@
       </ol>
       <div class="carousel-inner" role="listbox">
         <!-- Slide One - Set the background image for this slide in the line below -->
-        <div class="carousel-item carousel-item-welcome active" style="background-image: url('static/img/pictures/screenshot_marae.png')">
+        <div class="carousel-item carousel-item-welcome active" style="background-image: url('static/img/pictures/screenshot_marae_photoshop.png')">
           <h1 class="welcome-overlay carousel-caption carousel-caption-welcome">
             <p class="welcome">
               Nau mai, Haere mai
@@ -37,7 +37,7 @@
             </p>
           </div> -->
         </div>
-      
+
         <!-- Slide Three - Set the background image for this slide in the line below -->
         <!-- <div class="carousel-item carousel-item-welcome" style="background-image: url('https://source.unsplash.com/szFUQoyvrxM/1920x1080')">
           <div class="carousel-caption">
