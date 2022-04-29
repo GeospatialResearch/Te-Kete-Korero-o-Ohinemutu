@@ -205,7 +205,7 @@
             <user-manual-view />
           </div>
           <div class="modal-footer">
-            <a href="https://www.dropbox.com/s/e5x5xh2dw8djtvy/User%20manual%20-%20%C5%8Chinemutu.docx?dl=1" class="btn btn-info" role="button">Print</a>
+            <a href="https://www.dropbox.com/s/wqb8q1s3y7n5dpf/User%20manual%20-%20%C5%8Chinemutu.pdf?dl=1" class="btn btn-info" role="button">Print</a>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
               Close
             </button>
