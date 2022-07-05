@@ -266,7 +266,7 @@
           <div class="modal-body">
             <div class="mb-4" style="font-size:1rem;">
               <p>
-                Te Kete Kōrero o Ōhinemutu been developed in collaboration with Ōhinemutu Development Working Group Incorporated Society, Te Tatau o Te Arawa, the University of Canterbury, and the Geospatial Research Institute. The research was kindly funded by the Ministry of Business, Innovation and Employment through the Endeavour Fund and Vision Mātauranga.
+                Te Kete Kōrero o Ōhinemutu been developed in collaboration with Te Manatōpu Hau Kāinga o Ōhinemutu, Te Tatau o Te Arawa, the University of Canterbury, and the Geospatial Research Institute. The research was kindly funded by the Ministry of Business, Innovation and Employment through the Endeavour Fund and Vision Mātauranga.
               </p>
             </div>
           </div>
