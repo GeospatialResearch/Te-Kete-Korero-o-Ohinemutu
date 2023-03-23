@@ -657,8 +657,8 @@ export default {
       mapView_projection: 'EPSG:3857', // 'EPSG:4326',  // this distorts the view
       // mapView_center: [19410113.214624517, -5044843.866821633], // [172.79296875, -41.868896484375]
       // mapView_zoom: 6,
-      mapView_center: [19626582.878728133, -4621535.604178325],
-      mapView_zoom: 9,
+      mapView_center: [19291605.8992,-5052673.6950],
+      mapView_zoom: 6,
       features_info: '',
       layersFeaturesPopupCount: 0,
       nExpectedCount: null,
