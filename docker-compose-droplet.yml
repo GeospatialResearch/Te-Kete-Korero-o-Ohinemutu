@@ -48,6 +48,8 @@ services:
       - VIRTUAL_HOST=www.maptool.test.geospatial.ac.nz
       - LETSENCRYPT_HOST=www.maptool.test.geospatial.ac.nz
       - LETSENCRYPT_EMAIL=geospatial.gri@gmail.com
+    ports:
+      - "80:80"
 
   api-nginx:
     image: geospatialri/bicultool-django-nginx:develop
@@ -61,36 +63,3 @@ services:
     volumes:
       - staticfiles:/code/staticfiles
       - media:/code/media
-
-  nginx-proxy:
-    image: jwilder/nginx-proxy:latest
-    restart: always
-    volumes:
-      - ./certs:/etc/nginx/certs:ro
-      - ./conf:/etc/nginx/conf.d
-      - ./upload_size.conf:/etc/nginx/conf.d/upload_size.conf # a file added to the root of the droplet with the line 'client_max_body_size 500m;'
-      - ./web:/usr/share/nginx/html
-      - ./vhost.d:/etc/nginx/vhost.d
-      - ./htpasswd:/etc/nginx/htpasswd
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-    labels:
-      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy"
-    ports:
-      - '80:80'
-      - '443:443'
-
-  nginx-letsencrypt:
-    image: jrcs/letsencrypt-nginx-proxy-companion
-    restart: always
-    volumes:
-      - ./certs:/etc/nginx/certs:rw
-      - ./conf:/etc/nginx/conf.d
-      - ./upload_size.conf:/etc/nginx/conf.d/upload_size.conf
-      - ./web:/usr/share/nginx/html
-      - ./vhost.d:/etc/nginx/vhost.d
-      - ./htpasswd:/etc/nginx/htpasswd
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      - NGINX_PROXY_CONTAINER=nginx-proxy
-    depends_on:
-      - 'nginx-proxy'
