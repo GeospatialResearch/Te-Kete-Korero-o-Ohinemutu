@@ -29,6 +29,9 @@ services:
 
   api:
     image: geospatialri/bicultool-django:develop
+    build:
+      context: .
+      dockerfile: ./DockerfileDjango
     restart: always
     env_file: .dockerenv
     environment:
@@ -43,6 +46,9 @@ services:
 
   www:
     image: geospatialri/bicultool:develop
+    build:
+      context: .
+      dockerfile: ./DockerfileNodeNginx
     restart: always
     environment:
       - VIRTUAL_HOST=www.maptool.test.geospatial.ac.nz
@@ -53,6 +59,9 @@ services:
 
   api-nginx:
     image: geospatialri/bicultool-django-nginx:develop
+    build:
+      context: .
+      dockerfile: DockerfileDjangoNginx
     restart: always
     environment:
       - VIRTUAL_HOST=api.maptool.test.geospatial.ac.nz
