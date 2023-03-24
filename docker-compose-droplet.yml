@@ -28,7 +28,7 @@ services:
       - geoserver-data:/opt/geoserver/data_dir
 
   api:
-    image: geospatialri/bicultool-django:develop
+    image: geospatialri/bicultool-django:oss-dev
     build:
       context: .
       dockerfile: ./DockerfileDjango
@@ -45,7 +45,7 @@ services:
       - media:/code/media
 
   www:
-    image: geospatialri/bicultool:develop
+    image: geospatialri/bicultool:oss-dev
     build:
       context: .
       dockerfile: ./DockerfileNodeNginx
@@ -58,7 +58,7 @@ services:
       - "80:80"
 
   api-nginx:
-    image: geospatialri/bicultool-django-nginx:develop
+    image: geospatialri/bicultool-django-nginx:oss-dev
     build:
       context: .
       dockerfile: DockerfileDjangoNginx
