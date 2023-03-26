@@ -50,6 +50,7 @@ services:
       context: .
       dockerfile: ./DockerfileNodeNginx
     restart: always
+    env_file: web-hosts.env
     environment:
       - VIRTUAL_HOST=www.maptool.test.geospatial.ac.nz
       - LETSENCRYPT_HOST=www.maptool.test.geospatial.ac.nz
