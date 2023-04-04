@@ -1,9 +1,5 @@
 FROM node:8.15.0 as builder
 
-# We need some build environment variables to switch settings with
-ARG API_HOST
-ARG WEB_HOST
-ARG ENVIRONMENT
 
 WORKDIR /code
 
@@ -21,6 +17,11 @@ COPY .eslintrc.js .
 # COPY in the project files
 COPY src ./src
 COPY index.html .
+
+# We need some build environment variables to switch settings with
+ARG API_HOST
+ARG WEB_HOST
+ARG ENVIRONMENT
 
 RUN yarn build
 
