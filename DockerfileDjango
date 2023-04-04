@@ -1,8 +1,11 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 # Changed to Ubuntu so that we can install GDAL easier
 
+# Add dpkg flag so that `apt install` does not ask prompts for location
+ARG DEBIAN_FRONTEND=noninteractive
+
 # Let's get us some UbuntuGIS
-RUN apt-get update && apt-get install -y python-software-properties software-properties-common \
+RUN apt-get update && apt-get install -y software-properties-common \
     && add-apt-repository ppa:ubuntugis/ubuntugis-unstable \
     && rm -rf /var/lib/apt/lists/*
 

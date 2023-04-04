@@ -26,6 +26,8 @@ services:
       - 'db'
     volumes:
       - geoserver-data:/opt/geoserver/data_dir
+    ports:
+    - "8080:8080"
 
   api:
     image: geospatialri/bicultool-django:oss-dev
@@ -39,7 +41,7 @@ services:
     depends_on:
       - 'db'
     ports:
-      - 8000
+      - "8000:8000"
     volumes:
       - staticfiles:/code/staticfiles
       - media:/code/media
