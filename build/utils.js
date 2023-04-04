@@ -16,7 +16,10 @@ if (process.env.API_HOST) {
 }
 if (process.env.WEB_HOST) {
   parameters.WEB_HOST = process.env.WEB_HOST
-  parameters.GEOSERVER_HOST = parameters.WEB_HOST.replace('www', 'geoserver') + '/geoserver'
+  parameters.GEOSERVER_HOST = parameters.WEB_HOST.replace('www', 'geoserver') + ':8080/geoserver'
+}
+if (process.env.GEOSERVER_HOST) {
+  parameters.GEOSERVER_HOST = process.env.GEOSERVER_HOST
 }
 
 if (process.env.ENVIRONMENT === 'localprod') {
