@@ -15,7 +15,11 @@ services:
       - '5432:5432'
 
   geoserver:
-    image: geospatialri/geoserver-postgis:2.15.0
+    build:
+      context: .
+      dockerfile: DockerfileGeoserver
+      args:
+        WEB_HOST: $WEB_HOST
     restart: always
     env_file: .dockerenv
     environment:
@@ -52,7 +56,6 @@ services:
       context: .
       dockerfile: ./DockerfileNodeNginx
     restart: always
-    env_file: web-hosts.env
     environment:
       - VIRTUAL_HOST=www.maptool.test.geospatial.ac.nz
       - LETSENCRYPT_HOST=www.maptool.test.geospatial.ac.nz

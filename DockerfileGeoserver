@@ -1,0 +1,11 @@
+FROM geospatialri/geoserver-postgis:2.15.0
+
+ARG WEB_HOST
+RUN test -n "$WEB_HOST" || (echo "environment variable WEB_HOST not set" && exit 1)
+
+# Add web.xml with WEB_HOST in CORS policy
+# This is done this way because of problems with SE Linux and sharing files with services.
+COPY geoserver_config/web.xml /usr/local/tomcat/conf/web.xml
+RUN sed -i "s,{{ WEB_HOST }},$WEB_HOST,g" /usr/local/tomcat/conf/web.xml
+
+CMD ["/bin/sh", "-c", "$GEOSERVER_HOME/docker/run.sh"]
