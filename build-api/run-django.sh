@@ -31,4 +31,4 @@ echo "Running migrate"
 python3 manage.py migrate
 
 echo "Running gunicorn"
-gunicorn --workers 2 --bind=0.0.0.0:8000 djangoproj.wsgi
+gunicorn --workers 2 --bind=0.0.0.0:8000 --log-level debug djangoproj.wsgi
