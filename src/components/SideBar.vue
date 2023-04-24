@@ -59,7 +59,8 @@
                 </div>
               </div>
             </div>
-            <li v-if="authenticated && contentToShow=='map'" class="sidebar-dropdown">
+            <li v-if="authenticated && contentToShow=='map' && (user.is_staff || user.is_superuser)" class="sidebar-dropdown">
+              <!-- Temporarily blocking access to "My Layers" for non-staff since the layers may be accessible by everyone.              -->
               <a href="#" title="Data uploaded by you" @click="dropdownSidebarDropdow($event)">
                 <!-- <i class="fa fa-layer-group" /> using this one the icons shakes when hovering over the icon-->
                 <i><font-awesome-icon icon="layer-group" /></i>
@@ -313,10 +314,13 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-          <div class="modal-body">
+          <div v-if="user.is_superuser || user.is_staff" class="modal-body">
             <form v-if="!uploadError" enctype="multipart/form-data" novalidate>
               <p class="text-center">
                 <strong>Upload a vector dataset (zipped shapefile or geojson file) or a raster file</strong>
+              </p>
+              <p class="text-center">
+                <span class="badge-danger">Warning: Any data uploaded here may be open to the public. Tool managers please consider this and only upload data that is already open.</span>
               </p>
               <div class="dropbox">
                 <input type="file" :name="uploadFieldName" class="input-file" @change="fileChange($event.target.files)">
@@ -331,6 +335,9 @@
               <hr>
               <p>Please check that your data is valid and try again.</p>
             </div>
+          </div>
+          <div v-else class="modal-body">
+            Under maintenance to increase data security. To upload a layer file please contact a tool manager.
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="reset()">
