@@ -1,33 +1,19 @@
-# vue-webpack4-template
-VueJs template using Webpack 4
+# Te Kete Kōrero o Ōhinemutu
 
-This repository is an implementation of the 'Vue.js and Webpack 4 From Scratch' article series on [itnext.io](https://itnext.io).
+![Homepage Screenshot](/static/img/user_manual/adduseraccount.png)
 
-[![Build Status](https://travis-ci.com/dfcook/vue-webpack4-template.svg?branch=master)](https://travis-ci.com/dfcook/vue-webpack4-template)
+Te Kete Kōrero o Ōhinemutu is a map-based web tool built for the people of Ōhinemutu to preserve personal narratives and histories.
+The tool allows people to upload scanned documents, photos, videos, audio recordings, and written accounts.
+The tool links these narratives with places to help draw connections for current and future generations.
 
-[Part 1](https://itnext.io/vuejs-and-webpack-4-from-scratch-part-1-94c9c28a534a):
-  - Hot Module loading with webpack-dev-server
-  - Linting using eslint
-  - CSS pre-processing with stylus
-  - Testing using @vue/test-utils and Jest
+Community members can keep these narratives private to themselves, share them within their immediate whanau, or share wider through various degrees of privacy groups.
+Information stored in the tool remains private by default but can be shared with the wider Ōhinemutu community if desired.
+It can be used to collate specific scientific data around important features such as ngāwhā, or can be used to store letters with historical and sentimental value to whanau.
+We built this tool to preserve mātauranga within the community, and allow the people of Ōhinemutu to collate their own information, for preservation, and conservation, and to enable community planning and projects.
 
-[Part 2](https://itnext.io/vue-js-and-webpack-4-from-scratch-part-2-5038cc9deffb):
-  - Stylus for adding pre-processed CSS
-  - Hot Module Reloading and HTML injection
-  - Babel for building our scripts
+This tool is being adapted to a generic open-source tool that can be used by any other community. Ōhinemutu will keep use of this tool and all their data and images, but the core of the codebase will be shared.
+Once this generic release is finalised, documentation for setup will become more easily available.
 
-[Part 3](https://itnext.io/vue-js-and-webpack-4-from-scratch-part-3-3f68d2a3c127):
-  - Static assets processing
-  - ESLint for linting
-  - Testing using Jest
-    - _For debugging the tests, first need to open `chrome:inspect` on Google Chrome and click the Open dedicated DevTools for Node then run the command `npm run test:debug` from your console._
+Please contact [Geospatial Research Institute | Toi Hanagarau](geospatial.ac.nz) if you have any questions about this project. 
 
-
-### Django management
-There's a few django commands available:
-
- * `make-migrations` will run the manage.py makemigrations command.
- * `make migrate` will run the migrate command, applying migrations.
- * `get-db` will get you an interactive shell for the database, so you can explore postgres
- * `initialise-db` will migrate, create an admin user (admin, admin@example.com, password) so you can log into django-admin and then loads test data.
- * `reset-db` will give you a clean slate database.
+![Screenshot of the main map view of the application](/static/img/user_manual/addnewnarrative.png)
