@@ -1,14 +1,15 @@
+# To be filled in manually to ensure that passwords are not found in source-control
 POSTGRES_HOSTNAME=db
 POSTGRES_DB=rotorua
-POSTGRES_USER=mapuser
-POSTGRES_PASSWORD=rotorua
+POSTGRES_USER=
+POSTGRES_PASSWORD=
 
 GEOSERVER_USERNAME=admin
-GEOSERVER_PASSWORD=geoserver
+GEOSERVER_PASSWORD=
 GEOSERVER_WORKSPACE=storyapp
 GEOSERVER_DATASTORE=user_data
 
 PG_HOST=db
 PG_DATABASE=rotorua
-PG_USERNAME=mapuser
-PG_PASSWORD=rotorua
+PG_USERNAME=
+PG_PASSWORD=
