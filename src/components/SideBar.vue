@@ -314,7 +314,7 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-          <div v-if="user.is_superuser || user.is_staff" class="modal-body">
+          <div v-if="authenticated && (user.is_superuser || user.is_staff)" class="modal-body">
             <form v-if="!uploadError" enctype="multipart/form-data" novalidate>
               <p class="text-center">
                 <strong>Upload a vector dataset (zipped shapefile or geojson file) or a raster file</strong>
